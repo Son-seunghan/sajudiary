@@ -1,6 +1,6 @@
 # 🌐 도메인 구매 → 사이트 연결 가이드
 
-사주로그를 본인 도메인(예: sajulog.com)으로 띄우는 전체 절차입니다.
+사주다이어리를 본인 도메인(예: sajudiary.com)으로 띄우는 전체 절차입니다.
 
 ---
 
@@ -43,7 +43,7 @@
 ### 가비아에서 도메인 구매하기
 
 1. https://www.gabia.com 접속
-2. 검색창에 `sajulog` 입력 → 검색
+2. 검색창에 `sajudiary` 입력 → 검색
 3. `.com` `.kr` `.co.kr` 등 가능한 옵션 표시
    - **추천**: `.com` (전 세계 표준, 가장 무난)
    - 한국 한정 운영이면 `.kr` (.kr은 약간 비쌈)
@@ -65,7 +65,7 @@
 ### 2-2. 코드를 GitHub에 올리기 (Repository 생성)
 **방법 A — GitHub 웹사이트에서 직접 업로드 (간단)**
 1. GitHub 로그인 → 우측 상단 + → "New repository"
-2. Repository name: `sajulog` (자유)
+2. Repository name: `sajudiary` (자유)
 3. **Public** 또는 **Private** 선택 (Public 무료 추천)
 4. "Create repository" 클릭
 5. 다음 화면에서 "uploading an existing file" 클릭
@@ -79,10 +79,10 @@
 2. **"Continue with GitHub"** 클릭 (가장 편함)
 3. GitHub 계정으로 로그인 → 권한 허용
 4. Vercel 대시보드에서 **"Add New... → Project"** 클릭
-5. 방금 만든 `sajulog` 저장소 선택 → "Import"
+5. 방금 만든 `sajudiary` 저장소 선택 → "Import"
 6. 설정 화면 그대로 두고 **"Deploy"** 클릭
 7. 1~2분 후 자동 배포 완료
-8. → `sajulog.vercel.app` 같은 임시 주소가 발급됨
+8. → `sajudiary.vercel.app` 같은 임시 주소가 발급됨
 9. 클릭해서 사이트 작동 확인 ✅
 
 📌 GitHub에 새 코드 업로드 = Vercel이 자동으로 재배포 (편함)
@@ -93,7 +93,7 @@
 
 ### 3-1. Vercel에 도메인 추가
 1. Vercel 프로젝트 → **"Settings → Domains"** 메뉴
-2. 입력란에 `sajulog.com` 입력 → **"Add"**
+2. 입력란에 `sajudiary.com` 입력 → **"Add"**
 3. Vercel이 DNS 설정 정보를 보여줌:
    ```
    Type: A
@@ -108,7 +108,7 @@
 
 ### 3-2. 가비아 DNS에서 설정
 1. 가비아 마이페이지 → **"My가비아 → 서비스 관리"**
-2. `sajulog.com` 옆 **"DNS 정보"** 클릭
+2. `sajudiary.com` 옆 **"DNS 정보"** 클릭
 3. **"DNS 관리 툴"** → "DNS 설정" 메뉴
 4. 기존 레코드 삭제 후 새 레코드 추가:
 
@@ -121,7 +121,7 @@
 6. 5분~24시간 기다리기 (보통 30분 내 적용)
 
 ### 3-3. 확인
-1. 5~10분 후 브라우저에서 `sajulog.com` 접속
+1. 5~10분 후 브라우저에서 `sajudiary.com` 접속
 2. 우리 사이트가 뜨면 성공! ✅
 3. Vercel은 HTTPS 인증서를 자동 발급 → 자물쇠 표시
 
@@ -131,11 +131,11 @@
 
 도메인이 바뀌면 카카오에도 알려야 합니다.
 
-1. https://developers.kakao.com → 사주로그 앱
+1. https://developers.kakao.com → 사주다이어리 앱
 2. **앱 → 플랫폼 키 → Web 플랫폼**
-   - 사이트 도메인 추가: `https://sajulog.com`
+   - 사이트 도메인 추가: `https://sajudiary.com`
 3. **카카오 로그인 → 일반 → Redirect URI**
-   - 추가: `https://sajulog.com/login.html`
+   - 추가: `https://sajudiary.com/login.html`
 4. 저장
 
 기존 `http://127.0.0.1:5500` 항목은 그대로 둬도 됨 (개발할 때 필요).
@@ -146,7 +146,7 @@
 
 테스트 키는 도메인 등록 불필요. 실서비스 키로 전환할 때:
 1. https://app.tosspayments.com → 가맹점 정보
-2. 도메인 등록 → `sajulog.com` 추가
+2. 도메인 등록 → `sajudiary.com` 추가
 
 ---
 
@@ -155,7 +155,7 @@
 ### "도메인 접속이 안 됨"
 - **원인**: DNS 전파 지연
 - **해결**: 30분~24시간 기다리기
-- 진단: https://dnschecker.org 에서 `sajulog.com` 검색 → 전 세계 전파 확인
+- 진단: https://dnschecker.org 에서 `sajudiary.com` 검색 → 전 세계 전파 확인
 
 ### "HTTPS 자물쇠 안 뜸"
 - **원인**: Vercel이 SSL 인증서 발급 중

@@ -1,4 +1,4 @@
-# 사주로그 (Sajulog) — robots.txt
+# 사주다이어리 (Sajulog) — robots.txt
 # 검색엔진 크롤러 정책
 
 User-agent: *
@@ -18,4 +18,4 @@ Disallow: /cart.html
 Disallow: /products/
 
 # 사이트맵
-Sitemap: https://sajulog.com/sitemap.xml
+Sitemap: https://sajudiary.com/sitemap.xml

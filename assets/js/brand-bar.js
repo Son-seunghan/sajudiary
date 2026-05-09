@@ -1,5 +1,5 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   사주로그 - 통합 브랜드 헤더 (brand-bar.js)
+   사주다이어리 - 통합 브랜드 헤더 (brand-bar.js)
    분석 페이지에 자동으로 상단 띠 + 하단 추천 카드 주입
    각 페이지 고유 디자인은 유지하면서 브랜드 일관성만 추가
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -26,7 +26,7 @@
 
   // ─── 1) 상단 브랜드 띠 ───
   function injectBrandBar() {
-    if (document.getElementById('sajulog-brand-bar')) return;
+    if (document.getElementById('sajudiary-brand-bar')) return;
 
     // 현재 상품명 가져오기
     const product = currentProductId ? cfg.PRODUCTS[currentProductId] : null;
@@ -39,11 +39,11 @@
     const accentColor = colorMap[productColor] || '#b13a2c';
 
     const bar = document.createElement('div');
-    bar.id = 'sajulog-brand-bar';
+    bar.id = 'sajudiary-brand-bar';
     bar.innerHTML = `
       <style>
-        /* ━━ 사주로그 브랜드 띠 ━━ */
-        #sajulog-brand-bar {
+        /* ━━ 사주다이어리 브랜드 띠 ━━ */
+        #sajudiary-brand-bar {
           position: sticky; top: 0; z-index: 1000;
           background: linear-gradient(180deg, rgba(247, 240, 223, 0.96), rgba(247, 240, 223, 0.92));
           backdrop-filter: blur(8px);
@@ -55,7 +55,7 @@
           box-shadow: 0 1px 0 rgba(184, 146, 60, 0.1);
         }
         /* 오행 5색선 */
-        #sajulog-brand-bar::before {
+        #sajudiary-brand-bar::before {
           content: ""; display: block; height: 2px;
           background: linear-gradient(90deg,
             #5a8a98 0%, #5a8a98 20%,
@@ -129,9 +129,9 @@
       </style>
       <div class="sjb-inner">
         <a href="../index.html" class="sjb-logo">
-          <span class="hanja">四柱錄</span>
+          <span class="hanja">四柱日記</span>
           <span class="divider"></span>
-          <span class="korean">사주로그</span>
+          <span class="korean">사주다이어리</span>
           ${productName ? `
             <span class="product-sep" style="color:#8a7d6b;font-size:13px;margin:0 2px">✦</span>
             <span class="product-title" style="font-family:'Shilla Culture','Noto Serif KR',serif;font-weight:700;font-size:15px;color:${accentColor};letter-spacing:-0.01em">${productName}</span>
@@ -147,7 +147,7 @@
     document.body.insertBefore(bar, document.body.firstChild);
 
     // 마스터 배지 표시
-    const user = JSON.parse(localStorage.getItem('sajulog_user') || 'null');
+    const user = JSON.parse(localStorage.getItem('sajudiary_user') || 'null');
     if (user && user.isMaster) {
       document.getElementById('sjb-master').style.display = 'inline-block';
     }
@@ -155,12 +155,12 @@
 
   // ─── 2) 페이지 하단 — 다음 분석 추천 카드 ───
   function injectNextProductCard() {
-    if (document.getElementById('sajulog-next-card')) return;
+    if (document.getElementById('sajudiary-next-card')) return;
 
     // 본인이 아직 안 본 다른 상품 찾기 (구매 또는 마스터 기준)
-    const purchases = JSON.parse(localStorage.getItem('sajulog_purchases') || '[]');
+    const purchases = JSON.parse(localStorage.getItem('sajudiary_purchases') || '[]');
     const purchasedIds = purchases.map(p => p.productId);
-    const user = JSON.parse(localStorage.getItem('sajulog_user') || 'null');
+    const user = JSON.parse(localStorage.getItem('sajudiary_user') || 'null');
     const isMaster = !!(user && user.isMaster);
 
     // 추천 우선순위: couple → deep → couple_plus → light (현재 보고 있는 것 제외)
@@ -186,10 +186,10 @@
     const c = colorMap[product.color] || colorMap.vermil;
 
     const card = document.createElement('div');
-    card.id = 'sajulog-next-card';
+    card.id = 'sajudiary-next-card';
     card.innerHTML = `
       <style>
-        #sajulog-next-card {
+        #sajudiary-next-card {
           margin: 60px auto 80px;
           max-width: 600px;
           padding: 0 20px;

@@ -1,5 +1,5 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   사주로그 - 결과 공유/저장 (share.js)
+   사주다이어리 - 결과 공유/저장 (share.js)
    분석 페이지 우하단에 떠있는 플로팅 공유 바
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
@@ -7,21 +7,21 @@
   // 분석 페이지에서만 동작 (products/ 아래 파일들)
   // 결과를 봐야 의미있으므로 페이지 로드 후 5초 뒤 표시
   function init() {
-    if (document.getElementById('sajulog-share-bar')) return; // 중복 방지
+    if (document.getElementById('sajudiary-share-bar')) return; // 중복 방지
 
     // ─── 플로팅 바 HTML ───
     const bar = document.createElement('div');
-    bar.id = 'sajulog-share-bar';
+    bar.id = 'sajudiary-share-bar';
     bar.innerHTML = `
       <style>
-        #sajulog-share-bar {
+        #sajudiary-share-bar {
           position: fixed; right: 20px; bottom: 20px;
           z-index: 9999;
           font-family: 'Pretendard', system-ui, sans-serif;
           opacity: 0; transform: translateY(20px);
           transition: opacity .4s ease, transform .4s ease;
         }
-        #sajulog-share-bar.show { opacity: 1; transform: translateY(0); }
+        #sajudiary-share-bar.show { opacity: 1; transform: translateY(0); }
         .sj-share-toggle {
           width: 56px; height: 56px;
           border-radius: 50%;
@@ -47,7 +47,7 @@
           transition: opacity .2s ease, transform .2s ease;
           pointer-events: none;
         }
-        #sajulog-share-bar.open .sj-share-menu {
+        #sajudiary-share-bar.open .sj-share-menu {
           opacity: 1; transform: scale(1); pointer-events: auto;
         }
         .sj-share-item {
@@ -131,11 +131,11 @@
   // ─── 공유 액션 ───
   // ⚠️ 보안/사생활 보호: 분석 결과는 본인 데이터로 생성된 것이므로
   //    "결과 자체"를 다른 사람에게 보낼 수는 없습니다 (개인정보).
-  //    카카오톡/링크 = 사이트(사주로그) 추천만 가능
+  //    카카오톡/링크 = 사이트(사주다이어리) 추천만 가능
   //    이미지/PDF = 본인 보관/SNS 인증샷용
   function handleAction(action) {
     const homeUrl = window.location.origin;
-    const title = '사주로그 ✦ 나도 사주 봤어요';
+    const title = '사주다이어리 ✦ 나도 사주 봤어요';
     const description = '정통 명리학과 데이터 분석으로 풀어낸 나의 사주. 너도 한번 받아봐!';
 
     switch (action) {
@@ -199,7 +199,7 @@
   function copyLink(url) {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(
-        () => toast('사주로그 사이트 주소가 복사되었습니다 ✓'),
+        () => toast('사주다이어리 사이트 주소가 복사되었습니다 ✓'),
         () => fallbackCopy(url)
       );
     } else {
@@ -210,7 +210,7 @@
     const ta = document.createElement('textarea');
     ta.value = url; document.body.appendChild(ta);
     ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-    toast('사주로그 사이트 주소가 복사되었습니다 ✓');
+    toast('사주다이어리 사이트 주소가 복사되었습니다 ✓');
   }
 
   // ─── 이미지 저장 (html2canvas 동적 로드) ───
@@ -218,7 +218,7 @@
     toast('이미지 생성 중...', 5000);
     loadHtml2Canvas().then(html2canvas => {
       // 공유 바는 화면에서 숨기고 캡처
-      const bar = document.getElementById('sajulog-share-bar');
+      const bar = document.getElementById('sajudiary-share-bar');
       bar.style.visibility = 'hidden';
       html2canvas(document.body, {
         backgroundColor: '#f7f0df',
@@ -230,7 +230,7 @@
         bar.style.visibility = '';
         const link = document.createElement('a');
         const dateStr = new Date().toISOString().slice(0, 10);
-        link.download = `사주로그_${dateStr}.png`;
+        link.download = `사주다이어리_${dateStr}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
         toast('이미지가 저장되었습니다 ✓');

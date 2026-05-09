@@ -1,11 +1,11 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   사주로그 - 리뷰 시스템 (reviews.js)
+   사주다이어리 - 리뷰 시스템 (reviews.js)
    localStorage 기반 (배포 시 Supabase/Firebase로 이전 권장)
    ※ 현재는 같은 브라우저에서만 보존됨. 배포 후 백엔드 연동 필요.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 const Reviews = (function () {
-  const REVIEWS_KEY = 'sajulog_reviews';
+  const REVIEWS_KEY = 'sajudiary_reviews';
   const cfg = window.SAJULOG_CONFIG;
 
   // ─── 모든 리뷰 조회 ───

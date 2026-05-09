@@ -1,10 +1,10 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   사주로그 - 인증 모듈 (auth.js)
+   사주다이어리 - 인증 모듈 (auth.js)
    카카오 SDK 초기화 + 로그인/로그아웃 + 사용자 상태 관리
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 const Auth = (function () {
-  const STORAGE_KEY = 'sajulog_user';
+  const STORAGE_KEY = 'sajudiary_user';
   const cfg = window.SAJULOG_CONFIG;
 
   // ─── SDK 초기화 ───
@@ -159,8 +159,8 @@ const Auth = (function () {
 
   // ─── 사용자 정보 저장/조회/삭제 ───
   function saveUser(user) {
-    // 신규 사용자인지 체크 (sajulog_user_history 에 ID가 없으면 신규)
-    const histKey = 'sajulog_user_history';
+    // 신규 사용자인지 체크 (sajudiary_user_history 에 ID가 없으면 신규)
+    const histKey = 'sajudiary_user_history';
     const history = JSON.parse(localStorage.getItem(histKey) || '[]');
     const isNewUser = !history.includes(user.id);
 

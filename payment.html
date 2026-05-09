@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>결제 — 사주로그 四柱錄</title>
+<title>결제 — 사주다이어리 四柱日記</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -149,9 +149,9 @@
   <header class="border-b border-[var(--paper-dk)]/60">
     <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
       <a href="index.html" class="flex items-center gap-3">
-        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱日記</span>
         <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
-        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
       </a>
       <a href="index.html" class="font-shilla text-sm px-4 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 돌아가기</a>
     </div>
@@ -252,7 +252,7 @@
         <span>·</span>
         <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
       </div>
-      <p>© 2026 사주로그. All rights reserved.</p>
+      <p>© 2026 사주다이어리. All rights reserved.</p>
     </div>
   </footer>
 
@@ -262,7 +262,7 @@
   <!-- 토스페이먼츠 SDK -->
   <script src="https://js.tosspayments.com/v1/payment"></script>
 
-  <!-- 사주로그 공통 -->
+  <!-- 사주다이어리 공통 -->
   <script src="assets/js/config.js"></script>
   <script src="assets/js/cart.js"></script>
   <script src="assets/js/auth-guard.js"></script>
@@ -399,12 +399,12 @@
       const tossPayments = TossPayments(cfg.TOSS_CLIENT_KEY);
 
       // 주문 ID 생성
-      const orderId = `sajulog_${user.id}_${Date.now()}`.replace(/[^a-zA-Z0-9_-]/g, '');
+      const orderId = `sajudiary_${user.id}_${Date.now()}`.replace(/[^a-zA-Z0-9_-]/g, '');
 
       // 주문 이름 (단품 vs 다중)
       const orderName = items.length === 1
-        ? `[사주로그] ${cfg.PRODUCTS[items[0]].name}`
-        : `[사주로그] ${cfg.PRODUCTS[items[0]].name} 외 ${items.length - 1}건`;
+        ? `[사주다이어리] ${cfg.PRODUCTS[items[0]].name}`
+        : `[사주다이어리] ${cfg.PRODUCTS[items[0]].name} 외 ${items.length - 1}건`;
 
       // 결제 시도 기록
       sessionStorage.setItem('pending_order', JSON.stringify({

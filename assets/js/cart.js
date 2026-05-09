@@ -1,11 +1,11 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   사주로그 - 장바구니 + 쿠폰 + 할인 (cart.js)
+   사주다이어리 - 장바구니 + 쿠폰 + 할인 (cart.js)
    localStorage 기반 (배포 시 백엔드로 이전 가능)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 const Cart = (function () {
-  const CART_KEY    = 'sajulog_cart';        // 장바구니 (productId 배열)
-  const COUPONS_KEY = 'sajulog_my_coupons';  // 보유 쿠폰
+  const CART_KEY    = 'sajudiary_cart';        // 장바구니 (productId 배열)
+  const COUPONS_KEY = 'sajudiary_my_coupons';  // 보유 쿠폰
   const cfg = window.SAJULOG_CONFIG;
 
   // ─── 장바구니 ───
@@ -121,7 +121,7 @@ const Cart = (function () {
 
   // ─── 변경 이벤트 (헤더 카트 아이콘 업데이트용) ───
   function notifyChange() {
-    document.dispatchEvent(new CustomEvent('sajulog:cart-changed', { detail: { count: count() } }));
+    document.dispatchEvent(new CustomEvent('sajudiary:cart-changed', { detail: { count: count() } }));
   }
 
   // ─── 헤더 카트 아이콘 자동 업데이트 ───
@@ -133,7 +133,7 @@ const Cart = (function () {
       badgeElement.classList.toggle('hidden', c === 0);
     };
     update();
-    document.addEventListener('sajulog:cart-changed', update);
+    document.addEventListener('sajudiary:cart-changed', update);
   }
 
   return {

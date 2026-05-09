@@ -1,13 +1,13 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   사주로그 - 권한 가드 (auth-guard.js)
+   사주다이어리 - 권한 가드 (auth-guard.js)
    - 로그인 여부 검사
    - 결제 완료 여부 검사
    - 미결제/미로그인 시 적절한 페이지로 리다이렉트
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 const AuthGuard = (function () {
-  const USER_KEY      = 'sajulog_user';
-  const PURCHASES_KEY = 'sajulog_purchases';
+  const USER_KEY      = 'sajudiary_user';
+  const PURCHASES_KEY = 'sajudiary_purchases';
 
   // ─── 사용자 ───
   function getUser() {
