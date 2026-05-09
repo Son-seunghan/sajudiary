@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>궁합 편지 · 복사화</title>
+
+<!-- ━━ 사주로그 권한 가드 + 공유 바 (궁합 / 궁합 성인용) ━━ -->
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/auth-guard.js"></script>
+<script>
+  (function () {
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    const requiredProduct = mode === 'adult' ? 'couple_plus' : 'couple';
+    // couple_plus 결제자는 couple도 자동으로 볼 수 있게 (상위 호환)
+    if (requiredProduct === 'couple' && AuthGuard.hasPurchased('couple_plus')) {
+      return;
+    }
+    // 마스터 계정은 모두 패스
+    if (AuthGuard.isMaster()) {
+      console.log('[AuthGuard] ✦ 마스터 계정 — 궁합 페이지 패스');
+      return;
+    }
+    AuthGuard.requirePurchase(requiredProduct);
+  })();
+</script>
+<!-- 카카오 SDK (공유용) -->
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+<script src="../assets/js/share.js"></script>
+<!-- 통합 브랜드 헤더 + 다음 분석 추천 -->
+<script src="../assets/js/brand-bar.js"></script>
+
+<style>
+:root {
+  --bg-main:#FDF2EE;--bg-card:#FFFAF8;--bg-soft:#FAD5CE;--bg-accent:#F5A9B5;
+  --bg-tag:rgba(217,123,137,.09);--bg-letter:#FFF5F1;
+  --border:#EED6CE;--border-soft:rgba(107,53,69,.14);--border-strong:#D9B5AD;
+  --text:#5C2E3A;--text-muted:#A66F7E;--text-soft:#C99CA6;
+  --accent:#D97B89;--accent-dark:#A84458;
+  --wood:#7FB069;--fire:#E28B7A;--earth:#D4A574;--metal:#A6B5B8;--water:#7A9FB8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg-main);color:var(--text);font-family:'Noto Serif KR','Nanum Myeongjo','Malgun Gothic',serif;min-height:100vh;padding:20px 16px 60px;font-size:15px;line-height:1.95;letter-spacing:.2px;}
+.wrap{max-width:720px;margin:0 auto;}
+.site-header{text-align:center;padding:36px 0 20px;}
+.site-title{font-size:26px;color:var(--accent-dark);letter-spacing:8px;margin-bottom:8px;font-weight:500;}
+.site-title-h{font-size:13px;color:var(--text-muted);letter-spacing:10px;margin-bottom:12px;}
+.site-sub{color:var(--text-muted);font-size:13px;letter-spacing:3px;}
+.bloom-line{color:var(--accent);font-size:14px;margin-top:14px;letter-spacing:10px;}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:18px;overflow:hidden;}
+.card-title{font-size:16px;color:var(--accent-dark);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);letter-spacing:2px;display:flex;align-items:center;gap:8px;font-weight:500;}
+.card-title::before{content:'✿';color:var(--accent);font-size:14px;}
+.letter{background:var(--bg-letter);border:1px solid var(--border);border-radius:18px;padding:32px 28px;margin-bottom:20px;position:relative;}
+.letter::before,.letter::after{content:'';position:absolute;width:24px;height:24px;border:1px solid var(--accent);opacity:.35;}
+.letter::before{top:12px;left:12px;border-right:none;border-bottom:none;border-radius:6px 0 0 0;}
+.letter::after{bottom:12px;right:12px;border-left:none;border-top:none;border-radius:0 0 6px 0;}
+.letter-sec-label{font-size:12px;color:var(--accent);letter-spacing:4px;margin-bottom:6px;text-align:center;}
+.letter-sec-title{font-size:18px;color:var(--accent-dark);letter-spacing:3px;font-weight:500;margin-bottom:16px;text-align:center;}
+.letter-body p{margin-bottom:14px;}
+.letter-body p:last-child{margin-bottom:0;}
+.letter-body b{color:var(--accent-dark);font-weight:500;}
+.rel-toggle{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;justify-content:center;}
+.rel-btn{background:transparent;border:1px solid var(--border-strong);color:var(--text-muted);padding:8px 16px;border-radius:20px;font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.rel-btn:hover{border-color:var(--accent);color:var(--accent-dark);}
+.rel-btn.active{background:var(--bg-soft);border-color:var(--accent);color:var(--accent-dark);font-weight:500;}
+.dual-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;}
+@media(max-width:620px){.dual-form{grid-template-columns:minmax(0,1fr);}}
+.person-panel{background:var(--bg-main);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;min-width:0;}
+.person-panel::before{content:attr(data-label);position:absolute;top:-10px;left:18px;background:var(--bg-card);padding:2px 12px;font-size:11px;color:var(--accent-dark);letter-spacing:3px;border-radius:10px;border:1px solid var(--border);}
+.form-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:6px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg.full{grid-column:1/-1;}
+.fg label{font-size:12px;color:var(--text-muted);letter-spacing:1px;}
+.fg input,.fg select{background:#fff;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px;outline:none;font-family:inherit;transition:border .2s;width:100%;min-width:0;box-sizing:border-box;}
+.fg input:focus,.fg select:focus{border-color:var(--accent);}
+.btn{padding:13px 22px;border:none;border-radius:11px;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s;font-family:inherit;letter-spacing:2px;}
+.btn-rose{background:var(--accent);color:#fff;width:100%;margin-top:18px;}
+.btn-rose:hover{background:var(--accent-dark);transform:translateY(-1px);}
+.btn-sm{padding:9px 18px;font-size:13px;}
+.btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--text);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent-dark);}
+.hidden{display:none!important;}
+.dual-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:620px){.dual-charts{grid-template-columns:1fr;}}
+.chart-wrap{background:var(--bg-main);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.chart-wrap h4{text-align:center;font-size:13px;color:var(--accent-dark);margin-bottom:8px;letter-spacing:2px;font-weight:500;}
+.saju-table{width:100%;table-layout:fixed;border-collapse:collapse;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden;}
+.saju-table th{background:var(--bg-soft);color:var(--accent-dark);font-size:11px;font-weight:500;padding:6px;border-bottom:1px solid var(--border-strong);text-align:center;letter-spacing:1px;width:25%;}
+.saju-table td{border-right:1px solid var(--border);text-align:center;padding:0;vertical-align:middle;width:25%;background:#fff;}
+.saju-table td:last-child{border-right:none;}
+.saju-table tr:not(:last-child) td{border-bottom:1px solid var(--border);}
+.char-big{font-size:24px;font-weight:500;padding:10px 6px 2px;display:block;}
+.char-sm{font-size:10px;color:var(--text-muted);padding:3px 2px;display:block;}
+.elem-wood{color:var(--wood);}.elem-fire{color:var(--fire);}.elem-earth{color:var(--earth);}.elem-metal{color:var(--metal);}.elem-water{color:var(--water);}
+.bg-wood{background:rgba(127,176,105,.14);}.bg-fire{background:rgba(226,139,122,.14);}.bg-earth{background:rgba(212,165,116,.14);}.bg-metal{background:rgba(166,181,184,.16);}.bg-water{background:rgba(122,159,184,.14);}
+.hero{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:36px 24px;text-align:center;margin-bottom:20px;}
+.hero-names{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.hero-name{font-size:19px;color:var(--text);font-weight:500;letter-spacing:3px;}
+.hero-bloom{color:var(--accent);font-size:20px;}
+.hero-score{font-size:56px;color:var(--accent-dark);font-weight:500;line-height:1;margin:6px 0 8px;}
+.hero-label{font-family:'Noto Serif KR',serif;font-size:18px;color:var(--accent);letter-spacing:6px;margin-bottom:14px;font-weight:500;}
+.hero-hint{font-size:14px;color:var(--text);font-style:italic;max-width:520px;margin:0 auto;line-height:1.9;}
+.hero.legendary{box-shadow:0 0 0 2px #f0c674,0 8px 32px rgba(240,198,116,0.35);background:linear-gradient(135deg,#fff7e8 0%,#fef0d4 100%);position:relative;}
+.hero.legendary::before{content:'✦';position:absolute;top:14px;left:18px;font-size:18px;color:#d4a543;}
+.hero.legendary::after{content:'✦';position:absolute;top:14px;right:18px;font-size:18px;color:#d4a543;}
+.hero-score-legendary{background:linear-gradient(135deg,#d4a543 0%,#f0c674 50%,#d4a543 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 2px 8px rgba(212,165,67,0.3);}
+.hero-sparkle{font-size:13px;color:#b8862e;letter-spacing:2px;margin-bottom:10px;font-weight:600;}
+.hero-mode-badge{font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:8px;opacity:0.8;}
+.tl-row{display:grid;grid-template-columns:72px 1fr 40px;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:center;}
+.tl-row:last-child{border-bottom:none;}
+.tl-year{font-weight:500;color:var(--accent-dark);font-size:13px;}
+.tl-desc{font-size:13px;color:var(--text);line-height:1.7;}
+.tl-hint{text-align:right;font-size:13px;color:var(--text-muted);}
+.tl-row.hot{background:var(--bg-tag);margin:0 -10px;padding:10px;border-radius:8px;border-bottom:none;}
+.ap-table td{padding:6px 8px;border-bottom:0.5px solid var(--border);font-size:13px;}
+.ap-table td:first-child{color:var(--text-muted);width:40%;}
+.center{text-align:center;}.muted{color:var(--text-muted);}.small{font-size:12px;}.b{font-weight:500;color:var(--accent-dark);}
+.empty{text-align:center;color:var(--text-soft);padding:12px;font-size:13px;font-style:italic;}
+.footer{text-align:center;color:var(--text-soft);font-size:11px;margin-top:32px;letter-spacing:3px;}
+.closing{text-align:center;font-style:italic;color:var(--accent-dark);font-size:15px;letter-spacing:2px;margin:24px 0 8px;line-height:2;}
+
+/* ===== Navigation bar ===== */
+.sec-nav{position:sticky;top:0;z-index:50;background:rgba(255,250,248,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:10px 14px;margin:-20px -16px 18px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.sec-nav::-webkit-scrollbar{display:none;}
+.sec-nav a{flex-shrink:0;color:var(--text-muted);text-decoration:none;padding:7px 13px;border-radius:16px;font-size:13px;letter-spacing:.5px;border:1px solid transparent;transition:all .2s;background:transparent;}
+.sec-nav a:hover{background:var(--bg-soft);color:var(--accent-dark);}
+.sec-nav a.active{background:var(--bg-soft);color:var(--accent-dark);border-color:var(--accent);}
+
+/* ===== Floating toolbar ===== */
+.fbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(255,250,248,.98);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:28px;padding:5px;display:flex;gap:3px;z-index:100;box-shadow:0 6px 24px rgba(107,53,69,.18);}
+.fbar button{background:transparent;border:none;padding:10px 15px;border-radius:22px;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;letter-spacing:.5px;min-height:44px;transition:all .15s;white-space:nowrap;}
+.fbar button:hover{background:var(--bg-soft);color:var(--accent-dark);}
+.fbar button:active{transform:scale(.97);}
+body.has-fbar{padding-bottom:96px;}
+
+/* ===== Print ===== */
+@media print{
+  .ui-only,.sec-nav,.fbar{display:none!important;}
+  body{padding:0;background:#fff;}
+  .wrap{max-width:100%;}
+  .letter,.hero,.card{page-break-inside:avoid;break-inside:avoid;box-shadow:none;}
+  section.letter::before,section.letter::after{display:none;}
+}
+
+/* ===== Mobile readability ===== */
+@media(max-width:620px){
+  body{padding:14px 12px 96px;font-size:14.5px;line-height:1.85;}
+  .wrap{max-width:100%;}
+  .site-header{padding:22px 0 14px;}
+  .site-title{font-size:22px;letter-spacing:5px;}
+  .site-title-h{letter-spacing:7px;}
+  .site-sub{font-size:12px;letter-spacing:2px;}
+  .card{padding:18px 16px;border-radius:12px;}
+  .card-title{font-size:15px;padding-bottom:9px;margin-bottom:14px;}
+  .letter{padding:22px 18px;border-radius:14px;}
+  .letter-sec-title{font-size:16px;letter-spacing:2px;margin-bottom:12px;}
+  .letter-sec-label{font-size:11px;letter-spacing:3px;}
+  .letter-body p{margin-bottom:12px;}
+  .hero{padding:24px 16px;border-radius:14px;}
+  .hero-score{font-size:44px;}
+  .hero-label{font-size:16px;letter-spacing:4px;}
+  .hero-hint{font-size:13px;line-height:1.8;}
+  .hero-name{font-size:16px;letter-spacing:2px;}
+  .char-big{font-size:20px;padding:8px 4px 2px;}
+  .char-sm{font-size:10px;}
+  .saju-table th{font-size:10px;padding:5px 2px;letter-spacing:0;}
+  .chart-wrap{padding:10px;}
+  .chart-wrap h4{font-size:12px;letter-spacing:1px;}
+  .sec-nav{padding:8px 10px;margin:-14px -12px 14px;}
+  .sec-nav a{padding:6px 11px;font-size:12px;}
+  .fbar{bottom:12px;padding:4px;border-radius:24px;}
+  .fbar button{padding:9px 12px;font-size:12px;}
+  .fg label{font-size:11px;}
+  .fg input,.fg select{padding:9px 10px;font-size:13px;}
+}
+@media(max-width:380px){
+  body{font-size:14px;padding:12px 10px 96px;}
+  .letter{padding:18px 14px;}
+  .hero-score{font-size:38px;}
+  .fbar button{padding:8px 10px;font-size:11.5px;}
+}
+
+
+/* ===== Table of Contents ===== */
+.toc-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:18px;}
+.toc-title{color:var(--accent-dark);font-size:15px;letter-spacing:6px;margin-bottom:14px;text-align:center;font-weight:500;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.toc-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;}
+.toc-list li{margin:0;}
+.toc-list a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;color:var(--text);text-decoration:none;font-size:13.5px;transition:all .15s;border:1px solid var(--border-soft);background:rgba(217,123,137,.06);}
+.toc-list a:hover{background:var(--bg-soft);color:var(--accent-dark);border-color:var(--accent);transform:translateX(2px);}
+.toc-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--bg-soft);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:13px;}
+.toc-label{flex:1;min-width:0;line-height:1.45;word-break:keep-all;}
+@media(max-width:620px){
+  .toc-card{padding:18px 16px;}
+  .toc-title{font-size:14px;letter-spacing:4px;margin-bottom:12px;}
+  .toc-list{grid-template-columns:1fr;gap:6px;}
+  .toc-list a{padding:9px 12px;font-size:13px;}
+  .toc-num{width:24px;height:24px;font-size:12px;}
+}
+@media print{
+  .toc-list a{background:#fff;border-color:#ddd;}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <div class="site-title-h">宮　合</div>
+    <div class="site-title">복사화 편지</div>
+    <div class="site-sub">두 분의 인연에 보내는 봄날의 서신</div>
+    <div class="bloom-line">✿　✿　✿</div>
+  </header>
+  <section id="inputCard" class="card">
+    <div class="card-title">두 분의 생년월일을 적어주세요</div>
+    <div class="rel-toggle"><button type="button" class="rel-btn active" data-rel="couple">연인 · 결혼</button><button type="button" class="rel-btn" data-rel="friend">친구 · 형제</button><button type="button" class="rel-btn" data-rel="work">동업 · 직장</button></div>
+    <div class="dual-form">
+      <div class="person-panel A" data-label="사람 A"><div class="form-grid">
+        <div class="fg full"><label>이름</label><input id="nameA" type="text" value=""></div>
+        <div class="fg"><label>성별</label><select id="genderA"><option value="female">여성</option><option value="male">남성</option></select></div>
+        <div class="fg"><label>양력/음력</label><select id="calA"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
+        <div class="fg"><label>생년</label><input id="yearA" type="number" value=""></div>
+        <div class="fg"><label>월</label><input id="monthA" type="number" value=""></div>
+        <div class="fg"><label>일</label><input id="dayA" type="number" value=""></div>
+        <div class="fg"><label>태어난 시간</label><select id="hourA"><option value="-1" selected>모름</option>
+<option value="23">자시 (23:30~01:30)</option>
+<option value="1">축시 (01:30~03:30)</option>
+<option value="3">인시 (03:30~05:30)</option>
+<option value="5">묘시 (05:30~07:30)</option>
+<option value="7">진시 (07:30~09:30)</option>
+<option value="9">사시 (09:30~11:30)</option>
+<option value="11">오시 (11:30~13:30)</option>
+<option value="13">미시 (13:30~15:30)</option>
+<option value="15">신시 (15:30~17:30)</option>
+<option value="17">유시 (17:30~19:30)</option>
+<option value="19">술시 (19:30~21:30)</option>
+<option value="21">해시 (21:30~23:30)</option></select></div>
+      </div></div>
+      <div class="person-panel B" data-label="사람 B"><div class="form-grid">
+        <div class="fg full"><label>이름</label><input id="nameB" type="text" value=""></div>
+        <div class="fg"><label>성별</label><select id="genderB"><option value="male">남성</option><option value="female">여성</option></select></div>
+        <div class="fg"><label>양력/음력</label><select id="calB"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
+        <div class="fg"><label>생년</label><input id="yearB" type="number" value=""></div>
+        <div class="fg"><label>월</label><input id="monthB" type="number" value=""></div>
+        <div class="fg"><label>일</label><input id="dayB" type="number" value=""></div>
+        <div class="fg"><label>태어난 시간</label><select id="hourB"><option value="-1" selected>모름</option>
+<option value="23">자시 (23:30~01:30)</option>
+<option value="1">축시 (01:30~03:30)</option>
+<option value="3">인시 (03:30~05:30)</option>
+<option value="5">묘시 (05:30~07:30)</option>
+<option value="7">진시 (07:30~09:30)</option>
+<option value="9">사시 (09:30~11:30)</option>
+<option value="11">오시 (11:30~13:30)</option>
+<option value="13">미시 (13:30~15:30)</option>
+<option value="15">신시 (15:30~17:30)</option>
+<option value="17">유시 (17:30~19:30)</option>
+<option value="19">술시 (19:30~21:30)</option>
+<option value="21">해시 (21:30~23:30)</option></select></div>
+      </div></div>
+    </div>
+    <div id="adultModeWrap" style="text-align:center;margin-top:16px;padding-top:14px;border-top:1px dashed var(--border);">
+      <label style="font-size:13px;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;gap:8px;user-select:none;">
+        <input type="checkbox" id="adultMode" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;" onchange="document.getElementById('adultLevelRow').classList.toggle('hidden',!this.checked)">
+        두 분 모두 성인이에요 — 몸과 마음의 결도 함께 풀어보기
+      </label>
+      <div id="adultLevelRow" class="hidden" style="margin-top:10px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:13px;align-items:center;">
+        <span style="color:var(--text-muted);">자극도</span>
+        <label style="cursor:pointer;padding:5px 12px;border-radius:14px;background:#fdf4e8;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="adultLevel" value="mild" style="accent-color:var(--accent);"> 순한맛</label>
+        <label style="cursor:pointer;padding:5px 12px;border-radius:14px;background:#fce9d9;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="adultLevel" value="medium" checked style="accent-color:var(--accent);"> 중간맛</label>
+        <label style="cursor:pointer;padding:5px 12px;border-radius:14px;background:#fad4c1;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="adultLevel" value="spicy" style="accent-color:var(--accent);"> 매운맛</label>
+      </div>
+    </div>
+    <button class="btn btn-rose" onclick="doCalc()">✿　편지 펼쳐보기　✿</button>
+  </section>
+  <section id="resultArea" class="hidden">
+    <div id="secNav"></div>
+    <div id="heroCard" class="hero"></div>
+    <div id="tocCard" class="toc-card hidden"></div>
+    <div id="dualChart" class="card"></div>
+    <div id="sections"></div>
+    <div id="closingNote" class="closing"></div>
+  </section>
+  <div id="floatBar" class="fbar ui-only hidden"><button onclick="goBack()">← 다시 입력</button><button onclick="downloadHTML()">💾 HTML</button><button onclick="savePDF()">📄 PDF</button></div>
+  <footer class="footer">福沙花 · 복사화　봄이 길기를</footer>
+</div>
+<script>
+const STEMS=['갑','을','병','정','무','기','경','신','임','계'];
+const STEMS_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANS=['자','축','인','묘','진','사','오','미','신','유','술','해'];
+const BRANS_H=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ELEM_N=['목','화','토','금','수'];
+const ELEM_C=['wood','fire','earth','metal','water'];
+const STEM_E=[0,0,1,1,2,2,3,3,4,4];
+const BRAN_E=[4,2,0,0,2,1,1,2,3,3,2,4];
+const STEM_Y=[0,1,0,1,0,1,0,1,0,1];
+const GEN=[1,2,3,4,0];const GEN_BY=[4,0,1,2,3];const CTRL=[2,3,4,0,1];const CTRL_BY=[3,4,0,1,2];
+const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[8,6,4],[6,7],[7,3,4],[0,8]];
+const MAIN_H=[9,5,0,1,4,2,3,5,6,7,4,8];
+
+function getJDN(y,m,d){const a=Math.floor((14-m)/12);const yy=y+4800-a;const mm=m+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+function getSolarTerms(){return[{m:2,d:4,bi:2},{m:3,d:6,bi:3},{m:4,d:5,bi:4},{m:5,d:6,bi:5},{m:6,d:6,bi:6},{m:7,d:7,bi:7},{m:8,d:7,bi:8},{m:9,d:8,bi:9},{m:10,d:8,bi:10},{m:11,d:7,bi:11},{m:12,d:7,bi:0},{m:1,d:6,bi:1}];}
+function getYearPillar(year,month,day){let ay=year;if(month<2||(month===2&&day<4))ay=year-1;return{si:((ay-4)%10+10)%10,bi:((ay-4)%12+12)%12,ay};}
+function getMonthPillar(year,month,day,yearSi){const terms=getSolarTerms();let bi=2;if(month===1){bi=day>=terms[11].d?1:0;}else{for(let i=terms.length-2;i>=0;i--){const t=terms[i];if(month>t.m||(month===t.m&&day>=t.d)){bi=t.bi;break;}if(i===0)bi=1;}}const grp=yearSi%5;const baseSi=[2,4,6,8,0][grp];const off=((bi-2)+12)%12;return{si:(baseSi+off)%10,bi};}
+function getDayPillar(year,month,day){const ref=getJDN(2000,1,1);const t=getJDN(year,month,day);const idx60=((54+(t-ref))%60+60)%60;return{si:idx60%10,bi:idx60%12,idx60};}
+function getHourPillar(hour,daySi){if(hour<0)return null;let bi=hour===23?0:Math.floor((hour+1)/2);const grp=daySi%5;const base=[0,2,4,6,8][grp];return{si:(base+bi)%10,bi};}
+function getJieqiJDNs(year){const res=[];for(let y=year-1;y<=year+1;y++){const ts=getSolarTerms();for(const t of ts){const ty=(t.m===1)?y+1:y;res.push(getJDN(ty,t.m,t.d));}}return[...new Set(res)].sort((a,b)=>a-b);}
+function calcDaewoon(year,month,day,gender,yearSi){const isYang=yearSi%2===0;const fwd=gender==='male'?isYang:!isYang;const bJDN=getJDN(year,month,day);const all=getJieqiJDNs(year);let diff;if(fwd){const nxt=all.find(j=>j>bJDN);diff=nxt?nxt-bJDN:30;}else{const sorted=[...all].reverse();const prv=sorted.find(j=>j<bJDN);diff=prv?bJDN-prv:30;}const startAge=Math.round(diff/3);const mp=getMonthPillar(year,month,day,yearSi);const list=[];for(let i=0;i<10;i++){const off=fwd?(i+1):-(i+1);list.push({age:startAge+i*10,endAge:startAge+i*10+9,si:((mp.si+off)%10+10)%10,bi:((mp.bi+off)%12+12)%12});}return{startAge,fwd,list};}
+function getSewoon(years){return years.map(y=>({year:y,si:((y-4)%10+10)%10,bi:((y-4)%12+12)%12}));}
+function getTG(daySi,tgtSi){const de=STEM_E[daySi],te=STEM_E[tgtSi];const sy=STEM_Y[daySi]===STEM_Y[tgtSi];if(de===te)return sy?0:1;if(te===GEN[de])return sy?2:3;if(te===CTRL[de])return sy?4:5;if(te===CTRL_BY[de])return sy?6:7;if(te===GEN_BY[de])return sy?8:9;return -1;}
+function getTGBr(daySi,bi){return getTG(daySi,MAIN_H[bi]);}
+function isChung(a,b){return Math.abs(a-b)===6;}
+function getStemHap(a,b){const p=[[0,5,'토'],[1,6,'금'],[2,7,'수'],[3,8,'목'],[4,9,'화']];for(const[x,y,e]of p)if((a===x&&b===y)||(a===y&&b===x))return e;return null;}
+function getYukhap(a,b){const p=[[0,1,'토'],[2,11,'목'],[3,10,'화'],[4,9,'금'],[5,8,'수'],[6,7,'토']];for(const[x,y,e]of p)if((a===x&&b===y)||(a===y&&b===x))return e;return null;}
+function getSamhap(bArr){const g=[[2,6,10,'화'],[3,7,11,'목'],[0,4,8,'수'],[1,5,9,'금']];for(const[a,b,c,e]of g)if(bArr.includes(a)&&bArr.includes(b)&&bArr.includes(c))return e;return null;}
+function getBanghap(bArr){const g=[[2,3,4,'목'],[5,6,7,'화'],[8,9,10,'금'],[11,0,1,'수']];for(const[a,b,c,e]of g)if(bArr.includes(a)&&bArr.includes(b)&&bArr.includes(c))return e;return null;}
+function getPa(a,b){const p=[[0,9],[1,4],[2,11],[3,6],[5,8],[7,10]];for(const[x,y]of p)if((a===x&&b===y)||(a===y&&b===x))return true;return false;}
+function getHae(a,b){const p=[[0,7],[1,6],[2,5],[3,4],[8,11],[9,10]];for(const[x,y]of p)if((a===x&&b===y)||(a===y&&b===x))return true;return false;}
+function getElemBalance(pillars){const c=[0,0,0,0,0];for(const p of pillars){c[STEM_E[p.si]]+=1;c[BRAN_E[p.bi]]+=1;for(const h of HIDDEN[p.bi])c[STEM_E[h]]+=0.3;}return c.map((v,i)=>({name:ELEM_N[i],cls:ELEM_C[i],count:Math.round(v*10)/10}));}
+function getDayStrength(saju){const{yP,mP,dP,hP}=saju;const de=STEM_E[dP.si];let s=0;const rest=[yP,mP,hP].filter(Boolean);for(const p of rest){const se=STEM_E[p.si],be=BRAN_E[p.bi];if(se===de||se===GEN_BY[de])s+=1;if(be===de||be===GEN_BY[de])s+=0.7;if(se===GEN[de]||se===CTRL[de]||se===CTRL_BY[de])s-=0.5;}const mbe=BRAN_E[mP.bi];if(mbe===de||mbe===GEN_BY[de])s+=1.5;else s-=0.5;return s>=1.5?'신강':s>=0?'중화':'신약';}
+function getYongElem(strength,dayElem){if(strength==='신강')return CTRL[dayElem];if(strength==='신약')return GEN_BY[dayElem];return dayElem;}
+
+function buildSaju(input){
+  const {year,month,day,hour,gender,name}=input;
+  const yP=getYearPillar(year,month,day);const mP=getMonthPillar(year,month,day,yP.si);
+  const dP=getDayPillar(year,month,day);const hP=hour>=0?getHourPillar(hour,dP.si):null;
+  const dw=calcDaewoon(year,month,day,gender,yP.si);
+  const s={name,gender,year,month,day,hour,yP,mP,dP,hP,dw};
+  s.pillars=[yP,mP,dP,hP].filter(Boolean);s.eb=getElemBalance(s.pillars);
+  s.strength=getDayStrength(s);s.dayElem=STEM_E[dP.si];s.yongElem=getYongElem(s.strength,s.dayElem);
+  s.currentAge=new Date().getFullYear()-year+1;
+  return s;
+}
+function getElemRelation(eA,eB){
+  if(eA===eB)return{type:'동일'};
+  if(GEN[eA]===eB)return{type:'생',from:'A'};
+  if(GEN[eB]===eA)return{type:'생',from:'B'};
+  if(CTRL[eA]===eB)return{type:'극',from:'A'};
+  if(CTRL[eB]===eA)return{type:'극',from:'B'};
+  return{type:'중성'};
+}
+function checkSamhapPair(a,b){const g=[[2,6,10,'화'],[3,7,11,'목'],[0,4,8,'수'],[1,5,9,'금']];for(const[x,y,z,e]of g){if([x,y,z].includes(a)&&[x,y,z].includes(b)&&a!==b)return e;}return null;}
+function checkBanghapPair(a,b){const g=[[2,3,4,'목'],[5,6,7,'화'],[8,9,10,'금'],[11,0,1,'수']];for(const[x,y,z,e]of g){if([x,y,z].includes(a)&&[x,y,z].includes(b)&&a!==b)return e;}return null;}
+function checkHyungPair(a,b){if([2,5,8].includes(a)&&[2,5,8].includes(b)&&a!==b)return'인사신형';if([1,10,7].includes(a)&&[1,10,7].includes(b)&&a!==b)return'축술미형';if((a===0&&b===3)||(a===3&&b===0))return'자묘형';if(a===b&&[0,3,6,9,4].includes(a))return`${BRANS[a]}자형`;if((a===1&&b===10)||(a===10&&b===1))return'축술형';return null;}
+function checkWonjin(a,b){const p=[[0,7],[1,6],[2,9],[3,8],[4,11],[5,10]];for(const[x,y]of p)if((a===x&&b===y)||(a===y&&b===x))return true;return false;}
+function analyzeBranchCross(aBrs,bBrs,A,B){
+  const res={samhap:[],banghap:[],yukhap:[],chung:[],hyung:[],pa:[],hae:[],wonjin:[]};
+  for(let i=0;i<aBrs.length;i++){for(let j=0;j<bBrs.length;j++){
+    const a=aBrs[i],b=bBrs[j];
+    const yh=getYukhap(a,b);if(yh)res.yukhap.push({a,b,elem:yh});
+    if(isChung(a,b))res.chung.push({a,b});
+    const hy=checkHyungPair(a,b);if(hy)res.hyung.push({a,b,name:hy});
+    if(getPa(a,b))res.pa.push({a,b});
+    if(getHae(a,b))res.hae.push({a,b});
+    if(checkWonjin(a,b))res.wonjin.push({a,b});
+  }}
+  const allB=[...aBrs,...bBrs];
+  const sh=getSamhap(allB);if(sh)res.samhap.push({elem:sh});
+  const bh=getBanghap(allB);if(bh)res.banghap.push({elem:bh});
+  return res;
+}
+function analyzeStemCross(aSts,bSts){
+  const res={hap:[]};
+  for(let i=0;i<aSts.length;i++){for(let j=0;j<bSts.length;j++){
+    const h=getStemHap(aSts[i],bSts[j]);if(h)res.hap.push({elem:h});
+  }}
+  return res;
+}
+function analyzeElemComplement(A,B){
+  const r={aFills:false,bFills:false};
+  const bM={};B.eb.forEach(e=>bM[e.name]=e.count);
+  const aM={};A.eb.forEach(e=>aM[e.name]=e.count);
+  r.aNeeds=ELEM_N[A.yongElem];r.bNeeds=ELEM_N[B.yongElem];
+  r.bFills=(bM[r.aNeeds]||0)>=1.5;r.aFills=(aM[r.bNeeds]||0)>=1.5;
+  return r;
+}
+function getCurrentDwIdx(list,cA){for(let i=list.length-1;i>=0;i--)if(cA>=list[i].age)return i;return 0;}
+function analyzeDaewoonSync(A,B){
+  const iA=getCurrentDwIdx(A.dw.list,A.currentAge);const iB=getCurrentDwIdx(B.dw.list,B.currentAge);
+  const dA=A.dw.list[iA];const dB=B.dw.list[iB];
+  const aY=dA?(dA.endAge-A.currentAge+1):0;const bY=dB?(dB.endAge-B.currentAge+1):0;
+  return{currDwA:dA,currDwB:dB,aYearsToChange:aY,bYearsToChange:bY,sameYearChange:Math.abs(aY-bY)<=1,startDiff:Math.abs(A.dw.startAge-B.dw.startAge)};
+}
+function getGongmang(idx60){const m=[[10,11],[8,9],[6,7],[4,5],[2,3],[0,1]];return m[Math.floor(idx60/10)];}
+function analyzeGongmang(A,B){
+  const aGm=getGongmang(A.dP.idx60);const bGm=getGongmang(B.dP.idx60);
+  const bH=[],aH=[];
+  B.pillars.forEach((p)=>{if(aGm.includes(p.bi))bH.push(BRANS[p.bi]);});
+  A.pillars.forEach((p)=>{if(bGm.includes(p.bi))aH.push(BRANS[p.bi]);});
+  return{aGm:aGm.map(b=>BRANS[b]),bGm:bGm.map(b=>BRANS[b]),bHasAGm:bH,aHasBGm:aH};
+}
+function buildTimeline(A,B){
+  const ty=new Date().getFullYear();const years=[];
+  for(let y=ty-2;y<=ty+5;y++)years.push(y);
+  const sw=getSewoon(years);
+  return sw.map(s=>{
+    const eA=analyzeSewoonPerson(s,A);const eB=analyzeSewoonPerson(s,B);
+    return{year:s.year,age_A:s.year-A.year+1,age_B:s.year-B.year+1,ganji:STEMS[s.si]+BRANS[s.bi],aEvents:eA,bEvents:eB,score:scoreSewoon(eA,eB,A,B)};
+  });
+}
+function analyzeSewoonPerson(sw,P){
+  const ev=[];const dSi=P.dP.si,dBi=P.dP.bi;
+  const sh=getStemHap(dSi,sw.si);if(sh)ev.push({type:'마음이 맞아들어오는 해',heavy:true});
+  const yh=getYukhap(dBi,sw.bi);if(yh)ev.push({type:'가까운 인연이 다가오는 해',heavy:true});
+  const sp=checkSamhapPair(dBi,sw.bi);if(sp)ev.push({type:'관계가 확장되는 해'});
+  if(isChung(dBi,sw.bi))ev.push({type:'변화·이동의 해',heavy:true});
+  const hy=checkHyungPair(dBi,sw.bi);if(hy)ev.push({type:'자기를 단련하는 해'});
+  if(sh&&yh)ev.push({type:'✦ 깊은 인연이 여는 해',veryHeavy:true});
+  const tgSi=getTG(dSi,sw.si);const tgBi=getTGBr(dSi,sw.bi);
+  if(P.gender==='male'){if(tgSi===4||tgSi===5||tgBi===4||tgBi===5)ev.push({type:'짝의 기운이 드는 해'});if(tgSi===6||tgSi===7||tgBi===6||tgBi===7)ev.push({type:'결단의 해'});}
+  else{if(tgSi===6||tgSi===7||tgBi===6||tgBi===7)ev.push({type:'짝의 기운이 드는 해'});if(tgSi===4||tgSi===5||tgBi===4||tgBi===5)ev.push({type:'풍요의 해'});}
+  return ev;
+}
+function scoreSewoon(eA,eB){
+  let s=0;
+  for(const e of eA){if(e.veryHeavy)s+=5;else if(e.heavy)s+=2;else s+=1;}
+  for(const e of eB){if(e.veryHeavy)s+=5;else if(e.heavy)s+=2;else s+=1;}
+  return Math.round(s*10)/10;
+}
+function analyzePair(A,B){
+  const p={};
+  p.dayStem={aStem:A.dP.si,bStem:B.dP.si,aElem:STEM_E[A.dP.si],bElem:STEM_E[B.dP.si],hap:getStemHap(A.dP.si,B.dP.si),relation:getElemRelation(STEM_E[A.dP.si],STEM_E[B.dP.si])};
+  p.dayBran={aBi:A.dP.bi,bBi:B.dP.bi,yukhap:getYukhap(A.dP.bi,B.dP.bi),samhap_pair:checkSamhapPair(A.dP.bi,B.dP.bi),banghap_pair:checkBanghapPair(A.dP.bi,B.dP.bi),chung:isChung(A.dP.bi,B.dP.bi),hyung:checkHyungPair(A.dP.bi,B.dP.bi),pa:getPa(A.dP.bi,B.dP.bi),hae:getHae(A.dP.bi,B.dP.bi),wonjin:checkWonjin(A.dP.bi,B.dP.bi)};
+  p.crossBranches=analyzeBranchCross(A.pillars.map(x=>x.bi),B.pillars.map(x=>x.bi),A,B);
+  p.crossStems=analyzeStemCross(A.pillars.map(x=>x.si),B.pillars.map(x=>x.si));
+  p.elemComplement=analyzeElemComplement(A,B);
+  p.daewoonSync=analyzeDaewoonSync(A,B);
+  p.gongmang=analyzeGongmang(A,B);
+  p.timeline=buildTimeline(A,B);
+  return p;
+}
+function isLegendaryMatch(A,B,pair){
+  if(!pair.dayStem.hap)return false;
+  if(!(pair.dayBran.yukhap||pair.dayBran.samhap_pair))return false;
+  if(!(pair.elemComplement.aFills&&pair.elemComplement.bFills))return false;
+  const _f=analyzeFate(A,B,pair);
+  return !!(_f.aChunulOnB&&_f.bChunulOnA);
+}
+function computeOverallScore(A,B,pair,mode){
+  // 천생연분 4조건 모두 충족 시 100점 강제
+  if(isLegendaryMatch(A,B,pair))return 100;
+  let s=64;
+  if(pair.dayStem.hap)s+=10;
+  if(pair.dayStem.relation.type==='극')s-=2;
+  if(pair.dayStem.relation.type==='생')s+=8;
+  if(pair.dayStem.relation.type==='동일')s+=5;
+  if(pair.dayBran.yukhap)s+=8;
+  if(pair.dayBran.samhap_pair)s+=6;
+  if(pair.dayBran.banghap_pair)s+=5;
+  if(pair.dayBran.chung)s-=2;if(pair.dayBran.hyung)s-=1.5;if(pair.dayBran.wonjin)s-=1;
+  s+=pair.crossBranches.yukhap.length*2.5;
+  s+=pair.crossBranches.samhap.length*5;
+  s+=pair.crossBranches.banghap.length*4;
+  s-=pair.crossBranches.chung.length*0.8;
+  s-=pair.crossBranches.hyung.length*0.6;
+  s-=pair.crossBranches.pa.length*0.3;
+  s-=pair.crossBranches.hae.length*0.3;
+  s-=pair.crossBranches.wonjin.length*0.5;
+  s+=pair.crossStems.hap.length*2.5;
+  if(pair.elemComplement.bFills)s+=7;if(pair.elemComplement.aFills)s+=7;
+  if(pair.daewoonSync.sameYearChange)s+=3;
+  // 천을귀인 가산 (analyzeFate 한 번 호출)
+  const _f=analyzeFate(A,B,pair);
+  if(_f.aChunulOnB&&_f.bChunulOnA)s+=6; else if(_f.aChunulOnB||_f.bChunulOnA)s+=3;
+  if(pair.gongmang.bHasAGm.length>=2)s-=2;if(pair.gongmang.aHasBGm.length>=2)s-=2;
+  if(mode==='work'){
+    if(pair.dayStem.relation.type==='동일')s-=3;
+    if(A.strength===B.strength)s-=2;
+    if(pair.dayBran.chung)s+=4;
+    if(pair.dayStem.relation.type==='극')s+=4;
+  }
+  return Math.max(54,Math.min(98,Math.round(s)));
+}
+function getScoreLabel(score, mode){
+  mode = mode || 'couple';
+  if(score>=100){
+    return byMode({
+      couple: {label:'천생연분', desc:'사주가 보여주는 가장 드문 자리 — 백 쌍에 한 쌍의 결이에요.'},
+      friend: {label:'평생지기', desc:'사주가 묶어둔, 흔치 않은 평생의 친구 자리예요.'},
+      work:   {label:'천생의 동업', desc:'네 가지 핵심 결이 모두 정렬된, 사주가 가장 귀하게 보는 협업이에요.'}
+    }, mode);
+  }
+  if(score>=88){
+    return byMode({
+      couple: {label:'봄날의 동반자', desc:'서로의 부족을 말없이 채워주는, 오래 길이 남을 인연이에요.'},
+      friend: {label:'든든한 단짝', desc:'서로의 약점을 정확히 메워주는, 평생 곁에 둘 친구의 결이에요.'},
+      work:   {label:'보완의 동업', desc:'사주적으로 분명한 시너지가 있는, 신뢰해도 좋은 협업이에요.'}
+    }, mode);
+  }
+  if(score>=78){
+    return byMode({
+      couple: {label:'햇살 같은 사이', desc:'서로의 가능성을 환하게 끌어올리는 밝은 관계랍니다.'},
+      friend: {label:'서로의 충전기', desc:'만나면 충전되는 친구의 결이에요. 자주 보고 싶어지는 사이.'},
+      work:   {label:'시너지 있는 팀', desc:'분담만 잘 하면 분명한 결과를 낼 수 있는 협업이에요.'}
+    }, mode);
+  }
+  if(score>=68){
+    return byMode({
+      couple: {label:'담담한 차 한잔', desc:'큰 파도 없이 고요하게 흐르는, 잔잔하고 편안한 사이예요.'},
+      friend: {label:'편안한 친구', desc:'부담 없이 길게 가는 우정이에요. 굳이 자주 안 만나도 어색하지 않은 결.'},
+      work:   {label:'안정적인 협업', desc:'큰 마찰 없이 굴러가는 모듈형 협업이에요. 명확한 역할 분담이 핵심.'}
+    }, mode);
+  }
+  if(score>=58){
+    return byMode({
+      couple: {label:'바람 부는 정원', desc:'때로 잎이 흔들리지만, 그 흔들림이 뿌리를 단단히 해주는 관계예요.'},
+      friend: {label:'서로 다듬는 사이', desc:'쉬어가는 휴지기가 필요한 친구의 결이에요. 거리 조절이 중요.'},
+      work:   {label:'조정 필요한 팀', desc:'마찰이 잦지만 시스템·룰을 만들면 굴러갈 수 있는 협업이에요.'}
+    }, mode);
+  }
+  return byMode({
+    couple: {label:'함께 배워가는 길', desc:'의식적인 이해와 노력이 필요하지만, 그만큼 깊어질 수 있는 사이랍니다.'},
+    friend: {label:'배움의 친구', desc:'편하지는 않지만, 서로에게 가르쳐주는 게 많은 결의 친구예요.'},
+    work:   {label:'재설계 권장', desc:'기본 구조부터 합의하고 가야 하는 협업이에요. 외부 시각·구조 설계가 필요.'}
+  }, mode);
+}
+
+function josa(w,t){if(!w)return"";const last=w[w.length-1];const code=last.charCodeAt(0);if(code<0xAC00||code>0xD7A3)return t==="iga"?"이":t==="eun"?"은":"을";const jo=(code-0xAC00)%28>0;if(t==="iga")return jo?"이":"가";if(t==="eun")return jo?"은":"는";if(t==="eul")return jo?"을":"를";if(t==="gwa")return jo?"과":"와";return"";}
+
+/* ========== 결정론적 variant 선택 헬퍼 ========== */
+function pickL(arr, A, B){
+  if(!arr||!arr.length)return '';
+  // B 중심 시드(여자 한명 + 남자 여러명 케이스에 맞게 B가 바뀔 때마다 다른 variant)
+  const seed = (B.dP.si*137 + B.dP.bi*31 + A.dP.si*7 + A.dP.bi) % arr.length;
+  return arr[seed];
+}
+
+function byMode(o, mode){
+  return o[mode] || o.couple || '';
+}
+function modeLabel(mode){
+  return mode==='friend' ? '친구·형제' : mode==='work' ? '동업·직장' : '연인·결혼';
+}
+function modeRel(mode){
+  return mode==='friend' ? '두 분의 관계' : mode==='work' ? '두 분의 협업' : '두 분의 관계';
+}
+
+
+function analyzeStrengths(A,B,pair,score,mode){
+  mode = mode || 'couple';
+  const S=[], C=[];
+  const f = analyzeFate(A,B,pair);
+
+  if(pair.dayStem.hap){
+    S.push({rank:10, t:byMode({
+      couple:`<b>본바탕이 ${pair.dayStem.hap}의 결로 맞물려 있어요.</b> 특별히 애쓰지 않아도 "이 사람이랑은 잘 맞네" 싶은 감각이 관계 초반부터 찾아오는 귀한 결이에요.`,
+      friend:`<b>일간 ${pair.dayStem.hap}으로 묶인 친구 결</b>이에요. 굳이 자주 안 봐도 다시 만나면 어제 같은 사이가 되는 자석 같은 결이랍니다.`,
+      work:`<b>일간 ${pair.dayStem.hap}</b> — 일하는 방식과 비전이 자연히 정렬돼요. 회의 짧고 결정 빠른 동업의 가장 강력한 신호예요.`
+    }, mode)});
+  }
+  if(pair.dayStem.relation.type==='생'){
+    const g=pair.dayStem.relation.from==='A'?A.name:B.name;
+    const r=pair.dayStem.relation.from==='A'?B.name:A.name;
+    S.push({rank:8, t:byMode({
+      couple:`<b>${g}님이 ${r}님에게 말없이 기운을 보태주는 흐름</b>이 자리잡고 있어요. 곁에 있는 것만으로 ${r}님이 환해지는 결이에요.`,
+      friend:`<b>${g}님이 ${r}님의 결을 길러주는 친구</b>예요. 막막할 때 같이 있으면 시야가 트이는 친구의 자리에 있어요.`,
+      work:`<b>${g}님 → ${r}님 자원·아이디어 흐름</b>. ${g}님이 시니어·코치 역할, ${r}님이 실행 역할로 자연스레 분담돼요.`
+    }, mode)});
+  }
+  if(pair.dayStem.relation.type==='동일'){
+    if(mode!=='work'){
+      S.push({rank:5, t:byMode({
+        couple:`<b>두 분의 본바탕이 같은 오행</b>이에요. 말하지 않아도 뭘 느끼는지 알고, 기분의 리듬도 비슷해요.`,
+        friend:`<b>"내 마음 알아주는 친구"</b> 자리가 자연히 채워지는 같은 결의 우정이에요.`
+      }, mode)});
+    }
+    // work 모드에서는 동일을 강점이 아니라 과제로 분류 (아래 challenges에 추가)
+  }
+  if(pair.dayBran.yukhap){
+    S.push({rank:9, t:byMode({
+      couple:`<b>가장 가까운 자리(일지)가 육합으로 손을 맞잡고 있어요.</b> 일상의 소소한 결정이 의외로 안 싸우고 잘 풀리는 구조예요.`,
+      friend:`<b>일지 육합 — "약속 잡기 부담 없는 친구"</b> 자리예요. 같이 있을 때 가장 덜 피곤한 사이.`,
+      work:`<b>일지 육합 — 의견 조율 비용이 매우 낮은 협업</b>이에요. 회의 분위기가 자연히 부드럽고 정신적 피로가 적어요.`
+    }, mode)});
+  }
+  if(pair.dayBran.samhap_pair){
+    S.push({rank:7, t:byMode({
+      couple:`<b>일지 삼합의 한 축</b> — 함께 있을 때 비로소 완성되는 결이 숨어 있어요. 시간이 갈수록 좋아지는 궁합이에요.`,
+      friend:`<b>같이 있을 때만 피는 결</b>이 있어요. 같이 시작한 일·취미가 의외로 멀리까지 가는 친구예요.`,
+      work:`<b>합쳐야 완성되는 시너지</b>가 잠재된 동업이에요. '1+1=3'이 가능한 구조 — 단기 평가보다 장기로 보세요.`
+    }, mode)});
+  }
+  if(pair.elemComplement.aFills&&pair.elemComplement.bFills){
+    S.push({rank:10, t:byMode({
+      couple:`<b>서로의 약한 기운을 양방향으로 채워주는 드문 구조</b>예요. 함께일 때 둘 다 혼자일 때보다 튼튼해지는 결이라, 이 관계 자체가 두 분 인생의 자양분이에요.`,
+      friend:`<b>양방향 용신 보완</b> — "만나고 오면 충전된다" 싶은 친구의 결이에요. 정신적 회복력의 약 같은 우정이에요.`,
+      work:`<b>양방향 용신 보완</b> — 협업에서 이건 큰 자산이에요. 둘이 같이 일하면 둘 다 덜 지치는 구조라, 장기·고강도 일에 특히 잘 맞아요.`
+    }, mode)});
+  } else if(pair.elemComplement.aFills){
+    S.push({rank:6, t:byMode({
+      couple:`<b>${B.name}님이 ${A.name}님의 부족한 기운을 채워주는 결</b>이에요. ${A.name}님은 ${B.name}님이 곁에 있을 때 심신이 더 편안해져요.`,
+      friend:`<b>${B.name}님이 ${A.name}님에게 안정감을 주는 친구</b>예요. ${A.name}님이 흔들릴 때 진가가 드러나요.`,
+      work:`<b>${B.name}님이 ${A.name}님의 약점을 보완</b>해줘요. 팀 구성 시 두 분이 함께 있어야 ${A.name}님이 제 기량을 발휘하는 결이에요.`
+    }, mode)});
+  } else if(pair.elemComplement.bFills){
+    S.push({rank:6, t:byMode({
+      couple:`<b>${A.name}님이 ${B.name}님의 부족한 기운을 채워주는 결</b>이에요.`,
+      friend:`<b>${A.name}님이 ${B.name}님에게 의지처가 되는 친구</b>예요.`,
+      work:`<b>${A.name}님이 ${B.name}님의 약점을 보완</b>해줘요. 협업의 안정성은 ${A.name}님 쪽에서 나와요.`
+    }, mode)});
+  }
+  if(pair.daewoonSync.sameYearChange){
+    S.push({rank:6, t:byMode({
+      couple:`<b>두 분의 대운이 비슷한 시기에 전환기</b>를 맞아요. 인생의 큰 물결이 동시에 바뀌어 함께 성장하기 좋은 타이밍이 여러 번 와요.`,
+      friend:`<b>대운 동조</b> — 두 분의 인생 챕터가 비슷한 때 바뀌어요. 같은 시기에 같은 고민을 한다는 게 친구로서 큰 자산이에요.`,
+      work:`<b>대운 동조</b> — 두 분이 비슷한 시기에 전환기를 맞아요. 같은 타이밍에 같은 변화를 겪으니 협업 페이스가 자연히 맞아요.`
+    }, mode)});
+  }
+  if(f.aChunulOnB&&f.bChunulOnA){
+    S.push({rank:10, t:byMode({
+      couple:`<b>서로가 서로의 천을귀인</b> — 명리에서 가장 복된 자리이고, 양방향 성립은 드물어요.`,
+      friend:`<b>양방향 천을귀인 — 평생 친구로 두라는 사주의 신호</b>예요. 위기에 진짜 곁에 있어주는 결이에요.`,
+      work:`<b>양방향 천을귀인 — 사업 위기에 결정타가 되는 파트너 관계</b>예요. 단순 동업 이상의 결이에요.`
+    }, mode)});
+  } else if(f.aChunulOnB){
+    S.push({rank:8, t:byMode({
+      couple:`<b>${B.name}님이 ${A.name}님의 천을귀인</b>이에요. ${A.name}님이 어려울 때 ${B.name}님이 결정적이에요.`,
+      friend:`<b>${B.name}님이 ${A.name}님의 천을귀인</b> — 막다른 길에 몰릴 때 ${A.name}님을 구해줄 친구예요.`,
+      work:`<b>${B.name}님이 ${A.name}님의 천을귀인</b> — 사업적 위기에 결정적 한 수가 되는 파트너예요.`
+    }, mode)});
+  } else if(f.bChunulOnA){
+    S.push({rank:8, t:byMode({
+      couple:`<b>${A.name}님이 ${B.name}님의 천을귀인</b>이에요. ${B.name}님에게 ${A.name}님은 '의지할 수 있는 사람'이에요.`,
+      friend:`<b>${A.name}님이 ${B.name}님의 천을귀인</b> — ${B.name}님 인생에서 ${A.name}님의 무게가 큰 친구예요.`,
+      work:`<b>${A.name}님이 ${B.name}님의 천을귀인</b> — ${B.name}님 사업의 위기에 결정타예요.`
+    }, mode)});
+  }
+
+  // === 과제 ===
+  if(pair.dayStem.relation.type==='극'){
+    const g=pair.dayStem.relation.from==='A'?A.name:B.name;
+    const r=pair.dayStem.relation.from==='A'?B.name:A.name;
+    if(mode==='work'){
+      // work 모드에서 일간극은 과제가 아니라 강점(견제·균형)
+      S.push({rank:7, t:`<b>일간 상극 — 견제·균형 구조</b>예요. 한 명이 액셀, 한 명이 브레이크 역할로 자연 분담돼서, 의사결정이 한쪽으로 쏠리지 않는 건강한 동업이에요.`});
+    } else {
+      C.push({rank:7, t:byMode({
+        couple:`<b>본바탕이 서로를 다듬는 결</b>이에요. ${g}님의 말 한마디가 ${r}님에게는 깊이 박힐 수 있어요.`,
+        friend:`<b>${g}님이 ${r}님에게 직설적으로 짚어주는 친구 자리</b>에 있어요. 처음엔 서운할 수 있지만 결국 도움이 되는 결이에요.`
+      }, mode), cure:byMode({
+        couple:`'극'은 조각가가 돌을 깎는 결이기도 해요. <b>말의 온도를 서로 조금 낮춰주고</b> 상대의 예민한 자리를 기억하면, 이 마찰이 관계의 깊이로 바뀌어요.`,
+        friend:`극복법은 ${g}님의 <b>"말하기 전에 한 박자 쉬기"</b> 습관. 같은 내용도 톤에 따라 친구가 마음의 문을 닫으니 표현 방식이 핵심이에요.`
+      }, mode)});
+    }
+  }
+  if(pair.dayBran.chung){
+    if(mode==='work'){
+      // work 모드에서 일지충은 강점(빠른 결정)으로 재해석
+      S.push({rank:6, t:`<b>일지 충 — 의사결정 속도가 매우 빠른 협업</b>이에요. 합의 비용이 낮고, 잘못된 방향이면 빨리 깨닫고 빨리 바꾸는 구조라 속도가 생명인 일에 잘 맞아요.`});
+      C.push({rank:5, t:`<b>다만 일지 충은 감정적 피로가 누적</b>돼요. 의사결정 속도는 강점이지만 잦은 부딪힘에 지칠 수 있어요.`,
+        cure:`극복법은 <b>"의사결정 룰을 명문화"</b>. 누가 어디까지 결정권을 갖는지 명확하면 충의 기운이 생산성으로 변환돼요.`});
+    } else {
+      C.push({rank:9, t:byMode({
+        couple:`<b>가장 가까운 자리가 서로를 흔드는 결</b>이에요. 작은 일로 말이 커질 수 있고, 피로가 쌓이는 순간도 있어요.`,
+        friend:`<b>일지 충 — "같이 있으면 자꾸 사고치는 친구"</b> 결이에요. 정적인 사이는 절대 아닌데 후폭풍이 있을 수 있어요.`
+      }, mode), cure:byMode({
+        couple:`이 결은 <b>변화를 함께 겪을수록 관계가 깊어지는 엔진</b>이기도 해요. 큰 결정 앞에서 "우리 같이 해보자" 할 수 있다면 약점이 아니라 동력이 돼요.`,
+        friend:`극복법은 <b>"휴지기 인정"</b>. 매번 만나면 사고치는 결이라 일주일에 한 번은 따로 쉬어가는 시간을 두세요. 그게 우정을 길게 만들어요.`
+      }, mode)});
+    }
+  }
+  if(pair.dayBran.hyung){
+    C.push({rank:6, t:byMode({
+      couple:`<b>비슷한 주제가 반복해서 찾아오는 결</b>이에요. "이거 전에도 얘기했던 것 같은데"가 자주 나올 수 있어요.`,
+      friend:`<b>같은 종류 갈등이 모양만 바꿔 재등장하는 친구 결</b>이에요. 거리 조절이 중요해요.`,
+      work:`<b>같은 종류 이슈가 반복적으로 떠오르는 협업</b>이에요. 같은 함정에 두 번 빠지지 않으려면 회고가 필수예요.`
+    }, mode), cure:byMode({
+      couple:`<b>같은 주제를 한 번 더 마주할 때마다 단단해지는 결</b>이에요. 재등장한 주제를 귀찮아하지 말고 "이번엔 어떻게 풀어볼까?" 하는 습관이 해독제예요.`,
+      friend:`극복법은 <b>거리 조절</b>. 한 번씩 거리를 두고 다시 만나는 리듬이 이 우정을 길게 가져가는 비결이에요.`,
+      work:`극복법은 <b>회고(retrospective)의 정기화</b>. 같은 패턴을 인지하면 같은 함정을 피할 수 있어요.`
+    }, mode)});
+  }
+  if(pair.dayBran.wonjin){
+    C.push({rank:5, t:byMode({
+      couple:`<b>이유를 설명하기 어려운 어긋남</b>이 가끔 찾아올 수 있어요.`,
+      friend:`<b>이유 없이 거슬리는 순간</b>이 가끔 와요. 짧은 휴식기가 필요할 때가 있어요.`,
+      work:`<b>설명하기 어려운 미묘한 어긋남</b>이 가끔 협업 중 올라와요.`
+    }, mode), cure:byMode({
+      couple:`원진은 깊이 닿아 있다는 증거예요. <b>"지금 이유 없이 거슬리는 게 올라왔구나"</b> 알아차리고 한 발 물러서면 자연스레 지나가요.`,
+      friend:`극복법은 <b>잠깐 거리 두기</b>. 자연스레 풀리니 부정적으로 해석하지 마세요.`,
+      work:`극복법은 <b>"오늘 뭔가 안 맞네, 내일 다시"</b> 식의 시간 두기. 이성적 분석으로 풀리지 않는 결이에요.`
+    }, mode)});
+  }
+  if(pair.crossBranches.chung.length>=2 && mode!=='work'){
+    C.push({rank:6, t:byMode({
+      couple:`<b>사주 전체에 충 ${pair.crossBranches.chung.length}개</b> — 안정기보다 변화기가 더 많을 수 있어요.`,
+      friend:`<b>크로스 충 ${pair.crossBranches.chung.length}개</b> — 둘이 있으면 늘 무언가 바뀌는 결이에요.`
+    }, mode), cure:byMode({
+      couple:`변화의 주도권을 두 분이 잡으세요. 같이 이사·전환·배움 — '같이 겪는 변화'가 충의 기운을 자양분으로 바꿔줘요.`,
+      friend:`변화를 두 사람이 함께 계획하는 자리로 끌어오면 이 결이 모험의 자양분이 돼요.`
+    }, mode)});
+  }
+  if(pair.gongmang.aHasBGm.length+pair.gongmang.bHasAGm.length>=3){
+    C.push({rank:5, t:byMode({
+      couple:`<b>서로의 공망 자리가 많이 겹쳐요.</b> "이 사람한테 왜 이게 잘 안 통하지?" 싶은 영역이 있을 수 있어요.`,
+      friend:`<b>공망 다수</b> — 친구 관계에서 특정 영역의 반응이 무심해질 수 있어요.`,
+      work:`<b>공망 다수</b> — 협업에서 특정 영역에 사각지대가 생기기 쉬워요.`
+    }, mode), cure:byMode({
+      couple:`공망 영역은 자연스럽지 않으니까, <b>의식적으로 관심을 남겨두세요.</b> 추측하지 말고 물어보는 습관이 빈 자리를 채워줘요.`,
+      friend:`극복법은 <b>구체적으로 묻기</b>. "알아서 해줘"가 안 통하니 선택지를 주는 대화로 바꾸세요.`,
+      work:`극복법은 <b>외부 자원을 끌어오기</b>. 두 분이 둘 다 약한 영역은 외부 인력·시스템으로 매우는 게 가장 빠른 해결이에요.`
+    }, mode)});
+  }
+  if(pair.dayStem.relation.type==='동일' && mode==='work'){
+    C.push({rank:7, t:`<b>일간 동일 — 협업의 주의 신호(군겁쟁재)</b>예요. 비슷한 사람끼리 같은 자리를 두고 경쟁하거나, 같은 약점을 공유하기 쉬운 구조예요.`,
+      cure:`극복법은 <b>역할의 명시적 분담 + 강점 다른 외부 멤버 영입</b>. 두 분이 직접 부딪히는 영역을 줄이고 보완 인력을 두면 위험이 빠르게 해소돼요.`});
+  }
+  if(pair.dayStem.relation.type==='동일' && mode==='couple' && !pair.dayBran.yukhap && !pair.dayBran.samhap_pair){
+    C.push({rank:3, t:`<b>같은 결끼리 만난 만큼 자극이 약해요.</b> 관계가 너무 잔잔해져서 "우리 사이에 새로운 게 없다"고 느껴질 때가 올 수 있어요.`,
+      cure:`극복법은 <b>"의도된 새로움"</b>. 자연스레 피는 게 없으니 일부러 심는 것 — 매달 하나씩 "이번 달의 새로운 것"을 같이 정해보세요.`});
+  }
+
+  S.sort((a,b)=>b.rank-a.rank);
+  C.sort((a,b)=>b.rank-a.rank);
+  return {strengths:S, challenges:C};
+}
+
+function renderStrengths(A,B,pair,score,mode){
+  mode = mode || 'couple';
+  const {strengths, challenges} = analyzeStrengths(A,B,pair,score,mode);
+  const L=[];
+
+  L.push(pickL([
+    byMode({
+      couple:`편지를 여기까지 읽으면서 "다 좋다는 소리 같기도 한데..." 싶으셨을 수 있어요. 그래서 이 자리에서는 <b>두 분 관계의 강점과 과제를 또렷하게</b> 짚어드릴게요. 과제는 극복할 수 없어서 적는 게 아니라, <b>알고 있으면 훨씬 수월해지는 것들</b>이에요.`,
+      friend:`친구 궁합 편지를 여기까지 읽으면서 "결국 다 좋은 친구라는 거네?" 싶으셨을 수 있어요. 그래서 이 자리에서는 <b>이 우정의 강점과 함께 신경 쓸 결</b>을 또렷하게 정리해드릴게요.`,
+      work:`동업·협업 편지를 여기까지 읽으면서 "결국 협업해도 된다는 결론이야?" 싶으셨을 수 있어요. 그래서 이 자리에서는 <b>이 동업의 핵심 강점과 미리 알면 수월한 과제</b>를 또렷하게 정리해드릴게요.`
+    }, mode),
+    byMode({
+      couple:`사주 궁합은 점수 하나로 재단하기 어려워요. "${score}점이면 괜찮은 건가요?" 물으시면, 그 숫자 안에 강점도 있고 과제도 있어요. 그래서 ${A.name}님과 ${B.name}님 관계의 핵심을 압축해드릴게요.`,
+      friend:`친구 궁합도 결국 점수만으로는 안 보이는 결이 많아요. "${score}점이면 평생 갈 친구인가?" 물으시면, 그 숫자 안에 강점·과제가 함께 있어요. 핵심만 압축할게요.`,
+      work:`동업 점수가 ${score}점이라고 해도 그 안에 핵심 시너지와 위험 요인이 같이 있어요. 두 가지를 분리해서 압축해드릴게요.`
+    }, mode),
+    byMode({
+      couple:`지금까지 읽으신 결들을 <b>비교 가능한 형태로</b> 정리하는 자리예요. 다른 분 궁합을 또 풀어보실 때, 이 섹션만 나란히 놓으셔도 차이가 또렷이 보여요.`,
+      friend:`여러 친구 궁합을 비교하실 때 이 섹션이 가장 유용해요. 다른 친구와 또 돌려보시면 강점·과제의 모양이 분명히 달라지거든요.`,
+      work:`여러 협업 후보를 비교 검토할 때 이 섹션을 나란히 놓으면 차이가 또렷해져요. 의사결정의 핵심 자료로 쓰세요.`
+    }, mode),
+  ], A, B));
+
+  L.push(`<b>✿ ${byMode({couple:'두 분 관계의 강점',friend:'이 우정의 강점',work:'이 동업의 강점'}, mode)}</b>`);
+  if(strengths.length){
+    const pickStr = strengths.slice(0, Math.min(3, strengths.length));
+    const labels = ['첫째','둘째','셋째'];
+    pickStr.forEach((s,idx)=>L.push(`<b>${labels[idx]}.</b> ${s.t}`));
+  } else {
+    L.push(byMode({
+      couple:`눈에 띄는 명리적 강점은 적은 편이에요. 대신 이건 <b>관계의 결을 두 분이 직접 써내려갈 여지가 크다</b>는 뜻이에요.`,
+      friend:`사주적으로 두드러진 강점은 없는 편이에요. 친구 관계는 결국 시간과 의리로 만들어지는 결이니, 출발점이 평범한 게 약점은 아니에요.`,
+      work:`사주적으로 도드라진 시너지는 약해요. 그만큼 <b>역할 정의·프로세스·인센티브 구조</b>로 협업의 품질을 만들어가야 하는 동업이에요.`
+    }, mode));
+  }
+
+  L.push(`<b>✿ ${byMode({couple:'알고 있으면 수월해지는 과제',friend:'함께 신경 쓸 결',work:'미리 알면 수월한 과제'}, mode)}</b>`);
+  if(challenges.length){
+    const pickCh = challenges.slice(0, Math.min(2, challenges.length));
+    pickCh.forEach((c,idx)=>L.push(`<b>${idx+1}.</b> ${c.t} ${c.cure}`));
+  } else {
+    L.push(byMode({
+      couple:`두드러진 과제가 거의 없어요. 사주가 가로막지 않는 만큼 <b>관심을 꾸준히 유지하는 것</b>이 사실상 유일한 과제예요.`,
+      friend:`큰 과제가 없는 편한 친구 결이에요. 그만큼 <b>"무관심"</b>이 유일한 적이에요. 가끔 안부 묻는 습관 하나면 충분해요.`,
+      work:`사주적으로 두드러진 위험은 적어요. 단, <b>역할 정의가 흐려지면</b> 무난해 보이는 동업이 가장 빨리 시들 수 있으니 책임 영역을 명문화하세요.`
+    }, mode));
+  }
+
+  L.push(pickL([
+    byMode({
+      couple:`이 강점과 과제는 두 분에게 '해답지'가 아니라 '지도'예요. <b>서로의 손을 놓지 않고 이 지도를 함께 읽어가신다면, 강점은 더 환해지고 과제는 작아져요.</b>`,
+      friend:`이 강점과 과제는 친구 관계의 '나침반'이에요. 길을 잃었을 때 강점을 떠올리고, 갈등할 때 과제 옆에 적힌 극복법을 꺼내 보세요.`,
+      work:`이 강점과 과제는 협업의 '체크리스트'예요. 시즌마다 다시 펼쳐 보시면 같은 함정에 빠지지 않게 도와줄 거예요.`
+    }, mode),
+    byMode({
+      couple:`사주가 보여주는 가장 정직한 예측은 "아는 것이 힘이다" — 알고 있으면 과제도 관계의 재료가 돼요.`,
+      friend:`친구 사이의 정직한 진리는 "알고 있는 우정이 오래 간다" — 강점은 자랑하고 과제는 미리 살피세요.`,
+      work:`사업적으로도 같은 진리예요 — "위험을 미리 보면 그건 더 이상 위험이 아니다." 강점은 활용하고 과제는 시스템으로 가두세요.`
+    }, mode),
+  ], A, B));
+
+  const titleSuffix = byMode({
+    couple:'(장점·과제 정리)',
+    friend:'(친구 관계의 강점·과제)',
+    work:'(협업의 강점·과제)'
+  }, mode);
+  return letterSec('STRENGTHS','이 관계의 강점과 숙제 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>', L.map(l=>`<p>${l}</p>`).join(''));
+}
+const FILE_PREFIX="궁합편지";
+
+const CIRCLE_NUMS=['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫'];
+
+function buildToc(rawSections){
+  const items=[];
+  rawSections.forEach((html,idx)=>{
+    if(!html||!html.trim())return;
+    let raw='';
+    const lm=html.match(/class="letter-sec-title">([\s\S]*?)<\/div>/);
+    const cm=html.match(/class="card-title">([\s\S]*?)<\/div>/);
+    raw=lm?lm[1]:(cm?cm[1]:'');
+    let label=raw.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+    label=label.replace(/^[①②③④⑤⑥⑦⑧⑨⑩⑪⑫]\s*/,'').replace(/^(첫|두|세|네|다섯|여섯|일곱|여덟|아홉|열) 번째 ·\s*/,'');
+    if(!label)label='섹션 '+(idx+1);
+    const num=CIRCLE_NUMS[idx]||(idx+1);
+    items.push(`<li><a href="#sec-${idx+1}"><span class="toc-num">${num}</span><span class="toc-label">${escHtml(label)}</span></a></li>`);
+  });
+  return `<div class="toc-title">목　차</div><ol class="toc-list">${items.join('')}</ol>`;
+}
+
+function buildNav(rawSections){
+  const frag=[];
+  rawSections.forEach((html,idx)=>{
+    if(!html||!html.trim())return;
+    frag.push(`<a href="#sec-${idx+1}">${CIRCLE_NUMS[idx]||(idx+1)}</a>`);
+  });
+  return `<nav class="sec-nav ui-only">${frag.join('')}</nav>`;
+}
+function wrapSections(rawSections){
+  return rawSections.map((html,idx)=>{
+    if(!html||!html.trim())return '';
+    return html.replace(/^(\s*)(<section class="letter"|<div class="card")/, `$1$2 id="sec-${idx+1}"`);
+  }).join('');
+}
+function savePDF(){
+  window.print();
+}
+function downloadHTML(){
+  const aName=(document.getElementById('nameA')||{}).value||'A';
+  const bName=(document.getElementById('nameB')||{}).value||'B';
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelectorAll('.ui-only').forEach(el=>el.remove());
+  const inputCard=clone.querySelector('#inputCard');if(inputCard)inputCard.remove();
+  const scripts=clone.querySelectorAll('script');scripts.forEach(s=>s.remove());
+  // 최소 동작 스크립트 (스크롤 부드럽게) 삽입
+  const minScript=document.createElement('script');
+  minScript.textContent=`document.documentElement.style.scrollBehavior='smooth';`;
+  clone.querySelector('body').appendChild(minScript);
+  // resultArea hidden 속성 제거
+  const ra=clone.querySelector('#resultArea');if(ra)ra.classList.remove('hidden');
+  // body에 has-fbar 제거
+  const body=clone.querySelector('body');if(body)body.classList.remove('has-fbar');
+  const html='<!DOCTYPE html>\n'+clone.outerHTML;
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.download=aName+'님_'+bName+'님 궁합 편지.html';
+  a.href=URL.createObjectURL(blob);
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},100);
+}
+function activeNavObserver(){
+  const links=document.querySelectorAll('.sec-nav a');
+  if(!links.length)return;
+  const secs=[...document.querySelectorAll('[id^=sec-]')];
+  const io=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const id=e.target.id;
+        links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));
+      }
+    });
+  },{rootMargin:'-40% 0px -50% 0px',threshold:0});
+  secs.forEach(s=>io.observe(s));
+}
+
+function escHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
+function elCls(idx){return ELEM_C[idx]||'';}
+function elemChar(idx){return ['나무(木)','불(火)','흙(土)','쇠(金)','물(水)'][idx];}
+
+/* 일간 캐릭터 — "그 사람은 이런 결의 사람" */
+const STEM_CHAR={
+  0:{sym:'우뚝 선 나무 같은 분',who:'자기 뜻이 또렷하고, 한번 마음 먹으면 쉽게 흔들리지 않는 사람',care:'앞으로 밀고 나가는 힘이 강해서, 가끔은 주변을 둘러보는 여유가 필요해요'},
+  1:{sym:'부드러운 풀꽃 같은 분',who:'사람의 결을 세심하게 읽어내고, 공기처럼 자연스럽게 어울리는 사람',care:'혼자 너무 많이 감당하다 지칠 수 있으니, 기대는 법을 익히면 좋아요'},
+  2:{sym:'환한 햇볕 같은 분',who:'있기만 해도 주변이 밝아지는, 솔직하고 적극적인 사람',care:'늘 앞장서느라 스스로를 돌보지 않을 수 있어요. 쉬어가는 것도 용기예요'},
+  3:{sym:'잔잔한 등불 같은 분',who:'속정이 깊고 오래 타는 따뜻함을 지닌 사람',care:'감정을 안에 담아두다 보니 가까운 사람만 그 마음을 읽을 수 있어요'},
+  4:{sym:'크고 너른 산 같은 분',who:'한번 자리를 잡으면 흔들리지 않는 든든한 사람',care:'변화에 적응하는 데 시간이 좀 걸리니, 천천히 가도 괜찮아요'},
+  5:{sym:'고운 대지 같은 분',who:'모든 것을 품어 조용히 길러내는, 너른 품을 가진 사람',care:'자기 목소리를 뒤로 미루는 습관을 조금만 놓아주면 좋아요'},
+  6:{sym:'단단한 강철 같은 분',who:'원칙과 의리가 또렷한, 신뢰할 수 있는 사람',care:'다정함을 말로 표현하는 데 서툴 수 있으니, 작은 표현을 연습해 봐요'},
+  7:{sym:'잘 다듬은 보석 같은 분',who:'감각이 예리하고 아름다움을 알아보는 사람',care:'예민한 만큼 상처를 깊이 품을 수 있어요. 흘려보내는 연습이 도움돼요'},
+  8:{sym:'넓고 깊은 바다 같은 분',who:'지혜롭고 포용력이 넓어서 어지간한 일에는 흔들리지 않는 사람',care:'속이 깊은 만큼 속내를 잘 드러내지 않아, 곁에서 물어봐 줘야 해요'},
+  9:{sym:'맑은 샘물 같은 분',who:'감성이 깊고 직관이 예리한, 조용히 스며드는 사람',care:'감정의 파고가 커서 스스로를 지치게 할 수 있어요. 자기를 아껴주세요'},
+};
+function stemChar(si){return STEM_CHAR[si];}
+
+/* 일지 캐릭터 — "가장 가까운 자리의 결" */
+const BRAN_CHAR={
+  0:{sym:'한밤중 맑은 물',atmo:'고요하고 깊은 결'},
+  1:{sym:'겨울 끝자락의 흙',atmo:'묵묵하고 차분한 결'},
+  2:{sym:'봄 초입의 새 나무',atmo:'싱싱하고 앞으로 나아가는 결'},
+  3:{sym:'봄 한가운데 여린 풀',atmo:'부드럽고 감각적인 결'},
+  4:{sym:'봄이 익어가는 흙',atmo:'너르고 품이 큰 결'},
+  5:{sym:'여름 시작의 작은 불',atmo:'영민하고 재치 있는 결'},
+  6:{sym:'한낮의 밝은 햇볕',atmo:'환하고 솔직한 결'},
+  7:{sym:'여름 끝자락의 흙',atmo:'따뜻하고 온화한 결'},
+  8:{sym:'가을 초입의 금속',atmo:'민첩하고 유연한 결'},
+  9:{sym:'가을이 익어가는 보석',atmo:'단정하고 섬세한 결'},
+  10:{sym:'가을 끝자락의 흙',atmo:'의리 있고 믿음직한 결'},
+  11:{sym:'초겨울의 너른 물',atmo:'포용력 있고 느긋한 결'},
+};
+function branChar(bi){return BRAN_CHAR[bi];}
+
+function letterSec(lb,t,b){return `<section class="letter"><div class="letter-sec-label">${lb}</div><div class="letter-sec-title">${t}</div><div class="letter-body">${b}</div></section>`;}
+
+function renderHero(A,B,sc,lb,mode){
+  mode = mode || 'couple';
+  const modeBadge = byMode({
+    couple:'연인·결혼', friend:'친구·형제', work:'동업·직장'
+  }, mode);
+  const legendary = sc>=100;
+  const cls = legendary ? 'hero legendary' : '';
+  const sparkle = legendary ? '<div class="hero-sparkle">✦ 백 쌍에 한 쌍 ✦</div>' : '';
+  return `<div class="hero-mode-badge">${modeBadge} 분석</div>${sparkle}<div class="hero-names"><span class="hero-name">${escHtml(A.name)}</span><span class="hero-bloom">✿</span><span class="hero-name">${escHtml(B.name)}</span></div><div class="hero-score${legendary?' hero-score-legendary':''}">${sc}</div><div class="hero-label">${lb.label}</div><div class="hero-hint">${lb.desc}</div>`;
+}
+function renderDualChart(A,B){
+  const c1=(P)=>{
+    const pos=['시주','일주','월주','년주'];const pp=[P.hP,P.dP,P.mP,P.yP];
+    const tr=pos.map(s=>`<th>${s}</th>`).join('');
+    const sr=pp.map(p=>{if(!p)return'<td><span class="char-big muted">-</span></td>';const cls=elCls(STEM_E[p.si]);return`<td class="bg-${cls}"><span class="char-big elem-${cls}">${STEMS_H[p.si]}</span><span class="char-sm">${STEMS[p.si]}</span></td>`;}).join('');
+    const br=pp.map(p=>{if(!p)return'<td><span class="char-big muted">-</span></td>';const cls=elCls(BRAN_E[p.bi]);return`<td class="bg-${cls}"><span class="char-big elem-${cls}">${BRANS_H[p.bi]}</span><span class="char-sm">${BRANS[p.bi]}</span></td>`;}).join('');
+    const eb=P.eb.map(e=>`${e.name}${e.count}`).join(' · ');
+    return `<div class="chart-wrap"><h4>${escHtml(P.name)} · ${P.strength} · 일간 ${STEMS_H[P.dP.si]}(${ELEM_N[STEM_E[P.dP.si]]})</h4><table class="saju-table"><thead><tr>${tr}</tr></thead><tbody><tr>${sr}</tr><tr>${br}</tr></tbody></table><div class="small muted center" style="margin-top:6px;">${eb}</div></div>`;
+  };
+  return `<div class="card-title">두 분의 원국을 나란히</div><div class="dual-charts">${c1(A)}${c1(B)}</div>`;
+}
+
+/* ① 두 사람의 본바탕과 만남 */
+
+function renderDayStem(A,B,pair,mode){
+  mode = mode || 'couple';
+  const s=pair.dayStem;const aCh=stemChar(s.aStem),bCh=stemChar(s.bStem);
+  const aEl=elemChar(s.aElem),bEl=elemChar(s.bElem);
+  const L=[];
+  L.push(byMode({
+    couple: `사주에서 그 사람의 본바탕을 가장 잘 보여주는 자리가 태어난 날의 기운이에요. 성격이나 기질의 뿌리가 여기 담겨 있어서, 두 분의 궁합을 살필 때 가장 먼저 들여다보게 되는 곳이랍니다.`,
+    friend: `사람의 본바탕은 태어난 날의 기운에 가장 또렷하게 담겨 있어요. 친구·형제 관계를 살필 때도 이 자리부터 봐요. "왜 이 친구한테는 자꾸 마음이 가지?" 같은 결의 답이 여기서 나오거든요.`,
+    work:   `함께 일할 때 두 사람의 결이 어떻게 맞물리는지를 보려면 일간(태어난 날의 기운)부터 봐야 해요. 일하는 방식, 의사결정 스타일, 갈등 시 반응 — 이런 것들의 뿌리가 본바탕에 있답니다.`
+  }, mode));
+  L.push(`<b>${A.name}님은 ${aCh.sym}</b>이에요. ${aCh.who}이죠. ${aCh.care}`);
+  L.push(`<b>${B.name}님은 ${bCh.sym}</b>이에요. ${bCh.who}이죠. ${bCh.care}`);
+  if(s.hap){
+    L.push(byMode({
+      couple: `<b>이런 두 분이 만나면 참 귀한 장면이 펼쳐져요.</b> 서로의 본바탕이 만나 ${s.hap}의 결로 자연스럽게 어우러지는 사이거든요. 특별히 노력하지 않아도 같이 있을 때 편안하고 서로에게 '맞다'는 느낌이 드는 관계예요. 관계 초반부터 "이 사람이랑은 이상하게 잘 맞네" 싶은 감각이 먼저 올 거예요. 이건 사주가 두 분에게 미리 선물해 둔 결이니까, 큰 복으로 여기시면 좋아요.`,
+      friend: `<b>두 분의 본바탕이 ${s.hap}의 결로 묶여 있어요.</b> 친구 관계에서 이 결은 "굳이 자주 안 만나도 다시 만나면 어제처럼 자연스러운 사이"를 만들어요. 가치관·취향이 자연스레 공명해서, 새로운 친구를 사귀느라 애쓰지 않아도 이 친구만 있으면 된다 싶은 관계가 됩니다. 평생 갈 결이에요.`,
+      work:   `<b>두 분의 일간이 ${s.hap}으로 맞물려 있어요.</b> 동업·협업에서 이건 큰 자산이에요. 일하는 방식과 비전이 자연히 정렬되어서 회의가 짧고, 의사결정이 빠르고, 서로의 판단을 기본으로 신뢰하게 돼요. 의견 차이가 있어도 곧 정리되는 구조랍니다.`
+    }, mode));
+  } else {
+    L.push(byMode({
+      couple: `두 분은 서로에게 강하게 끌어당기는 결은 아니에요. 하지만 이게 아쉬운 이야기로 들릴 필요는 없어요. 오히려 <b>두 사람 모두 중심이 또렷이 서 있는 관계</b>라는 뜻이거든요. 한쪽이 다른 한쪽에 기대어 자기를 잃는 일이 없고, 각자의 삶을 살면서 만나는 담백한 동행이 돼요. 요즘 세상에 이런 관계야말로 오래 가는 결이에요.`,
+      friend: `두 분의 본바탕은 자석처럼 강하게 묶이는 결은 아니에요. 그런데 친구 관계에서는 이게 오히려 장점일 때가 많아요. <b>서로의 영역을 침범하지 않으면서도 필요할 때 곁에 있는 친구</b>가 되는 결이거든요. "끈끈하다"기보다 "오래 간다"에 가까운 사이예요.`,
+      work:   `두 분의 본바탕은 자연스레 합쳐지지 않는 결이에요. 협업의 관점에서 보면 이건 약점일 수도 강점일 수도 있어요. <b>비슷한 사람끼리 모이지 않아서 사각지대가 적은 팀</b>이 될 수 있고, 동시에 의견 정렬에 시간이 더 걸릴 수 있어요. 의식적인 동기화가 필요한 구조예요.`
+    }, mode));
+  }
+  if(s.relation.type==='동일'){
+    L.push(byMode({
+      couple: `두 분의 본바탕은 같은 <b>${aEl}</b>의 결이에요. 그래서 말하지 않아도 뭘 느끼는지 서로 알고, 기분의 리듬도 비슷하게 흘러요. <b>함께 있을 때 참 편안한 관계</b>예요. 다만 같은 결끼리 만나면 서로를 자극하는 힘이 조금 약해요. 관계가 너무 잔잔해져서 지루하게 느껴질 때가 올 수 있는데, 이건 약점이 아니라 두 분이 적극적으로 새로움을 만들어갈 몫이라고 생각해 주세요.`,
+      friend: `두 분의 본바탕은 같은 <b>${aEl}</b>의 결이에요. <b>"내 마음 알아주는 친구"</b> 자리가 자연스럽게 채워지는 결이에요. 비슷한 결이라 위로가 필요할 때 통하고, 기분이 비슷한 곳에서 가라앉아요. 단, 둘이 같이 있으면 둘 다 새로운 시도를 잘 안 하게 될 수 있어요. 함께 모험하는 친구는 다른 결의 사람도 함께 두면 좋아요.`,
+      work:   `두 분의 본바탕은 같은 <b>${aEl}</b>의 결이에요. 협업 관점에서는 <b>주의해야 할 신호</b>예요. 명리에서는 이걸 '비견·군겁쟁재'로 해석하는데, 같은 자리를 두고 비슷한 사람끼리 경쟁하거나 같은 약점을 공유하기 쉬운 구조거든요. 역할을 명시적으로 나누고, 강점이 다른 외부 멤버를 한 명 끼우면 이 위험이 빠르게 해소돼요.`
+    }, mode));
+  } else if(s.relation.type==='생'){
+    const g=s.relation.from==='A'?A.name:B.name;const r=s.relation.from==='A'?B.name:A.name;
+    L.push(byMode({
+      couple: `두 분의 관계에는 <b>${g}님이 ${r}님에게 기운을 보태주는 흐름</b>이 자연스럽게 자리 잡고 있어요. 자연에서 나무가 불을 지피고 불이 흙을 만드는 것처럼, 한 사람이 다른 한 사람을 말없이 길러주는 관계랍니다. ${g}님이 곁에 있으면 ${r}님이 환해지고 자신감이 차올라요. 단 한 가지 — ${g}님이 계속 주기만 하다가 지칠 수 있으니, ${r}님도 가끔 먼저 손 내밀어 주세요. 받는 쪽이 감사를 표현할 때 이런 관계는 더 오래 가요.`,
+      friend: `<b>${g}님이 ${r}님에게 결을 길러주는 친구</b>예요. ${r}님이 막막할 때 ${g}님과 한 잔 하고 나면 시야가 트이고, 어떤 방향으로 가야 할지 보이는 결이에요. 친구 관계에서 이건 굉장히 귀해요. 단, ${g}님이 일방적인 멘토가 되면 ${r}님이 부담스러워질 수 있으니, 받은 만큼 어떤 식으로든 표현하는 것이 이 우정을 길게 가져가는 비결이에요.`,
+      work:   `<b>${g}님이 ${r}님에게 자원·아이디어를 흘려보내는 결</b>이에요. 협업에서는 ${g}님이 자연히 시니어·코치 역할을, ${r}님이 실행·확장 역할을 맡게 되는 구조예요. 권한과 보상의 비대칭이 생기기 쉬우니, <b>역할의 차이를 명문화</b>하시면 갈등이 줄어요. 길게 보면 ${r}님이 성장해서 다시 ${g}님에게 돌려주는 사이클이 만들어지면 가장 건강해요.`
+    }, mode));
+  } else if(s.relation.type==='극'){
+    const g=s.relation.from==='A'?A.name:B.name;const r=s.relation.from==='A'?B.name:A.name;
+    L.push(byMode({
+      couple: `${g}님의 기운이 ${r}님을 <b>다듬는 결</b>이에요. '극(克)'이라는 말이 붙어서 무섭게 들릴 수 있는데, 사실은 조각가가 돌을 깎아 작품을 만드는 그런 결이에요. 두 분이 함께 있으면 서로를 자극하고 성장시키는 힘이 있어요. 물론 부딪히는 순간도 있을 거예요. ${g}님의 말 한마디가 ${r}님에게는 생각보다 깊이 박히기도 하죠. <b>하지만 이 마찰이야말로 두 분을 더 좋은 사람으로 만드는 재료</b>예요. 말의 온도를 서로 조금만 낮춰주고, 상대의 예민한 부분을 기억해 주면, 이 결은 약점이 아니라 관계의 깊이가 됩니다.`,
+      friend: `${g}님이 ${r}님을 <b>'바른 말 해주는 친구' 자리</b>에 있어요. ${r}님이 빗나갈 때 직설적으로 짚어주는 결인데, 정말 가까운 친구일 때 이 역할이 가능해요. ${r}님이 처음엔 서운할 수도 있지만, 시간이 지나서 돌아보면 "그때 그 친구 말이 맞았네" 하게 되는 결이에요. 단, ${g}님은 말의 톤을 의식하시면 좋아요. 같은 내용도 표현에 따라 친구가 마음의 문을 닫을 수 있거든요.`,
+      work:   `${g}님이 ${r}님을 <b>'견제·균형' 위치에서 잡아주는 결</b>이에요. 협업에서 이 구조는 사실 굉장히 건강해요. 한 명이 액셀(${r}님)이고 한 명이 브레이크(${g}님)인 셈이라, 어느 한쪽으로 쏠리지 않는 의사결정이 가능하거든요. 성공적인 동업의 표준 구조 중 하나예요. 단, 마찰의 빈도가 높아질 수 있으니 <b>"의사결정 룰"을 미리 정해두면</b> 갈등이 생산적인 방향으로 흘러요.`
+    }, mode));
+  } else {
+    L.push(byMode({
+      couple: `오행으로 보면 두 분은 서로를 북돋지도, 서로를 깎지도 않는 담담한 결이에요. 관계가 자연스럽고 피곤하지 않은 대신, 큰 변화나 드라마틱한 감정을 서로 기대하기는 어려울 수 있어요. <b>그런데 이런 결이야말로 일상을 길게 함께 걸어가기에 가장 편안한 구조</b>예요.`,
+      friend: `오행 관계가 중성적이라, 친구 사이에서 가장 부담 없는 결이에요. <b>"굳이 챙길 일도, 부담 줄 일도 없는 친구"</b> 자리가 돼요. 가끔 만나면 반갑고, 안 만나도 어색하지 않은, 그런 편안한 결이 길게 가요.`,
+      work:   `오행 관계가 중성적이라, 협업에서 큰 시너지도 큰 갈등도 없는 결이에요. <b>각자 맡은 일을 잘하고 서로 간섭하지 않는 모듈형 협업</b>에 잘 맞아요. 강한 화학반응이 필요한 프로젝트보다는, 분업이 명확한 일에서 빛나요.`
+    }, mode));
+  }
+  const titleSuffix = byMode({
+    couple: '(일간 — 두 기둥의 만남)',
+    friend: '(일간 — 친구·형제의 본바탕)',
+    work:   '(일간 — 협업의 본바탕)'
+  }, mode);
+  return letterSec('ONE','첫 번째 · 두 사람의 본바탕 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+
+
+function renderDayBran(A,B,pair,mode){
+  mode = mode || 'couple';
+  const b=pair.dayBran;
+  const aCh=branChar(b.aBi),bCh=branChar(b.bBi);
+  const aEl=elemChar(BRAN_E[b.aBi]),bEl=elemChar(BRAN_E[b.bBi]);
+  const L=[];
+  L.push(byMode({
+    couple: `사주에는 '가장 가까운 사람이 머무는 자리'가 있어요. 배우자나 평생의 동반자가 들어오는 자리예요. 두 분이 함께할 때 이 자리가 서로에게 어떤 결을 만드는지를 보면, 일상의 분위기가 꽤 또렷이 보인답니다.`,
+    friend: `사주에는 '가까이 둘 사람이 머무는 자리'가 있어요. 일지(日支)라는 곳인데, 친구 관계의 친밀도와 결이 이 자리에서 결정돼요. 두 분의 일지가 만났을 때 어떤 결이 피는지 풀어드릴게요.`,
+    work:   `사주에는 '함께 일하는 사람이 머무는 자리'가 있어요. 일지(日支)라고 부르는데, 동업·팀워크에서 이 자리가 어떻게 맞물리는지가 협업의 호흡을 결정해요. 두 분의 일지가 만난 풍경을 봐드릴게요.`
+  }, mode));
+  L.push(`<b>${A.name}님의 이 자리는 ${aCh.sym}의 기운</b>이라, ${aCh.atmo}을 풍겨요. <b>${B.name}님의 이 자리는 ${bCh.sym}의 기운</b>이라, ${bCh.atmo}이 있죠. 이 두 결이 서로를 만나서 어떤 풍경을 만드는지 지금부터 풀어볼게요.`);
+
+  const good=[], care=[];
+
+  if(b.yukhap){good.push(byMode({
+    couple: `두 분의 가장 가까운 자리가 <b>자연스레 손을 맞잡는 결</b>이에요. 함께 있을 때 특별히 뭘 하지 않아도 마음이 편하고, 일상의 결정들이 자연스레 잘 맞아떨어져요. 어디서 밥을 먹을지, 주말을 어떻게 보낼지 — 이런 소소한 것들이 의외로 안 싸우고 잘 풀리는 구조예요.`,
+    friend: `두 분의 일지가 <b>육합</b>으로 묶여 있어요. 친구 관계에서 이건 "<b>약속 잡는 게 부담 없는 친구</b>" 자리를 만들어요. 별 일 없어도 만나고 싶어지고, 만나면 자연스레 시간이 잘 가는 사이예요. 같이 있을 때 가장 덜 피곤한 친구가 됩니다.`,
+    work:   `두 분의 일지가 <b>육합</b>으로 맞물려 있어요. 협업에서 이건 큰 자산이에요. <b>의견 조율 비용이 적고, 회의 분위기가 부드럽게 풀리는 결</b>이라 같이 일할 때 정신적 피로가 적어요. 장기 협업·공동 창업에 특히 잘 맞는 구조예요.`
+  }, mode));}
+  if(b.samhap_pair){good.push(byMode({
+    couple: `두 분 안에 <b>함께 있을 때 비로소 완성되는 결</b>이 숨어 있어요. 혼자서는 만들 수 없었던 어떤 장면이 두 분이 있을 때 피어나는 거죠. 시간이 지날수록 서로의 세계가 점점 넓어지고, 둘이 함께 이뤄가는 것들이 많아지는 관계예요.`,
+    friend: `두 분 안에 <b>같이 있을 때만 피는 결</b>이 숨어 있어요. 혼자서는 닿지 못할 자리에 같이 있으면 닿게 되는 친구예요. 같이 시작한 일·취미가 의외로 멀리까지 가는 결이에요.`,
+    work:   `두 분 안에 <b>합쳐야 완성되는 시너지의 결</b>이 잠재되어 있어요. 각자의 사주에는 없던 새로운 가능성이 둘이 협업할 때 출현하는 구조라, '1+1=3'이 가능한 동업이에요. 시간이 갈수록 진가가 드러나는 결이라 단기 평가보다 장기적으로 보세요.`
+  }, mode));}
+  if(b.banghap_pair){good.push(byMode({
+    couple: `두 분의 내면 계절이 <b>닮아 있어요</b>. 같은 계절을 걷고 있는 사람들처럼, 선호하는 것과 편안해하는 방식이 자연스럽게 겹쳐요. 취향이 비슷하고 리듬이 맞아서, 관계가 참 담백하면서도 따뜻하게 흘러요.`,
+    friend: `두 분의 결은 <b>같은 계절을 걷는 사람들</b> 같아요. 취향이 비슷해서 만나면 추천하고 싶은 것들이 많고, 노는 결도 잘 맞는 친구예요.`,
+    work:   `두 분의 결이 같은 계열이라 <b>일하는 호흡과 속도가 비슷</b>해요. 같은 페이스로 달리는 동업이라 한쪽이 처지거나 한쪽이 답답할 일이 적어요. 단, 비슷한 약점을 공유할 수 있으니 외부 시각을 정기적으로 들이세요.`
+  }, mode));}
+
+  if(b.chung){
+    care.push(byMode({
+      couple: `두 분의 가장 가까운 자리는 <b>서로를 가만히 두지 않는 결</b>이에요. 함께 있으면 뭔가를 바꾸고 싶어지고, 자꾸 움직이고 결정하게 되는 사이예요. 솔직히 말씀드리면, 가끔 피곤할 수 있어요. 작은 일로 말이 커지거나, 서로가 서로를 흔드는 느낌이 들 수도 있고요.`,
+      friend: `두 분의 일지가 <b>충(沖)</b>이에요. 친구 관계에서 이 결은 "<b>같이 있으면 자꾸 사고치는 친구</b>" 자리예요. 무모한 도전, 즉흥적인 여행, 큰 결정이 이 친구 옆에 있으면 자주 일어나요. 정적인 사이는 절대 아닌데, 가끔 후폭풍이 있을 수 있어요.`,
+      work:   `두 분의 일지가 <b>충(沖)</b>이에요. 협업에서 이건 흥미로운 결이에요. <b>의견 부딪힘이 자주 일어나는 대신 결정 속도가 굉장히 빠른 팀</b>이 됩니다. 합의를 기다리는 협업이 아니라 진검 승부로 결정 내리는 협업이에요. 단, 감정적 피로가 누적되니 의식적인 휴지(休止)가 필요해요.`
+    }, mode));
+    care.push(byMode({
+      couple: `<b>하지만 이 결의 진짜 힘은 다른 데 있어요.</b> 두 분은 관계가 절대 정체되지 않아요. 똑같은 자리에 오래 머물지 못하고 계속 새로움을 만들어내는 사이라, 함께하는 동안 무수히 많은 풍경을 같이 보게 돼요. 변화를 두려워하지 않고 같이 걸어간다면, 이 결은 관계를 오히려 깊게 만듭니다.`,
+      friend: `<b>이 결의 강점은 "결코 지루하지 않다"는 거예요.</b> 다른 친구들과는 못 해본 경험을 이 친구와 하게 되고, 인생의 가장 강렬한 추억이 이 친구와 만들어져요. "그 사고는 너랑 쳐서 다행이지" 같은 회상이 평생 남아요.`,
+      work:   `<b>이 결의 강점은 빠른 의사결정이에요.</b> 합의 비용이 낮고, 잘못된 방향이면 빨리 깨닫고 빨리 바꿔요. 스타트업·전환기 프로젝트처럼 속도가 생명인 일에 잘 맞는 구조예요. 다만 관리가 안 되면 빠른 분열로도 갈 수 있으니 <b>"의사결정 룰"을 명문화</b>하세요.`
+    }, mode));
+  }
+
+  if(b.hyung){
+    care.push(byMode({
+      couple: `두 분 사이에는 <b>비슷한 주제가 반복되어 찾아오는 결</b>이 있어요. 어떤 문제가 한 번 풀린 것 같다가도, 다시 모양을 바꿔서 올 때가 있어요. 그런데 이건 두 분이 피하지 않고 마주할 때마다 각자가 단단해지는 결이에요. 대충 넘어가지 않고, 서로의 약한 부분을 함께 다듬어가는 과정이라고 생각해주세요.`,
+      friend: `두 분 사이에는 <b>같은 패턴의 갈등이 모양만 바꿔 재등장하는 결</b>이 있어요. "전에도 이걸로 다퉜던 것 같은데?" 싶은 순간이 와요. 친구 관계에서 형(刑)이 있으면 거리 조절이 중요해요. 한 번씩 거리를 두고 다시 만나는 리듬이 이 우정을 오래 가져가는 비결이에요.`,
+      work:   `두 분 사이에는 <b>같은 종류의 갈등이 반복적으로 떠오르는 결</b>이 있어요. 협업에서는 같은 이슈가 반복된다는 건 구조적 문제일 수 있으니 <b>회고(retrospective)를 정기화</b>하세요. 회고 자리에서 패턴을 인지하면 같은 함정에 두 번 빠지지 않아요.`
+    }, mode));
+  }
+
+  if(b.wonjin){
+    care.push(byMode({
+      couple: `두 분 사이에는 <b>이유를 설명하기 어려운 거슬림</b>이 가끔 찾아올 수 있어요. 그 사람이 나쁜 것도 아니고 나도 예민하지 않았는데, 이상하게 마음이 불편한 순간 있잖아요. 그런데 이건 두 분이 서로에게 그만큼 깊이 들어왔다는 증거예요.`,
+      friend: `두 분 사이에는 <b>이유 없이 거슬리는 순간</b>이 가끔 와요. 친구 관계에서 원진이 있으면 짧은 휴식기가 필요할 때가 종종 있어요. 잠깐 거리를 두면 자연스레 풀리니까, 그 시간을 부정적으로 해석하지 마세요.`,
+      work:   `두 분 사이에는 <b>설명하기 어려운 미묘한 어긋남</b>이 가끔 협업 중 올라올 수 있어요. 명확한 사건 없이 분위기가 무거워지는 결이에요. 이건 이성적 분석으로 풀리지 않으니, <b>"오늘 뭔가 잘 안 맞네, 내일 다시 얘기하자"라고 인정하고 시간을 두는</b> 것이 가장 빠른 해소법이에요.`
+    }, mode));
+  }
+
+  if(b.pa){care.push(byMode({
+    couple: `두 분 사이에 <b>작은 어긋남이 반복되는 자리</b>가 있어요. 큰 싸움으로 번지진 않지만, 소소한 금이 가는 느낌. 대수롭지 않게 넘기는 여유가 있으면 충분해요.`,
+    friend: `소소한 결의 차이가 가끔 드러나요. 친구 관계에서는 큰 문제가 안 되니, 가볍게 넘기시면 돼요.`,
+    work:   `사소한 절차·디테일에서 의견 차이가 자주 발생할 수 있어요. 큰 일은 아니지만 누적되면 답답해지니, 작은 결정은 한 명이 빨리 정하고 진행하는 룰이 좋아요.`
+  }, mode));}
+
+  if(b.hae){care.push(byMode({
+    couple: `두 분 사이에 <b>서로 피하고 싶어지는 대목</b>이 있어요. 답답한 상황에서 억지로 해결하려 들면 더 꼬일 수 있으니, 잠깐 거리를 두고 숨을 고른 뒤 다시 다가가는 리듬이 잘 맞아요.`,
+    friend: `가끔 서로 거리를 두고 싶어지는 결이 있어요. 친구 관계에서는 그 거리감을 자연스럽게 받아들이면 우정이 오히려 길어져요.`,
+    work:   `특정 영역에서는 직접 부딪히기보다 <b>중간 매개(다른 멤버·문서·시스템)</b>를 두는 것이 더 잘 풀려요. 모든 걸 바로 마주 보고 해결하려 들면 답답해지는 결이에요.`
+  }, mode));}
+
+  if(good.length===0 && care.length===0){
+    L.push(byMode({
+      couple: `두 분의 가장 가까운 자리는 서로를 강하게 끌어당기지도, 서로를 흔들지도 않는 담담한 결이에요. <b>관계에 자극이 적어 일상이 편안하게 흐르는 구조</b>예요.`,
+      friend: `두 분의 일지는 강한 끌림도 강한 마찰도 없는 담백한 결이에요. <b>편안한 친구</b> 자리가 되는 결이고, 부담 없는 우정이 길게 이어져요.`,
+      work:   `두 분의 일지는 특별한 합·충 없이 중성적이에요. <b>각자의 영역을 침범하지 않는 모듈형 협업</b>에 잘 맞는 구조예요. 큰 시너지는 없는 대신 안정적인 결이에요.`
+    }, mode));
+    L.push(byMode({
+      couple: `대신 이런 관계는 <b>생기를 두 분이 의식적으로 만들어가야</b> 해요. 사주가 끌어주는 힘이 약한 대신, 두 분의 선택과 노력이 관계의 색깔을 만드는 비중이 커지거든요.`,
+      friend: `대신 친구 관계에서 이런 결은 <b>"안 만나도 어색하지 않은" 거리감</b>을 만들 수 있어요. 정기적으로 안부 묻는 습관 하나만 있으면 충분히 길게 가요.`,
+      work:   `대신 협업에서 이런 결은 <b>역할 정의가 명확할수록 잘 굴러가는 구조</b>예요. 책임 영역을 또렷이 나누고, 인터페이스만 잘 합의하시면 잡음 없이 굴러가는 팀이 돼요.`
+    }, mode));
+  } else {
+    for(const g of good) L.push(g);
+    for(const c of care) L.push(c);
+    L.push(byMode({
+      couple: `정리하자면 두 분의 가장 가까운 자리에는 <b>편안함과 자극이 알맞게 섞여 있어요</b>. 어느 한쪽만 있는 관계는 오래 가기 어려운데, 두 분처럼 양쪽이 함께 있는 결은 오히려 시간을 이기는 힘을 가지고 있답니다.`,
+      friend: `정리하면 두 분의 일지는 <b>안정과 자극이 함께 있는 결</b>이에요. 친구 관계에서 가장 오래 가는 패턴이 바로 이런 결이랍니다.`,
+      work:   `정리하면 두 분의 일지는 <b>협업의 호흡과 적당한 긴장이 공존</b>해요. 너무 비슷해서 정체되지도, 너무 달라서 갈라지지도 않는 균형 있는 결이에요.`
+    }, mode));
+  }
+
+  const titleSuffix = byMode({
+    couple: '(배우자궁)',
+    friend: '(정서가 머무는 자리)',
+    work:   '(협업 코어)'
+  }, mode);
+  return letterSec('TWO','두 번째 · 가장 가까운 자리의 만남 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+
+/* ③ 두 사람이 함께 있을 때의 전체 풍경 */
+function renderBranchCross(A,B,pair,mode){
+  mode = mode || 'couple';
+  const cb=pair.crossBranches;
+  const hasGood=cb.samhap.length+cb.banghap.length+cb.yukhap.length>0;
+  const hasCare=cb.chung.length+cb.hyung.length+cb.pa.length+cb.hae.length+cb.wonjin.length>0;
+  const L=[];
+  L.push(byMode({
+    couple:`앞에서는 두 분의 '가장 가까운 자리' 하나만 살폈는데, 사실 사주에는 여러 자리가 있어요. 집안·뿌리, 사회·환경, 자기 자신, 자식·미래 — 이렇게 총 네 자리가 두 분에게 각각 있어요. 그러니까 두 분이 함께 있을 때는 여덟 개의 자리가 동시에 이야기를 나누는 셈이에요.`,
+    friend:`사주에는 한 사람당 네 개의 자리(년·월·일·시)가 있어요. 두 사람이 친구로 가까워지면 이 여덟 자리가 동시에 영향을 주고받아요. 이 자리들이 어떻게 맞물리는지 보면, 두 분이 시간이 지날수록 어떻게 깊어지는지가 보여요.`,
+    work:`사주에는 한 사람당 네 개의 자리가 있는데, 협업에서는 이 자리들이 각각 다른 역할을 해요 — 가족·환경의 자리(외부 자원), 사회의 자리(평판·고객), 자신의 자리(주력 영역), 미래의 자리(확장·산출물). 두 분이 함께할 때 이 여덟 자리가 어떻게 맞물리는지 봐요.`
+  }, mode));
+  const good=[], care=[];
+  if(cb.yukhap.length){
+    good.push(byMode({
+      couple:`두 분 사이에 <b>여러 자리에서 작은 합(합)이 ${cb.yukhap.length}군데</b> 일어나고 있어요. 큰 끌림 하나에 의지하는 관계가 아니라, 사주 전체에 걸쳐 잔잔하게 맞아떨어지는 결이에요.`,
+      friend:`<b>여러 자리에서 작은 합이 ${cb.yukhap.length}군데</b> — 큰 합 하나가 아니라 여러 층에서 자연스레 통하는 친구예요. 단편적이 아니라 입체적으로 잘 맞는 결이에요.`,
+      work:`<b>크로스 합 ${cb.yukhap.length}개</b> — 협업 인터페이스가 여러 곳에서 자연스레 정렬되는 결이에요. 단일 시너지에 의존하지 않는, 다층 협업의 토대예요.`
+    }, mode));
+  }
+  if(cb.samhap.length){
+    good.push(byMode({
+      couple:`사주 전체에 걸쳐 <b>큰 합(삼합)이 ${cb.samhap.length}개</b>예요. 두 분이 함께해야만 완성되는 큰 결이 ${cb.samhap.length}곳에서 작동하고 있다는 뜻이라, 시간이 지날수록 그 진가가 보여요.`,
+      friend:`<b>크로스 삼합 ${cb.samhap.length}개</b> — 같이 시작한 일이 의외로 멀리 가는 친구의 결이에요. 함께 도전·창작·여행이 평균 이상으로 깊어지는 사이.`,
+      work:`<b>크로스 삼합 ${cb.samhap.length}개</b> — 둘이 협업하면 새로운 결과물이 자연 출현하는 결이에요. '1+1=3' 가능한 동업의 강한 신호예요.`
+    }, mode));
+  }
+  if(cb.banghap.length){
+    good.push(byMode({
+      couple:`<b>방합 ${cb.banghap.length}개</b> — 같은 계열의 결이 두 분 사이에 흐르고 있어요. 취향·리듬·생활의 결이 자연스레 닮아 있어 일상이 편안해요.`,
+      friend:`<b>방합 ${cb.banghap.length}개</b> — 같은 계절을 걷는 친구의 결이 여러 자리에서 확인돼요. 같이 노는 결이 잘 맞아요.`,
+      work:`<b>방합 ${cb.banghap.length}개</b> — 일하는 페이스와 결이 비슷한 동업이에요. 한쪽이 처지거나 답답할 일이 적은 구조예요.`
+    }, mode));
+  }
+  if(cb.chung.length){
+    care.push(byMode({
+      couple:`<b>충 ${cb.chung.length}개</b>가 사주 전체에 흐르고 있어요. 안정기보다 변화기가 더 많을 수 있어요. 두 분이 함께 변화를 만드는 능력이 그만큼 크다는 뜻이기도 하지만, 피로 누적도 의식해야 해요.`,
+      friend:`<b>크로스 충 ${cb.chung.length}개</b> — 평범한 일상보다 사고와 모험이 자주 출현하는 결이에요. 강렬한 추억이 만들어지는 대신 가끔 휴지기가 필요해요.`,
+      work:`<b>크로스 충 ${cb.chung.length}개</b> — 정적인 협업이 아니라 변화·전환이 잦은 동업이에요. 이걸 강점으로 변환하려면 의사결정 룰을 명문화하세요.`
+    }, mode));
+  }
+  if(cb.hyung.length){
+    care.push(byMode({
+      couple:`<b>형 ${cb.hyung.length}개</b> — 같은 종류의 마찰이 모양만 바꿔 반복될 수 있어요. 알고 대하면 그 자체가 둘을 단단하게 다듬는 결이 돼요.`,
+      friend:`<b>형 ${cb.hyung.length}개</b> — 비슷한 갈등이 재등장하는 결이에요. 거리 조절이 핵심.`,
+      work:`<b>형 ${cb.hyung.length}개</b> — 같은 이슈가 반복적으로 떠오르는 협업이에요. 회고를 정기화하면 같은 함정을 피할 수 있어요.`
+    }, mode));
+  }
+  if(cb.wonjin.length){
+    care.push(byMode({
+      couple:`<b>원진 ${cb.wonjin.length}개</b> — 이유 없는 거슬림이 가끔 올라올 수 있어요. 분석하지 말고 시간을 두면 자연 소멸돼요.`,
+      friend:`<b>원진 ${cb.wonjin.length}개</b> — 가끔 휴식기가 필요한 친구의 결이에요.`,
+      work:`<b>원진 ${cb.wonjin.length}개</b> — 설명되지 않는 미묘한 어긋남이 협업 중 가끔 올라와요. "오늘 안 맞네, 내일 다시"가 가장 빠른 해소법.`
+    }, mode));
+  }
+  if(good.length===0 && care.length===0){
+    L.push(byMode({
+      couple:`두 분의 사주 전체 자리들은 강한 합도 강한 충도 없이 담담해요. 큰 끌림도, 큰 마찰도 없는 평온한 관계라, <b>일상의 안정성을 가장 우선으로 두는 분들에게 잘 어울리는 결</b>이에요.`,
+      friend:`사주 전체 자리들에 큰 합도 충도 없는 담백한 결이에요. 부담 없는 친구로 길게 가는 자리예요.`,
+      work:`사주 전체 자리들에 강한 시너지도 마찰도 없는 중성적 협업이에요. 역할 정의가 명확할수록 잘 굴러가요.`
+    }, mode));
+  } else {
+    for(const g of good) L.push(g);
+    for(const c of care) L.push(c);
+    L.push(byMode({
+      couple:`정리하면 두 분의 사주 전체에는 <b>합과 충이 함께 흐르고 있어요</b>. 한쪽만 있는 관계는 오래 가기 어렵고, 양쪽이 적당히 섞인 결이 시간을 이기는 결이에요.`,
+      friend:`정리하면 두 분의 친구 결은 <b>안정과 자극이 함께 있는 구조</b>예요. 가장 오래 가는 우정의 패턴이에요.`,
+      work:`정리하면 두 분의 협업은 <b>호흡과 긴장이 공존</b>해요. 정체되지도, 갈라지지도 않는 균형 잡힌 동업이에요.`
+    }, mode));
+  }
+  const titleSuffix = byMode({
+    couple:'(여덟 자리의 만남)',
+    friend:'(여덟 자리의 친구 결)',
+    work:'(여덟 자리의 협업 매트릭스)'
+  }, mode);
+  return letterSec('THREE','세 번째 · 함께 있을 때의 풍경 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+
+function renderElemComplement(A,B,pair,mode){
+  mode = mode || 'couple';
+  const e=pair.elemComplement;const L=[];
+  L.push(byMode({
+    couple:`사람마다 자기에게 꼭 필요한 기운이 달라요. 어떤 사람은 이미 강해서 누군가가 덜어내 줘야 편안하고, 어떤 사람은 약해서 누군가가 보태줘야 빛이 나요. <b>두 분이 서로에게 필요한 기운을 품고 있는지 — 이게 궁합의 진짜 핵심</b>이에요.`,
+    friend:`사람마다 부족한 기운(용신)과 편안해하는 기운이 달라요. 친구 관계에서 이게 중요한 이유는 — <b>옆에 있을 때 마음이 차오르는 친구 vs 옆에 있어도 채워지지 않는 친구</b>가 명확히 갈리거든요.`,
+    work:`사람마다 필요한 기운과 약점이 달라요. 협업에서 이건 <b>"이 동료와 함께 일할 때 내 약점이 자연스레 보완되는가"</b>를 결정해요. 사주적 시너지의 핵심이에요.`
+  }, mode));
+  L.push(`${A.name}님은 <b>${A.strength}</b>의 결이라, 곁에 있어주면 가장 힘이 되는 기운이 <b>${e.aNeeds}</b>예요. ${byMode({couple:'이 기운이 채워질 때 ${A.name}님은 본래의 힘을 잘 발휘해요.'.replace(/\$\{A\.name\}/g,A.name),friend:'이 기운이 충전될 때 ${A.name}님이 가장 자기다워져요.'.replace(/\$\{A\.name\}/g,A.name),work:'이 기운이 보완될 때 ${A.name}님의 강점이 제대로 발휘돼요.'.replace(/\$\{A\.name\}/g,A.name)}, mode)}`);
+  L.push(`${B.name}님은 <b>${B.strength}</b>의 결이라, 필요한 기운은 <b>${e.bNeeds}</b>. ${byMode({couple:'이 기운이 곁에 있어야 '+B.name+'님의 장점이 환하게 피어나요.',friend:'이 결이 채워지면 '+B.name+'님이 가장 안정돼요.',work:'이 기운이 보완되면 '+B.name+'님이 제 기량을 발휘해요.'}, mode)}`);
+  if(e.bFills && e.aFills){
+    L.push(byMode({
+      couple:`<b>그런데 두 분은 서로의 부족한 기운을 양쪽으로 가지고 있어요.</b> 이건 사주에서 정말 흔치 않은 결이에요. 함께 있을 때 둘 다 더 튼튼해지고 마음이 안정돼요. <b>"이 사람과 같이 있을 때만 내가 제대로 사는 것 같다"</b>는 감각이 사주적으로 설명되는 자리예요.`,
+      friend:`<b>두 분은 서로의 부족을 양방향으로 채워주는 친구</b>예요. <b>"만나고 오면 충전된다"</b>는 친구의 결이 사주에 명확히 잡혀 있어요. 정신적 회복력의 약 같은 우정이에요.`,
+      work:`<b>두 분은 서로의 약점을 양방향으로 보완하는 동업</b>이에요. 한 명만 있으면 결과를 못 내는 구조라, 둘이 함께일 때 비로소 시너지가 발생해요. 협업의 가장 강력한 신호 중 하나예요.`
+    }, mode));
+  } else if(e.bFills){
+    L.push(byMode({
+      couple:`<b>${B.name}님이 ${A.name}님의 약을 가지고 있어요.</b> 함께 있을 때 ${A.name}님이 더 편안해지고 자기다워져요.`,
+      friend:`<b>${B.name}님이 ${A.name}님에게 안정감을 주는 친구</b>예요. ${A.name}님이 흔들릴 때 진가가 드러나요.`,
+      work:`<b>${B.name}님이 ${A.name}님의 약점을 보완</b>해요. 두 분이 함께해야 ${A.name}님이 제 기량을 발휘하는 구조예요.`
+    }, mode));
+  } else if(e.aFills){
+    L.push(byMode({
+      couple:`<b>${A.name}님이 ${B.name}님의 약을 가지고 있어요.</b> 함께 있을 때 ${B.name}님이 더 편안해지고 자기다워져요.`,
+      friend:`<b>${A.name}님이 ${B.name}님에게 의지처가 되는 친구</b>예요.`,
+      work:`<b>${A.name}님이 ${B.name}님의 약점을 보완</b>해요. 협업의 안정성은 ${A.name}님 쪽에서 나와요.`
+    }, mode));
+  } else {
+    L.push(byMode({
+      couple:`두 분은 서로에게 직접 필요한 기운을 품고 있진 않아요. 그렇다고 안 맞는 건 아니고, <b>대신 서로의 결을 침범하지 않는 담백한 관계</b>가 되는 결이에요.`,
+      friend:`서로의 약을 직접 갖고 있진 않지만, 친구의 본분은 그게 아니니 큰 문제가 아니에요. 부담 없는 친구로 길게 가는 결.`,
+      work:`직접적 보완이 약한 만큼 <b>역할 정의·인터페이스 합의</b>가 협업의 핵심이에요. 모호하게 시작하면 갈등 씨앗이 돼요.`
+    }, mode));
+  }
+  L.push(byMode({
+    couple:`사주는 두 분이 서로에게 어떤 기운을 가져다 주는지를 보여주지만, 그 기운이 실제로 흐르는 건 <b>두 분이 일상에서 함께 머무는 시간</b>이에요. 사주는 가능성이고, 시간은 그 가능성을 실현하는 통로랍니다.`,
+    friend:`사주는 두 분이 서로에게 무엇을 주고받을 수 있는지 보여줘요. 실제로 흐르게 하는 건 <b>의식적인 만남과 안부</b>예요. 친구는 결국 시간이 만들어요.`,
+    work:`사주는 두 분의 협업 잠재력을 보여주지만, 실현하는 건 <b>실제 협업의 구조와 시간</b>이에요. 좋은 결도 시스템이 받쳐주지 않으면 흩어져요.`
+  }, mode));
+  const titleSuffix = byMode({
+    couple:'(용신 · 부족함의 보완)',
+    friend:'(서로 채우는 결)',
+    work:'(스킬·역량 보완)'
+  }, mode);
+  return letterSec('FOUR','네 번째 · 서로의 부족을 채우기 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+
+function analyzeFate(A,B,pair){
+  const r={};
+  const countBy=(S,key)=>{const m={};S.pillars.forEach(p=>m[p[key]]=(m[p[key]]||0)+1);return m;};
+  const pairs=(S,key)=>{const m=countBy(S,key);return Object.entries(m).filter(([k,c])=>c>=2).map(([k])=>+k);};
+  r.aStemPair=pairs(A,'si');r.bStemPair=pairs(B,'si');
+  r.aBranPair=pairs(A,'bi');r.bBranPair=pairs(B,'bi');
+  // 만나서 새로 생긴 병존
+  const combine=(key)=>{const m={};[...A.pillars,...B.pillars].forEach(p=>m[p[key]]=(m[p[key]]||0)+1);return Object.entries(m).filter(([k,c])=>c>=2).map(([k])=>+k);};
+  const allSP=combine('si'),allBP=combine('bi');
+  r.newStemPair=allSP.filter(si=>!r.aStemPair.includes(si)&&!r.bStemPair.includes(si));
+  r.newBranPair=allBP.filter(bi=>!r.aBranPair.includes(bi)&&!r.bBranPair.includes(bi));
+  // 재물운: 재성 = 일간이 극하는 오행
+  r.aJaesung=ELEM_N[CTRL[A.dayElem]];
+  r.bJaesung=ELEM_N[CTRL[B.dayElem]];
+  const ec=(S,elemName)=>S.eb.find(e=>e.name===elemName).count;
+  r.aJaesungInA=ec(A,r.aJaesung);r.aJaesungInB=ec(B,r.aJaesung);
+  r.bJaesungInB=ec(B,r.bJaesung);r.bJaesungInA=ec(A,r.bJaesung);
+  // 자녀운: 남-관성 여-식상
+  const janyoElem=(S)=>S.gender==='male'?CTRL_BY[S.dayElem]:GEN[S.dayElem];
+  r.aJanyo=ELEM_N[janyoElem(A)];r.bJanyo=ELEM_N[janyoElem(B)];
+  r.aJanyoInB=ec(B,r.aJanyo);r.bJanyoInA=ec(A,r.bJanyo);
+  // 시주 공망 여부 + 상대 해소
+  r.aSijuGm=A.hP&&pair.gongmang.aGm.includes(BRANS[A.hP.bi]);
+  r.bSijuGm=B.hP&&pair.gongmang.bGm.includes(BRANS[B.hP.bi]);
+  r.bFillsASijuGm=A.hP&&r.aSijuGm&&B.pillars.some(p=>p.bi===A.hP.bi);
+  r.aFillsBSijuGm=B.hP&&r.bSijuGm&&A.pillars.some(p=>p.bi===B.hP.bi);
+  // 직업운: 관성
+  r.aGwansung=ELEM_N[CTRL_BY[A.dayElem]];
+  r.bGwansung=ELEM_N[CTRL_BY[B.dayElem]];
+  r.aGwansungInB=ec(B,r.aGwansung);r.bGwansungInA=ec(A,r.bGwansung);
+  // 이동(역마): 인신사해
+  const yeokmaSet=new Set([2,5,8,11]);
+  r.aYeokma=A.pillars.filter(p=>yeokmaSet.has(p.bi)).length;
+  r.bYeokma=B.pillars.filter(p=>yeokmaSet.has(p.bi)).length;
+  // 천을귀인
+  const cnMap={0:[1,7],1:[0,8],2:[11,9],3:[11,9],4:[1,7],5:[0,8],6:[1,7],7:[2,6],8:[5,3],9:[5,3]};
+  const aCn=cnMap[A.dP.si]||[],bCn=cnMap[B.dP.si]||[];
+  r.aChunulOnB=B.pillars.some(p=>aCn.includes(p.bi));
+  r.bChunulOnA=A.pillars.some(p=>bCn.includes(p.bi));
+  // 문창귀인
+  const mcMap={0:5,1:6,2:8,3:9,4:8,5:9,6:11,7:0,8:2,9:3};
+  r.aMunchangOnB=B.pillars.some(p=>p.bi===mcMap[A.dP.si]);
+  r.bMunchangOnA=A.pillars.some(p=>p.bi===mcMap[B.dP.si]);
+  return r;
+}
+
+const STEM_PAIR_DESC={0:{n:'갑갑',d:'우직하게 밀고 나가는 힘과 고집'},1:{n:'을을',d:'섬세함과 예민한 감각'},2:{n:'병병',d:'정열과 표현력이 두 배'},3:{n:'정정',d:'깊은 속정과 오래 타는 집중'},4:{n:'무무',d:'든든함과 때로 찾아오는 고독'},5:{n:'기기',d:'넓은 포용과 내면으로 향하는 결'},6:{n:'경경',d:'결단과 곧은 원칙'},7:{n:'신신',d:'예리한 감각과 완벽주의'},8:{n:'임임',d:'지혜와 냉철함'},9:{n:'계계',d:'풍부한 감성과 공감력'}};
+const BRAN_PAIR_DESC={0:{n:'자자',d:'지혜와 이동의 기운'},1:{n:'축축',d:'묵직한 축적의 힘'},2:{n:'인인',d:'강한 역마와 활동력'},3:{n:'묘묘',d:'섬세한 미감과 예민함'},4:{n:'진진',d:'큰 변화와 변덕'},5:{n:'사사',d:'영민함과 독립심'},6:{n:'오오',d:'도화와 화려한 매력'},7:{n:'미미',d:'온화함과 예술성'},8:{n:'신신',d:'재주와 이동'},9:{n:'유유',d:'예민함과 완벽주의'},10:{n:'술술',d:'강한 고집과 충성심'},11:{n:'해해',d:'유랑의 기운과 깊은 감성'}};
+
+
+function renderFateChange(A,B,pair,mode){
+  mode = mode || 'couple';
+  const f=analyzeFate(A,B,pair);
+  const L=[];
+  L.push(byMode({
+    couple: `사주는 혼자일 때의 결을 보여주지만, 누군가와 깊이 얽힐 때는 이야기가 조금 달라져요. 상대의 기운이 내 사주에 '참여'하면서 원래 약했던 영역이 채워지거나, 튼튼했던 영역이 더 확장되거든요. 이 자리에서는 두 분이 함께할 때 <b>재물·자녀·직업·건강·이동·명예</b>의 결이 어떻게 달라지는지 하나씩 풀어드릴게요.`,
+    friend: `사주는 혼자일 때의 결이지만, 가까운 친구가 옆에 있으면 결이 달라져요. 친구의 오행이 내 사주에 영향을 주면서 어떤 영역이 환해지고 어떤 영역이 진정되거든요. 이 자리에서는 두 분이 친구로 함께할 때 <b>재물·교류·사회·건강·이동·명예</b>의 결이 어떻게 달라지는지 풀어드릴게요.`,
+    work:   `사주는 혼자일 때의 결이지만, 함께 일하는 동료가 있으면 그림이 달라져요. 동료의 기운이 내 사주의 약한 영역을 채우거나, 강한 영역을 증폭시키는 식으로요. 이 자리에서는 두 분이 함께 일할 때 <b>수익·역할 분담·평판·체력·확장·전문성</b>의 결이 어떻게 달라지는지 풀어드릴게요.`
+  }, mode));
+
+  // 병존 (모든 모드 공통)
+  const collect=(pairArr,descMap)=>pairArr.map(k=>descMap[k]).filter(Boolean);
+  const aPairs=[...collect(f.aStemPair,STEM_PAIR_DESC),...collect(f.aBranPair,BRAN_PAIR_DESC)];
+  const bPairs=[...collect(f.bStemPair,STEM_PAIR_DESC),...collect(f.bBranPair,BRAN_PAIR_DESC)];
+  const newPairs=[...collect(f.newStemPair,STEM_PAIR_DESC),...collect(f.newBranPair,BRAN_PAIR_DESC)];
+  let pt=`<b>병존(並存) — 같은 글자가 두 번 겹칠 때 증폭되는 성향</b>이에요. `;
+  if(aPairs.length)pt+=`${A.name}님은 ${aPairs.map(x=>`<b>${x.n}</b>(${x.d})`).join(', ')}${josa(aPairs[aPairs.length-1].d,'iga')} 또렷해요. `;
+  else pt+=`${A.name}님 혼자의 원국엔 특별히 증폭된 결이 없어서 균형잡힌 구조예요. `;
+  if(bPairs.length)pt+=`${B.name}님은 ${bPairs.map(x=>`<b>${x.n}</b>(${x.d})`).join(', ')}${josa(bPairs[bPairs.length-1].d,'iga')} 있어요. `;
+  else pt+=`${B.name}님도 혼자 있을 땐 증폭된 결 없이 잔잔한 결이에요. `;
+  if(newPairs.length)pt+=`<b>✦ 그런데 두 분이 함께일 때는 ${newPairs.map(x=>`<b>${x.n}</b>(${x.d})`).join(', ')}의 결이 새로 피어나요.</b> 혼자서는 없던 기운이 만남으로 인해 생겨나는 거죠.`;
+  else pt+=`함께여도 새로운 병존이 생기지 않아서, 두 분의 만남이 어느 한쪽으로 치우치지 않는 담백한 결이에요.`;
+  L.push(pt);
+
+  // 재물운 (mode별 어휘 변환)
+  const moneyLabel = byMode({couple:'재물운', friend:'함께 쓰는 시간·돈의 결', work:'<b>수익·자원의 흐름</b>'}, mode);
+  let jt = byMode({
+    couple: `<b>재물운</b>이에요. ${A.name}님에게 돈과 기회를 담는 그릇은 <b>${f.aJaesung}</b>의 기운이에요. `,
+    friend: `<b>함께 쓰는 시간·돈</b>의 결이에요. ${A.name}님이 자원·기회를 끌어오는 그릇은 <b>${f.aJaesung}</b>의 기운이고요. `,
+    work:   `<b>수익·자원의 흐름</b>이에요. ${A.name}님이 매출·고객·기회를 담는 그릇은 <b>${f.aJaesung}</b>의 기운이에요. `
+  }, mode);
+  if(f.aJaesungInB>=2){
+    jt += byMode({
+      couple: `<b>✦ ${B.name}님의 원국에 ${f.aJaesung} 기운이 풍부하게 들어 있어서, ${B.name}님이 곁에 있을 때 ${A.name}님의 재물 그릇이 실제로 활짝 피어요.</b> 같이 있을 때 금전적인 기회가 더 잘 풀리고, 어려운 시기도 함께 넘기기 쉬워지는 결이에요. `,
+      friend: `<b>✦ ${B.name}님이 ${A.name}님의 재성(${f.aJaesung})을 풍부히 갖고 있어서, 이 친구 옆에 있을 때 ${A.name}님의 기회·자원의 결이 활짝 풀려요.</b> "이 친구한테 정보 한 번 물어봤더니 일이 풀렸다"는 결이에요. `,
+      work:   `<b>✦ ${B.name}님이 ${A.name}님의 재성(${f.aJaesung})을 풍부히 갖고 있어요. 이건 협업 관점에서 매우 강력한 결이에요. ${B.name}님이 함께 있을 때 ${A.name}님의 매출·딜·기회 라인이 실제로 확장돼요.</b> 영업·BD 협업, 자원 끌어오기 역할에서 ${B.name}님이 결정적이에요. `
+    }, mode);
+  } else if(f.aJaesungInB>=1){
+    jt += byMode({
+      couple: `${B.name}님에게 ${f.aJaesung} 기운이 적당히 있어서, 재물에 대한 서로의 방향이 맞물리는 편이에요. `,
+      friend: `${B.name}님이 ${f.aJaesung} 기운을 어느 정도 갖고 있어서, 같이 다닐 때 자원·기회 측면에서 큰 마찰이 없어요. `,
+      work:   `${B.name}님이 ${f.aJaesung} 기운을 적당히 갖고 있어서 자원 흐름의 방향이 잘 맞아요. `
+    }, mode);
+  } else {
+    jt += byMode({
+      couple: `${B.name}님이 직접 채워주지는 않지만, 두 분이 함께 ${f.aJaesung}의 결을 의식적으로 챙기면 재물의 흐름이 조금씩 풀려요. `,
+      friend: `${B.name}님이 직접 자원을 가져다 주는 결은 아니에요. 그런데 친구의 본분은 그게 아니죠. `,
+      work:   `${B.name}님이 직접 ${A.name}님의 재성을 채워주진 않으니, 매출·자원 라인은 ${A.name}님이 더 주도적으로 가져가야 하는 구조예요. `
+    }, mode);
+  }
+  jt += byMode({
+    couple: `반대로 ${B.name}님의 재성은 <b>${f.bJaesung}</b>인데, `,
+    friend: `반대로 ${B.name}님의 자원 그릇은 <b>${f.bJaesung}</b>인데, `,
+    work:   `반대로 ${B.name}님의 수익 그릇은 <b>${f.bJaesung}</b>인데, `
+  }, mode);
+  if(f.bJaesungInA>=2){
+    jt += byMode({
+      couple: `<b>${A.name}님도 ${f.bJaesung}을 충분히 품고 있어서 ${B.name}님의 재물운을 북돋아줘요.</b> 두 분이 서로에게 돈 복을 끌어오는 관계예요.`,
+      friend: `<b>${A.name}님이 ${f.bJaesung}을 갖고 있어서 ${B.name}님에게도 자원 측면에서 좋은 친구</b>예요. 양방향으로 챙겨주는 결이랍니다.`,
+      work:   `<b>${A.name}님이 ${f.bJaesung}을 충분히 갖고 있어서 ${B.name}님의 수익 라인도 뒷받침</b>해줘요. 양방향 자원 시너지가 가능한 동업이에요.`
+    }, mode);
+  } else {
+    jt += byMode({
+      couple: `${A.name}님은 이 기운이 많진 않아서, 이쪽 방향은 ${B.name}님 스스로가 더 힘을 쓰게 되는 결이에요.`,
+      friend: `${A.name}님은 이 기운이 많지 않아서, ${B.name}님의 자원 영역은 ${B.name}님이 알아서 가는 결이에요.`,
+      work:   `${A.name}님은 이 기운이 많지 않아서, ${B.name}님의 수익 라인은 자체적으로 가져가야 하는 구조예요.`
+    }, mode);
+  }
+  L.push(jt);
+
+  // 자녀운 — couple만 노출, 다른 모드는 대체 메시지
+  if(mode==='couple'){
+    let ct=`<b>자녀운</b>이에요. 사주에서 자식의 자리(시주)와 자식을 상징하는 기운(남성은 관성, 여성은 식상)을 함께 봐요. `;
+    if(f.aSijuGm||f.bSijuGm){
+      if(f.aSijuGm)ct+=`${A.name}님의 자식궁에 비어 있는 기운이 살짝 있어요. `;
+      if(f.bSijuGm)ct+=`${B.name}님의 자식궁에도 같은 결이 있어요. `;
+      if(f.bFillsASijuGm||f.aFillsBSijuGm)ct+=`<b>그런데 두 분이 함께일 때 그 비어 있는 자리가 상대의 지지로 채워져요.</b> 혼자였다면 자식 인연이 늦거나 쉽지 않았을 텐데, 만남이 그 문을 여는 결이랍니다. `;
+      else ct+=`상대가 직접 채워주진 않지만, 두 분의 정성과 선택이 이 자리를 함께 만들어가는 관계예요. `;
+    } else {
+      ct+=`두 분의 자식궁은 비어 있는 기운 없이 단단해서, 기본 바탕이 좋아요. `;
+    }
+    if(f.aJanyoInB>=1.5)ct+=`특히 ${B.name}님이 ${A.name}님의 자식 기운(${f.aJanyo})을 풍부하게 가지고 있어서, 자녀를 맞이하는 흐름이 더 수월해져요. `;
+    if(f.bJanyoInA>=1.5)ct+=`${A.name}님도 ${B.name}님의 자식 기운(${f.bJanyo})을 충분히 품고 있어서 서로 북돋는 결이에요. `;
+    ct+=`자녀 운은 결국 두 분의 생활 리듬이 좌우하지만, <b>사주가 가로막지 않는 결</b>이라는 것만으로도 좋은 소식이에요.`;
+    L.push(ct);
+  } else if(mode==='work'){
+    L.push(`<b>공동 산출물·프로젝트</b>의 결이에요. 협업의 자녀에 해당하는 자리, 즉 둘이 함께 만들어내는 결과물의 결이에요. ${f.aJanyoInB>=1.5||f.bJanyoInA>=1.5 ? `${B.name}님이 ${A.name}님의 산출 기운(${f.aJanyo})을, ${A.name}님도 ${B.name}님의 기운을 각각 품고 있어서, <b>같이 작업할 때 결과물이 의외로 잘 빠지는 결</b>이에요.` : `둘이 함께 만드는 산출물은 사주적으로 특별한 가속은 없으니, 명확한 일정·역할 분담으로 끌어가야 하는 구조예요.`}`);
+  } else if(mode==='friend'){
+    L.push(`<b>공통의 인연·교류의 결</b>이에요. 친구 관계에서 자식의 자리는 '두 분이 함께 만드는 인간관계의 결'로 풀려요. ${f.aJanyoInB>=1.5||f.bJanyoInA>=1.5 ? `${B.name}님이 ${A.name}님의 인연 기운(${f.aJanyo})을, ${A.name}님도 ${B.name}님의 기운을 품고 있어서, <b>두 분을 통해 새로운 인연이 자주 이어지는 결</b>이에요. 친구의 친구가 친구가 되는 구조랍니다.` : `둘이 함께 새로 만드는 인간관계는 사주가 자동으로 끌어주진 않으니, 의식적으로 같이 모임에 나가시면 인연의 폭이 넓어져요.`}`);
+  }
+
+  // 직업·사회운 (mode별 어휘 변환)
+  let wt = byMode({
+    couple: `<b>직업·사회운</b>이에요. 각자가 사회에서 밀고 가는 힘(관성)을 상대가 얼마나 실어주는지를 봐요. `,
+    friend: `<b>사회·평판운</b>이에요. 각자가 사회에서 밀고 가는 힘(관성)을 친구가 어떻게 받쳐주는지 봐요. `,
+    work:   `<b>역할·권한·평판</b>의 결이에요. 각자가 협업 안에서 행사하는 권한(관성)을 상대가 얼마나 실어주는지를 봐요. `
+  }, mode);
+  if(f.aGwansungInB>=2){
+    wt += byMode({
+      couple: `<b>✦ ${B.name}님이 ${A.name}님의 관성(${f.aGwansung})을 풍부하게 갖고 있어서, ${A.name}님이 사회적으로 인정받고 자리를 잡아가는 데 ${B.name}님이 실질적인 힘이 되어줘요.</b> `,
+      friend: `<b>✦ ${B.name}님이 ${A.name}님의 관성(${f.aGwansung})을 갖고 있어서, ${A.name}님의 사회적 자리·평판에 ${B.name}님이 든든한 응원군이에요.</b> `,
+      work:   `<b>✦ ${B.name}님이 ${A.name}님의 관성(${f.aGwansung})을 풍부히 갖고 있어서, ${A.name}님이 권한·의사결정·대외 노출 영역을 맡으면 ${B.name}님이 강력하게 받쳐줘요.</b> 역할 분담의 명백한 신호예요. `
+    }, mode);
+  } else if(f.aGwansungInB>=1){
+    wt += byMode({
+      couple: `${B.name}님이 ${A.name}님의 관성을 어느 정도 갖고 있어서 직업적으로 서로 응원해줄 수 있는 결이에요. `,
+      friend: `${B.name}님이 ${A.name}님의 관성을 어느 정도 갖고 있어서, 사회 활동에서 서로 응원해줄 수 있어요. `,
+      work:   `${B.name}님이 ${A.name}님의 관성을 어느 정도 갖고 있어서, 권한 협업이 무난히 이뤄져요. `
+    }, mode);
+  } else {
+    wt += byMode({
+      couple: `서로의 직업 영역에서는 독립적으로 움직이는 결이라, 간섭하지 않는 담백한 관계가 되기 쉬워요. `,
+      friend: `각자의 사회 활동은 독립적으로 흘러요. 친구로서 응원은 하되 영역에 깊이 들어가지 않는 결이에요. `,
+      work:   `직접적인 권한 시너지는 약해서, <b>역할의 명문화</b>가 협업의 핵심이에요. `
+    }, mode);
+  }
+  if(f.bGwansungInA>=2)wt += byMode({
+    couple: `<b>반대로 ${A.name}님도 ${B.name}님의 관성을 받쳐주는 결</b>이라 두 분은 커리어에 있어서 서로에게 귀한 지지대예요.`,
+    friend: `<b>${A.name}님도 ${B.name}님의 관성을 갖고 있어서</b> 양방향으로 사회적 지지가 흐르는 결이에요.`,
+    work:   `<b>${A.name}님도 ${B.name}님의 관성을 갖고 있어서</b> 양방향 권한 시너지가 가능해요. 의사결정의 정당성이 자연히 확보되는 동업이에요.`
+  }, mode);
+  L.push(wt);
+
+  // 건강·심리운 (모든 모드 공통이지만 톤 차이)
+  let ht = byMode({
+    couple: `<b>건강·심리운</b>이에요. 사주에서 건강은 일간이 얼마나 튼튼하고 편안한가에 달려 있어요. `,
+    friend: `<b>건강·심리의 결</b>이에요. 친구가 옆에 있을 때 마음과 몸이 어떻게 달라지는지 봐요. `,
+    work:   `<b>체력·정신력의 결</b>이에요. 협업 강도가 높을수록 이 부분이 중요해지죠. `
+  }, mode);
+  if(pair.elemComplement.aFills&&pair.elemComplement.bFills){
+    ht += byMode({
+      couple: `<b>✦ 두 분은 서로의 필요한 기운을 양쪽으로 채워주는 관계라, 함께 있을 때 둘 다 더 건강하고 마음이 안정돼요.</b> 혼자일 때보다 함께일 때 더 튼튼한 결이에요. `,
+      friend: `<b>✦ 양방향 용신 보완. "이 친구 만나고 오면 충전된다" 싶은 결이에요.</b> 정신적 회복력의 측면에서 서로에게 약 같은 친구예요. `,
+      work:   `<b>✦ 양방향 용신 보완 — 협업에서 이건 매우 강력한 결이에요.</b> 둘이 같이 일하면 둘 다 덜 지치는 구조라, 장기 프로젝트·고강도 작업에 특히 잘 맞아요. `
+    }, mode);
+  } else if(pair.elemComplement.aFills||pair.elemComplement.bFills){
+    ht += byMode({
+      couple: `한 방향으로 용신 보완이 이뤄져서, 받는 쪽이 심신이 편해지는 결이에요. `,
+      friend: `한쪽이 다른 쪽의 용신을 채워주는 결이라, 받는 쪽이 이 친구한테서 안정감을 더 얻어요. `,
+      work:   `한쪽이 다른 쪽의 용신을 보완하는 결이에요. 받는 쪽이 더 오래 버틸 수 있는 협업이에요. `
+    }, mode);
+  } else {
+    ht += byMode({
+      couple: `서로가 직접 용신을 채워주지 않지만, 같은 생활 리듬을 만들어가면 건강은 함께 지킬 수 있어요. `,
+      friend: `서로의 용신은 직접 채우진 않지만, 친구의 본분은 그게 아니니 이건 큰 문제가 아니에요. `,
+      work:   `직접적 보완은 약하니, <b>휴식·일정 관리를 의식적으로 챙기는</b> 협업이 좋아요. `
+    }, mode);
+  }
+  L.push(ht);
+
+  // 이동·명예·귀인
+  const extras=[];
+  if(f.aYeokma+f.bYeokma>=3) extras.push(byMode({
+    couple: `<b>이동·여행운</b>이 풍부해요 (두 분 합쳐 역마 ${f.aYeokma+f.bYeokma}개). 함께 있을 때 여행·이사·전환 같은 결이 자주 찾아오는 관계예요. 길 위에서 잘 어울리는 두 분이랍니다.`,
+    friend: `<b>같이 다니는 결</b>이 풍부해요 (역마 ${f.aYeokma+f.bYeokma}개). 여행 친구·놀러 다니는 친구로 잘 맞아요. 가만히 있는 친구보다 어딘가 같이 가는 친구로 더 빛나요.`,
+    work:   `<b>출장·확장·전환</b>의 결이 풍부해요 (역마 ${f.aYeokma+f.bYeokma}개). 시장 확장·신규 진출·잦은 이동을 수반하는 일에 잘 맞는 협업이에요.`
+  }, mode));
+  if(f.aMunchangOnB||f.bMunchangOnA){
+    extras.push(byMode({
+      couple: `<b>명예·학업운</b>에도 빛이 드는 결이에요. 공부·시험·발표·창작 같은 영역에서 서로에게 힘이 되는 결이에요.`,
+      friend: `<b>지적 교류·학업 시너지</b>가 좋은 친구 사이예요. 같이 공부·세미나·독서가 잘 맞아요.`,
+      work:   `<b>전문성·창작 시너지</b>가 좋은 동업이에요. 컨텐츠·연구·기획 영역에서 같이 일할 때 빛이 나요.`
+    }, mode));
+  }
+  if(f.aChunulOnB||f.bChunulOnA){
+    let cn='';
+    if(f.aChunulOnB&&f.bChunulOnA)cn = byMode({
+      couple: `<b>✦ 두 분은 서로의 천을귀인(天乙貴人)을 품고 있는 귀한 결이에요.</b> 천을귀인은 명리에서 '어려울 때 나를 구해주는 사람'을 뜻하는 가장 복된 자리랍니다.`,
+      friend: `<b>✦ 양방향 천을귀인. 평생 곁에 둘 친구라는 사주의 신호</b>예요. 위기에 진짜 곁에 있어주는 친구가 양쪽으로 성립하는 결이에요.`,
+      work:   `<b>✦ 양방향 천을귀인. 사업의 위기 순간에 결정타가 되는 파트너 관계</b>예요. 이건 단순 동업이 아니라 운명적 협업의 결이에요.`
+    }, mode);
+    else if(f.aChunulOnB)cn = byMode({
+      couple: `<b>${B.name}님이 ${A.name}님의 천을귀인</b>을 품고 있어요. 어려운 순간에 ${B.name}님이 ${A.name}님의 구원자가 되어주는 결이랍니다.`,
+      friend: `<b>${B.name}님이 ${A.name}님의 천을귀인</b>이에요. ${A.name}님이 막다른 길에 몰릴 때 결정적인 도움을 주는 친구예요.`,
+      work:   `<b>${B.name}님이 ${A.name}님의 천을귀인</b>이에요. 사업이 위태로울 때 ${B.name}님이 결정적 한 수가 돼요.`
+    }, mode);
+    else cn = byMode({
+      couple: `<b>${A.name}님이 ${B.name}님의 천을귀인</b>을 품고 있어요. ${B.name}님에게 ${A.name}님은 '의지할 수 있는 든든한 사람'이에요.`,
+      friend: `<b>${A.name}님이 ${B.name}님의 천을귀인</b>이에요. ${B.name}님 인생에서 ${A.name}님의 무게가 본인이 아는 것보다 큰 친구예요.`,
+      work:   `<b>${A.name}님이 ${B.name}님의 천을귀인</b>이에요. ${B.name}님의 사업적 위기에 ${A.name}님이 결정적 역할을 하게 돼요.`
+    }, mode);
+    extras.push(cn);
+  }
+  if(extras.length)L.push(extras.join(' '));
+
+  // 마무리
+  L.push(byMode({
+    couple: `여기까지가 두 분이 함께할 때 달라지는 운의 큰 줄기예요. 물론 이 모든 변화는 저절로 일어나진 않아요. <b>두 분이 서로를 의식하고 함께 살아갈 때 비로소 드러나는 결</b>이랍니다.`,
+    friend: `여기까지가 두 분이 친구로 함께할 때 달라지는 결의 큰 줄기예요. 친구는 만나면 만날수록 결이 진해지니, 의식적으로 챙기시면 이 모든 결이 더 또렷해져요.`,
+    work:   `여기까지가 두 분이 함께 일할 때 달라지는 결의 큰 줄기예요. 협업의 시너지는 저절로 오지 않으니, 위에 정리된 영역들 — 특히 ✦ 표시 — 을 의식적으로 분담·활용하시면 잠재력이 실현돼요.`
+  }, mode));
+
+  const titleSuffix = byMode({
+    couple: '(재물·자녀·직업·건강·이동·귀인)',
+    friend: '(자원·교류·사회·건강·이동·귀인)',
+    work:   '(수익·역할·권한·체력·확장·귀인)'
+  }, mode);
+  return letterSec('FIVE','다섯 번째 · 둘이 만나 바뀌는 결 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+
+function renderDaewoonSync(A,B,pair,mode){
+  mode = mode || 'couple';
+  const d=pair.daewoonSync;if(!d.currDwA||!d.currDwB)return '';
+  const aEl=elemChar(STEM_E[d.currDwA.si]);const bEl=elemChar(STEM_E[d.currDwB.si]);
+  const L=[];
+  L.push(byMode({
+    couple:`사주에는 10년 단위로 삶의 큰 흐름이 바뀌는 리듬이 있어요. 이 리듬을 <b>'대운'</b>이라고 불러요. 같은 사주라도 어떤 대운을 지나고 있느냐에 따라 빛깔이 꽤 달라요. 두 분이 지금 각자 어떤 계절을 걷고 있는지, 그 계절이 서로 맞물리는지가 중요해요.`,
+    friend:`사주에는 10년마다 삶의 흐름이 바뀌는 <b>'대운'</b>이라는 리듬이 있어요. 친구 관계에서 이게 중요한 이유는, 두 분이 <b>같은 시기에 비슷한 고민을 하고 있는지</b>를 결정하기 때문이에요.`,
+    work:`사주에는 10년 단위로 인생의 챕터가 바뀌는 <b>'대운'</b>이 있어요. 협업에서는 두 분이 <b>같은 시기에 같은 종류의 도전을 통과하고 있는지</b>가 호흡을 결정해요.`
+  }, mode));
+  L.push(`<b>${A.name}님은 지금 ${aEl}의 기운이 덧입혀진 10년</b>을 지나고 있어요(${d.currDwA.age}세~${d.currDwA.endAge}세). ${aEl}과 관련된 경험·배움·변화가 이 시기에 유독 많이 찾아와요.`);
+  L.push(`<b>${B.name}님은 ${bEl}의 기운이 덧입혀진 10년</b>이에요(${d.currDwB.age}세~${d.currDwB.endAge}세).`);
+  if(d.sameYearChange){
+    L.push(byMode({
+      couple:`<b>두 분의 대운이 비슷한 시기에 전환점을 맞아요.</b> 인생의 큰 물결이 동시에 바뀌는 결이라, 함께 성장하기 좋은 타이밍이 여러 번 와요. 같은 시기에 같은 변화를 겪으면서 서로를 더 깊이 이해하게 돼요.`,
+      friend:`<b>대운 전환 동조</b> — 두 분의 인생 챕터가 비슷한 시기에 바뀌어요. 같은 때 비슷한 고민을 한다는 게 친구로서 큰 자산이에요. 서로의 변화를 가장 가까이서 지켜보는 친구가 돼요.`,
+      work:`<b>대운 동조</b> — 두 분이 비슷한 시기에 전환기를 맞아요. 같은 타이밍에 같은 종류의 변화를 겪으니 협업 페이스가 자연스레 맞아요. 사업의 큰 결정을 함께 내리기 좋은 타이밍.`
+    }, mode));
+  } else {
+    L.push(byMode({
+      couple:`두 분의 대운은 다른 리듬으로 흐르고 있어요. 한쪽이 변화기일 때 다른 쪽은 안정기일 수 있는데, 이게 <b>약점이 아니라 균형의 자원</b>이에요. 한 사람이 흔들릴 때 다른 사람이 중심이 되어주는 구조라 관계가 잘 안 흔들려요.`,
+      friend:`두 분의 대운은 다른 리듬이에요. 한 명이 격동기일 때 다른 명이 평온기라, <b>한쪽이 흔들릴 때 다른 쪽이 등불이 되어주는</b> 친구의 결이에요.`,
+      work:`두 분의 대운이 다른 리듬으로 흘러서, 한 명이 변화기일 때 다른 명이 안정기예요. 위기 분산 측면에서는 강점이지만, 같은 타이밍에 같은 결정을 내리기 어려울 수 있어요.`
+    }, mode));
+  }
+  const titleSuffix = byMode({
+    couple:'(대운 동조)',
+    friend:'(인생 챕터의 동행)',
+    work:'(협업 사이클)'
+  }, mode);
+  return letterSec('SIX','여섯 번째 · 두 사람의 계절 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+
+function renderGongmang(A,B,pair,mode){
+  mode = mode || 'couple';
+  const g=pair.gongmang;const cb=pair.crossBranches;const L=[];
+  L.push(byMode({
+    couple:`사람마다 마음 한쪽에 '<b>아무리 채워도 왠지 허전한 자리</b>'가 있어요. 옆에 누가 있어도, 손에 무언가를 들고 있어도 그 자리만큼은 자꾸 비어요. 두 분이 오래 함께할 때 <b>서로의 이런 빈 자리를 알아차리는 것</b>이 큰 차이를 만들어요.`,
+    friend:`사주에는 <b>"채워지지 않는 자리"</b>가 있어요(공망). 친구 관계에서는 이게 "이 친구한테는 왠지 그 부분에서 통하지 않는다" 같은 결로 드러나요.`,
+    work:`사주에는 <b>"공백 영역"</b>이 있어요(공망). 협업에서 이게 중요한 이유는 — 두 분 다 약한 영역이 겹치면 그게 협업의 사각지대가 되거든요.`
+  }, mode));
+  if(g.bHasAGm.length){
+    L.push(byMode({
+      couple:`${A.name}님에게는 ${B.name}님의 어떤 부분이 '<b>채워도 왠지 허전한 자리</b>'예요. ${B.name}님이 분명히 있어주는데도 그 순간이 ${A.name}님에게는 텅 빈 느낌으로 남을 때가 있어요. <b>${B.name}님이 부족해서가 아니에요</b> — ${A.name}님 내면의 그 자리가 원래 쉽게 차지 않도록 설계된 자리라서 그래요.`,
+      friend:`${A.name}님에게는 ${B.name}님의 어떤 영역이 <b>"이 친구한테는 그 부분이 잘 안 통한다"</b>는 자리가 돼요. 친구가 모자라서가 아니라 ${A.name}님 안의 그 자리가 원래 쉽게 채워지지 않는 구조라서 그래요.`,
+      work:`${A.name}님에게 ${B.name}님의 특정 영역이 <b>"이 동료에게는 이 영역에서 기대하기 어렵다"</b>는 자리가 될 수 있어요. ${B.name}님 책임이 아니라 ${A.name}님 사주 구조 측면이에요.`
+    }, mode));
+  }
+  if(g.aHasBGm.length){
+    L.push(byMode({
+      couple:`반대로 ${B.name}님에게도 ${A.name}님의 어떤 부분이 같은 결의 <b>빈 자리</b>가 돼요. 서로가 서로에게 '온전히 채워줄 수 없는 영역'이 있다는 사실을 인정하는 것이 이 관계의 자유로움이에요.`,
+      friend:`${B.name}님에게도 ${A.name}님의 어떤 영역이 동일한 결의 빈 자리가 있어요. 친구는 모든 걸 채워주지 못해도 괜찮아요 — 다른 친구·관계로 메우면 되거든요.`,
+      work:`${B.name}님에게도 ${A.name}님의 특정 영역이 사각지대가 돼요. 두 분 사이에서 풀려고 하지 말고 <b>외부 인력·시스템</b>으로 매우는 게 협업의 효율이에요.`
+    }, mode));
+  }
+  if(!g.bHasAGm.length && !g.aHasBGm.length){
+    L.push(byMode({
+      couple:`두 분 사이에는 큰 공망(빈 자리)의 겹침이 없어요. 서로의 영역이 자연스레 채워지는 결이라, 깊은 이해가 가능한 관계예요.`,
+      friend:`두 분 사이에 큰 공망 겹침이 없어요. 친구로서 영역에 큰 사각지대가 적은, 이해의 폭이 넓은 관계예요.`,
+      work:`두 분 사이에 큰 공망 겹침이 없어요. 협업의 사각지대가 적은 안정적인 구조예요.`
+    }, mode));
+  }
+  L.push(byMode({
+    couple:`이 빈 자리는 약점이 아니에요. <b>서로의 한계를 받아들이는 자리</b>예요. 모든 걸 채워줄 수 없다는 사실을 알고 있는 두 분이, 그래도 함께 머무는 것 — 그게 사주가 보여주는 진짜 사랑이에요.`,
+    friend:`친구는 모든 걸 채워주지 못해도 돼요. <b>"이 친구는 이런 면을 채워주는 친구"</b>로 이해하면, 다른 친구가 다른 면을 채워주는 자연스러운 관계망이 돼요.`,
+    work:`사각지대를 알고 있는 협업이 모르는 협업보다 훨씬 강해요. 약한 영역을 외부에서 끌어오거나, 시스템으로 보완하면 그건 더 이상 위험이 아니에요.`
+  }, mode));
+  const titleSuffix = byMode({
+    couple:'(빈 자리와 거슬림)',
+    friend:'(빈 자리와 거리감)',
+    work:'(공백 영역과 사각지대)'
+  }, mode);
+  return letterSec('SEVEN','일곱 번째 · 비어 있는 자리 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+
+function renderTimeline(A,B,pair,mode){
+  mode = mode || 'couple';
+  const tl=pair.timeline;
+  const intro = byMode({
+    couple:`<p>사주 궁합에서 '지금'만큼 중요한 것이 '<b>앞으로의 결</b>'이에요. 매년 들어오는 그 해의 기운이 두 분의 원국과 만나 어떻게 반응하는지를 보면, 관계가 특히 무르익을 해와 조금 느긋이 지나야 할 해가 보여요. 아래는 지난 2년부터 앞으로 5년까지의 타임라인이에요.</p>`,
+    friend:`<p>친구 관계에서도 '<b>앞으로의 결</b>'이 중요해요. 어떤 해는 이 친구와 특별한 사건이 함께 있고, 어떤 해는 거리가 좀 있을 수 있어요. 아래 타임라인이 그 결을 보여줘요.</p>`,
+    work:`<p>협업에서도 '<b>타이밍의 결</b>'이 결과를 좌우해요. 어떤 해는 사업의 큰 전환점이고, 어떤 해는 정비의 해예요. 아래 타임라인을 참고해 큰 결정의 시점을 가늠하세요.</p>`
+  }, mode);
+  const rows=tl.map(y=>{
+    const hot=y.score>=6?'hot':'';
+    const both=[...y.aEvents,...y.bEvents];const has=both.some(e=>e.veryHeavy||e.heavy);
+    let d;
+    if(y.score>=10){
+      d = byMode({
+        couple:`두 분 모두에게 <b>아주 큰 결의 해</b>예요. 관계가 다음 장으로 넘어갈 수 있는 시기랍니다.`,
+        friend:`<b>두 분에게 큰 결의 해</b>예요. 함께 큰 일을 만들거나 평생 기억할 사건이 있을 수 있는 시기.`,
+        work:`<b>사업의 큰 분기점이 될 해</b>예요. 중요 결정·전환·확장이 함께 찾아오는 시기.`
+      }, mode);
+    } else if(y.score>=8){
+      d = byMode({
+        couple:`<b>큰 결의 해</b>예요. 관계가 깊어지는 쪽으로도, 중요한 선택의 해로도 작용할 수 있어요.`,
+        friend:`<b>의미 있는 해</b>예요. 친구로서 함께 겪을 큰 일이 있을 수 있는 시기.`,
+        work:`<b>중요한 해</b>예요. 큰 의사결정·신규 사업·역할 변화가 가능한 시기.`
+      }, mode);
+    } else if(y.score>=5){
+      d = byMode({
+        couple:`인연이 <b>또렷하게 피어날 수 있는 해</b>예요. 의미 있는 순간이 찾아오기 쉬워요.`,
+        friend:`<b>친밀도가 깊어지는 해</b>예요. 추억이 한층 쌓이는 시기.`,
+        work:`<b>협업이 무르익는 해</b>예요. 결과물이 가시화되기 좋은 시기.`
+      }, mode);
+    } else if(y.score<=-2){
+      d = byMode({
+        couple:`조금 느긋이 지나가면 좋은 시기예요. 알고 대하면 훨씬 편안해져요.`,
+        friend:`<b>거리를 두고 쉬어가는 해</b>예요. 잠깐의 휴식이 우정을 길게 해요.`,
+        work:`<b>정비·휴식이 필요한 해</b>예요. 새 일을 벌이기보다 내실을 다지는 게 좋아요.`
+      }, mode);
+    } else if(has){
+      d = byMode({
+        couple:`작게 의미 있는 결이 들어오는 해예요.`,
+        friend:`작은 사건이 함께 있는 해예요.`,
+        work:`소소한 변화가 있는 해예요.`
+      }, mode);
+    } else {
+      d = byMode({
+        couple:`큰 변화 없이 담담하게 흐르는 해예요.`,
+        friend:`평범하게 흐르는 해예요.`,
+        work:`잔잔히 진행되는 해예요.`
+      }, mode);
+    }
+    return `<div class="tl-row ${hot}"><div class="tl-year">${y.year}<div class="small muted" style="font-weight:400;">${y.ganji}</div></div><div class="tl-desc">${d}</div><div class="tl-hint">${y.score>0?'+':''}${y.score}</div></div>`;
+  }).join('');
+  const outro = byMode({
+    couple:`<p class="small muted" style="margin-top:14px;">가점이 높은 해일수록 두 분 사이에 변화·결정·깊어짐의 결이 함께 찾아올 가능성이 커요. 다만 <b>타임라인은 참고일 뿐 — 삶은 결국 두 분이 함께 만들어가는 것</b>이에요.</p>`,
+    friend:`<p class="small muted" style="margin-top:14px;">가점이 높은 해일수록 두 분 사이에 의미 있는 사건이 있을 가능성이 커요. 친구는 결국 시간으로 만들어지는 거고, 타임라인은 그 시간의 농도를 가늠하는 도구예요.</p>`,
+    work:`<p class="small muted" style="margin-top:14px;">가점이 높은 해일수록 협업의 큰 결정·확장·전환이 함께 찾아올 가능성이 커요. 사업의 큰 결정 타이밍을 가늠할 때 참고하세요.</p>`
+  }, mode);
+  const titleSuffix = byMode({
+    couple:'(세운 타임라인)',
+    friend:'(시간의 결)',
+    work:'(협업 타임라인)'
+  }, mode);
+  return letterSec('EIGHT','여덟 번째 · 앞으로의 결 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',intro+rows+outro);
+}
+
+
+function renderThankYou(A,B,pair,score,label,mode){
+  mode = mode || 'couple';
+  const st=[];
+  if(pair.dayStem.hap)st.push(byMode({couple:`두 분의 본바탕이 자연스레 포개지는 귀한 끌림`, friend:`본바탕이 자연스레 통하는 친구의 결`, work:`일하는 방식이 자연 정렬되는 시너지`}, mode));
+  if(pair.dayStem.relation.type==='생')st.push(byMode({couple:`서로의 기운이 상대를 말없이 북돋아주는 상생의 흐름`, friend:`한쪽이 다른 쪽을 길러주는 결`, work:`자원·아이디어가 자연스레 흐르는 구조`}, mode));
+  if(pair.dayStem.relation.type==='동일')st.push(byMode({couple:`같은 결을 공유해 깊이 이해하는 공명`, friend:`서로를 가장 깊이 이해하는 같은 결`, work:`비슷한 페이스로 달리는 호흡`}, mode));
+  if(pair.dayBran.yukhap)st.push(byMode({couple:`가장 가까운 자리가 자연스레 맞물리는 편안함`, friend:`만나면 부담 없는 자연스러운 합`, work:`의견 조율 비용이 낮은 협업의 결`}, mode));
+  if(pair.dayBran.samhap_pair)st.push(byMode({couple:`함께 있을 때 더 커지는 잠재력`, friend:`같이 있을 때만 피는 결`, work:`함께해야 완성되는 시너지`}, mode));
+  if(pair.crossBranches.samhap.length)st.push(byMode({couple:`둘이 함께여야 완성되는 큰 결`, friend:`함께 만드는 큰 결`, work:`'1+1=3' 가능한 잠재력`}, mode));
+  if(pair.crossBranches.yukhap.length>=2)st.push(byMode({couple:`여러 자리에서 지어지는 풍성한 매듭들`, friend:`다층에서 통하는 결`, work:`다양한 인터페이스의 정렬`}, mode));
+  if(pair.elemComplement.aFills&&pair.elemComplement.bFills)st.push(byMode({couple:`서로의 부족을 양쪽으로 채워주는 보완의 결`, friend:`서로의 약점을 양방향으로 메우는 결`, work:`양방향 역량 보완`}, mode));
+  else if(pair.elemComplement.aFills)st.push(byMode({couple:`${A.name}님이 ${B.name}님을 말없이 지탱해주는 든든함`, friend:`${A.name}님이 ${B.name}님에게 의지처가 되는 결`, work:`${A.name}님이 ${B.name}님을 보완`}, mode));
+  else if(pair.elemComplement.bFills)st.push(byMode({couple:`${B.name}님이 ${A.name}님을 말없이 지탱해주는 든든함`, friend:`${B.name}님이 ${A.name}님에게 의지처가 되는 결`, work:`${B.name}님이 ${A.name}님을 보완`}, mode));
+  if(pair.daewoonSync.sameYearChange)st.push(byMode({couple:`삶의 계절을 함께 넘어가는 깊은 동조`, friend:`같은 시기에 비슷한 챕터를 통과하는 동행`, work:`사업 사이클의 동기화`}, mode));
+  if(pair.crossStems.hap.length>=2)st.push(byMode({couple:`여러 자리에서 일어나는 자연스러운 끌림`, friend:`의식의 차원에서도 통하는 결`, work:`생각·가치관의 정렬`}, mode));
+  let sp;
+  if(st.length>=2)sp=st.slice(0,3).join(', ');
+  else if(st.length===1)sp=st[0];
+  else sp = byMode({
+    couple:`담담하지만 서로를 편안하게 해주는 본바탕의 조화`,
+    friend:`부담 없는 친구로 길게 갈 수 있는 담담한 결`,
+    work:`큰 마찰 없이 굴러가는 안정적인 구조`
+  }, mode);
+  let sm;
+  if(score>=88)sm = byMode({
+    couple:`두 분의 결을 한 마디로 줄이면 <b>${label.label}</b>이에요. 사주가 두 분에게 미리 깔아둔 자리가 그만큼 편안해서, 큰 변수가 없는 한 길게 곱게 이어지실 거예요.`,
+    friend:`두 분 우정의 결을 한 마디로 줄이면 <b>${label.label}</b>이에요. 사주가 평생의 친구 자리로 인정한 결이라, 시간이 갈수록 진가가 드러나요.`,
+    work:`두 분 협업의 결을 한 마디로 줄이면 <b>${label.label}</b>이에요. 명리적 시너지가 분명한 동업이라, 시스템만 잘 깔아두면 결과가 따라와요.`
+  }, mode);
+  else if(score>=68)sm = byMode({
+    couple:`두 분의 결을 한 마디로 줄이면 <b>${label.label}</b>이에요. 큰 결점은 없고 큰 강점도 적당히 있는, 두 분의 의식적인 노력이 가장 큰 변수가 되는 결이에요.`,
+    friend:`두 분 우정의 결은 <b>${label.label}</b>이에요. 안정적인 친구의 결이라, 의식적인 안부와 만남이 우정의 깊이를 결정해요.`,
+    work:`두 분 협업의 결은 <b>${label.label}</b>이에요. 큰 시너지보다 안정성이 강점인 동업이라, 명확한 역할 분담이 핵심이에요.`
+  }, mode);
+  else sm = byMode({
+    couple:`두 분의 결을 한 마디로 줄이면 <b>${label.label}</b>이에요. 사주가 큰 자석이 되어주진 않으니 <b>두 분의 의지가 관계의 90%를 만드는</b> 결이에요. 어렵다는 뜻이 아니라, 두 분의 선택이 그만큼 강력하다는 뜻이에요.`,
+    friend:`두 분의 결은 <b>${label.label}</b>이에요. 사주가 자연 친구로 묶지는 않았지만, 의식적으로 챙기시면 그만큼 깊어질 수 있는 결이에요.`,
+    work:`두 분의 협업은 <b>${label.label}</b>이에요. 사주적 시너지가 약한 만큼 <b>구조와 룰</b>이 협업의 모든 것을 결정해요.`
+  }, mode);
+  const body=`
+    <p>${byMode({couple:'사주 분석은 결국 가능성의 지도예요.', friend:'친구 분석도 결국 가능성의 지도예요.', work:'협업 분석도 결국 가능성의 지도예요.'},mode)} 두 분 사이에 흐르는 결을 짧게 정리하자면, <b>${sp}</b>${josa(sp,'iga')} 사주가 두 분에게 들려준 이야기예요.</p>
+    <p>${sm}</p>
+    <p>앞으로 두 분이 함께 걸어갈 길 위에 좋은 일만 있으리라 장담하기는 어려워요. 살다 보면 예상치 못한 바람도 불고, 서로에게 서운할 때도, 지쳐 주저앉고 싶은 순간도 분명히 찾아올 거예요.</p>
+    <p><b>하지만 두 분 사이에는 ${sp}${josa(sp,"iga")} 자리하고 있어요.</b> 이 결은 사주가 두 분에게 미리 선물해둔 단단한 밑바탕이에요. 어떤 어려움이 찾아와도, 두 분이 이 기운을 잊지 않고 서로를 바라본다면, 함께 헤쳐나갈 수 있는 힘이 이미 안에 있답니다.</p>
+    <p>${A.name}님과 ${B.name}님, ${byMode({couple:'앞으로의 길에 평안이 깃들기를, 두 분이 서로의 가장 좋은 사람이 되어 오래 행복하시기를 진심으로 응원할게요.', friend:'앞으로의 길에 평안이 깃들기를, 두 분이 서로의 가장 든든한 친구로 오래 곁에 머무시기를 응원할게요.', work:'앞으로의 길에 좋은 결과가 함께 자라기를, 두 분의 협업이 서로의 가능성을 키워주기를 진심으로 응원할게요.'}, mode)} ✿</p>
+  `;
+  const titleSuffix = byMode({couple:'(맺음 인사)', friend:'(우정에 드리는 인사)', work:'(협업에 드리는 인사)'}, mode);
+  return letterSec('NINE','아홉 번째 · 두 분께 드리는 인사 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">'+titleSuffix+'</span>',body);
+}
+
+
+function analyzeIntimacy(A,B,pair){
+  const r={};
+  const dohwaBi=[0,6,3,9];
+  r.aDohwa=A.pillars.filter(p=>dohwaBi.includes(p.bi)).length;
+  r.bDohwa=B.pillars.filter(p=>dohwaBi.includes(p.bi)).length;
+  const hy={0:6,1:6,2:2,3:2,4:4,5:4,6:10,7:10,8:8,9:8};
+  r.aHongyeom=A.pillars.some(p=>p.bi===hy[A.dP.si]);
+  r.bHongyeom=B.pillars.some(p=>p.bi===hy[B.dP.si]);
+  const yy=(S)=>{let yang=0,yin=0;for(const p of S.pillars){if(STEM_Y[p.si]===0)yang++;else yin++;if([0,2,4,6,8,10].includes(p.bi))yang++;else yin++;}return{yang,yin};};
+  r.aYY=yy(A);r.bYY=yy(B);
+  r.totalYang=r.aYY.yang+r.bYY.yang;r.totalYin=r.aYY.yin+r.bYY.yin;
+  const wf=(S)=>({water:S.eb.find(e=>e.name==='수').count,fire:S.eb.find(e=>e.name==='화').count});
+  r.aWF=wf(A);r.bWF=wf(B);
+  r.totalWater=r.aWF.water+r.bWF.water;
+  r.totalFire=r.aWF.fire+r.bWF.fire;
+  return r;
+}
+function renderIntimacy(A,B,pair,level){
+  const i=analyzeIntimacy(A,B,pair);
+  const L=[];
+  const totalDohwa=i.aDohwa+i.bDohwa;
+  const anyHongyeom=i.aHongyeom||i.bHongyeom;
+  const bothHongyeom=i.aHongyeom&&i.bHongyeom;
+  const yangDiff=i.totalYang-i.totalYin;
+
+  if(level==='mild'){
+    L.push(`이 이야기는 두 분 모두 성인이심을 확인하셨기에 조심스레 열어드리는 자리예요. 사주는 말로 풀어내기 어려운 영역, 몸과 마음이 동시에 어우러지는 <b>사적인 결</b>에 대해서도 은근한 단서를 품고 있답니다. 오래 함께할 관계에서는 이 부분도 한 번쯤 살펴볼 가치가 있어서, 차분하게 풀어드릴게요.`);
+    if(totalDohwa>=2||anyHongyeom){
+      L.push(`두 분 사이에는 <b>서로를 향한 끌림의 기운이 꽤 풍부</b>하게 흐르고 있어요. 눈빛이나 작은 몸짓만으로도 많은 감정이 오가는 결이에요. 이런 기운은 관계에 생기와 색을 입혀주는 귀한 재료랍니다. 다만 때로는 이성적인 판단보다 감각이 먼저 달려갈 수 있으니, 평소 두 분이 쌓아온 신뢰와 약속을 잘 지켜가는 것이 이 기운을 오래 이롭게 쓰는 방법이에요.`);
+    } else if(totalDohwa>=1){
+      L.push(`두 분 사이에는 <b>은근하게 이어지는 끌림의 결</b>이 흐르고 있어요. 폭발적이기보다는 잔잔하고 오래 가는 결이라, 시간이 지날수록 서로에게 더 깊이 들어가게 되는 관계랍니다. 처음보다 나중이 더 좋아지는, 그런 결이에요.`);
+    } else {
+      L.push(`두 분에게 강렬하게 튀는 끌림의 기운은 많지 않아요. 그런데 이건 오히려 장점이 될 수 있어요. <b>감각이 급하게 앞서가지 않아서, 서로를 차분히 알아가는 시간을 충분히 가질 수 있는 결</b>이거든요. 천천히 깊어지는 관계는 서둘러 타오른 관계보다 오래 따뜻하게 남는 법이에요.`);
+    }
+    if(pair.dayBran.yukhap){
+      L.push(`특히 두 분의 <b>가장 깊은 자리가 자연스럽게 서로 맞물려 있어요</b>. 억지로 맞추려 하지 않아도 서로의 호흡이 포개지는 결이라, 잠자리에서도 몸과 마음이 함께 편안해지는 귀한 궁합이랍니다.`);
+    } else if(pair.dayBran.chung){
+      L.push(`두 분의 가장 깊은 자리는 <b>서로를 강하게 흔드는 결</b>이에요. 밀고 당기는 긴장이 있어서 끌림이 강한 대신, 때로 피로가 쌓이기도 해요. 서로의 리듬에 맞춰 <b>강약을 조절하는 여유</b>가 관계를 오래 건강하게 지켜줘요.`);
+    } else if(pair.dayBran.samhap_pair){
+      L.push(`두 분의 깊은 자리는 <b>삼합의 잠재력을 반만 채운 상태</b>예요. 함께하는 시간이 쌓일수록 이 결이 활짝 피어날 수 있어요.`);
+    } else if(pair.dayBran.wonjin){
+      L.push(`두 분의 깊은 자리에는 <b>이유를 설명하기 어려운 어긋남</b>이 가끔 찾아올 수 있어요. 하지만 원진은 그만큼 서로에게 깊이 닿아 있다는 증거이기도 해요.`);
+    } else {
+      L.push(`두 분의 깊은 자리는 서로를 크게 흔들지도, 강하게 끌어당기지도 않는 담담한 결이에요. <b>편안하고 안정적인 흐름</b>이 이어지는 구조라 부담이 적답니다.`);
+    }
+    if(i.totalWater>=i.totalFire*1.5 && i.totalFire<2){
+      L.push(`두 분을 합쳐 보면 <b>감정의 결(수 기운)은 충분한데 열정의 불꽃(화 기운)은 조금 잔잔</b>한 편이에요. 함께 설렘을 자주 느낄 수 있는 상황을 일상에 심어두면 관계가 계속 생기로워요.`);
+    } else if(i.totalFire>=i.totalWater*1.5 && i.totalWater<2){
+      L.push(`두 분을 합쳐 보면 <b>열정의 불꽃(화 기운)은 뜨거운데 감정의 깊이(수 기운)는 조금 얕은</b> 편이에요. 서로에게 감정의 안부를 묻는 시간을 자주 가지세요.`);
+    } else {
+      L.push(`두 분의 감정(수)과 열정(화)의 비율은 <b>고르게 섞여 있는 편</b>이에요. 어떤 날은 깊이 교감하고 어떤 날은 뜨겁게 어우러지는 — 입체적인 결이랍니다.`);
+    }
+    if(Math.abs(yangDiff)<=2){
+      L.push(`또 두 분의 <b>음양 균형이 참 고와요</b>. 받고 주는 결이 자연스럽게 맞물리는 궁합이에요.`);
+    } else if(i.totalYang>i.totalYin){
+      L.push(`두 분을 합치면 <b>양의 기운이 조금 더 많은 편</b>이에요. 번갈아 한 발씩 물러서는 연습을 하면 이 양기는 관계의 추진력이 돼요.`);
+    } else {
+      L.push(`두 분을 합치면 <b>음의 기운이 조금 더 많은 편</b>이에요. 의식적으로 감정을 말로 나누는 시간을 가지면, 이 음기는 관계의 깊이가 돼요.`);
+    }
+    L.push(`궁합이 좋다고 해서 모든 밤이 완벽하지도, 궁합이 조금 아쉽다고 해서 관계가 차가워지지도 않아요. 결국 <b>서로를 향한 관심과 표현, 상대의 리듬을 존중하는 마음</b>이 가장 큰 힘이에요.`);
+    return letterSec('INTIMACY','★ 둘만의 밤 · 몸과 마음의 결 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">(성인 · 순한맛)</span>',L.map(l=>`<p>${l}</p>`).join(''));
+  }
+
+  if(level==='medium'){
+    L.push(`이 자리는 두 분이 같은 이불을 덮고 지낼 때 사주가 어떤 결을 예고하는지 조금 더 솔직하게 풀어드리는 이야기예요. <b>잠자리·체온·호흡의 결</b>까지, 몸과 마음이 만나는 지점을 담담하게 들여다볼게요.`);
+    if(totalDohwa>=3||bothHongyeom){
+      L.push(`두 분은 <b>서로에게 몸으로도 자주 반응하는 결</b>이에요. 평범한 스킨십 — 손잡기, 포옹, 등 쓰다듬기 — 에도 체온이 빠르게 오르고, 밤에 이어지는 흐름이 자연스럽죠. 도화가 ${totalDohwa}개 흐르고 있어서 <b>일상 속에서 서로의 몸을 의식하는 빈도가 높은 편</b>이고, 한쪽이 신호를 보내면 다른 쪽이 기다리지 않고 받아주는 리듬이에요.`);
+    } else if(totalDohwa>=1||anyHongyeom){
+      L.push(`두 분은 <b>은근한 스킨십에 서로 반응하는 결</b>이에요. 폭발적인 욕구보다는 조용히 쌓여가는 온기에 가까워요. ${i.aHongyeom?A.name+'님이 ':''}${i.bHongyeom?B.name+'님이 ':''}먼저 불을 지피면 자연스레 흐름이 이어지는 편이라, <b>분위기를 만드는 사람과 반응하는 사람이 자연히 나뉘는 구조</b>예요.`);
+    } else {
+      L.push(`두 분은 <b>서두르지 않는 결</b>이에요. 밤의 흐름도 일상처럼 담담하게 이어지죠. 한쪽이 달아오르면 다른 쪽도 따라 달아오르되, 스스로 불붙는 쪽은 아니라서, <b>의식적으로 밤의 시간을 아껴두는 커플이 오래 건강해요</b>. 무심해지지 않도록 주기적인 시간을 만들어주세요.`);
+    }
+    if(i.totalWater>=i.totalFire*1.5 && i.totalFire<2){
+      L.push(`수의 기운이 풍부해서 <b>느린 전희를 편안해하는 결</b>이에요. 서두르지 않고 오래 쓰다듬고, 천천히 깊어지는 시간을 좋아해요. 급하게 마무리되면 허전함이 남을 수 있으니, <b>시간의 여유</b>가 가장 큰 선물이에요.`);
+    } else if(i.totalFire>=i.totalWater*1.5 && i.totalWater<2){
+      L.push(`화의 기운이 풍부해서 <b>짧고 뜨거운 접근을 편안해하는 결</b>이에요. 한 번 달아오르면 빠르게 올라가고, 끝난 뒤 바로 잠들거나 다시 당기는 쪽. 한쪽이 더 긴 여운을 원할 수 있으니, <b>끝난 뒤 몇 분의 대화</b>를 일부러 남겨두세요.`);
+    } else {
+      L.push(`수와 화의 비율이 고르게 섞여 있어서 <b>느린 전희와 뜨거운 절정을 둘 다 누릴 수 있는 결</b>이에요. 어떤 날은 긴 시간을, 어떤 날은 짧고 강하게 — 두 분이 리듬을 바꿔가며 서로를 물리게 하지 않는 궁합이에요.`);
+    }
+    if(pair.dayBran.yukhap){
+      L.push(`두 분의 일지가 <b>육합</b>으로 맞물려 있어서, <b>잠자리에서 몸의 호흡이 저절로 포개지는 결</b>이에요. 따로 신호를 주고받지 않아도 "지금이네" 하는 순간이 둘 사이에 동시에 오는 드문 궁합이랍니다.`);
+    } else if(pair.dayBran.chung){
+      L.push(`두 분의 일지가 <b>충</b>이라, 잠자리에서도 <b>밀고 당기는 긴장감이 강한 결</b>이에요. 맞춰지는 순간의 밀도가 진한 대신, 한쪽이 원할 때 다른 쪽이 주저할 수도 있어요. <b>피로하지 않게 쉬어가는 밤</b>도 의식적으로 만드세요.`);
+    } else if(pair.dayBran.samhap_pair){
+      L.push(`일지가 <b>삼합의 한 축</b>이라, 처음보다 <b>시간이 지날수록 잠자리의 호흡이 깊어지는 결</b>이에요. 익숙해질수록 시들해지는 게 아니라 서로의 몸을 읽는 정확도가 올라가는 궁합이에요.`);
+    } else if(pair.dayBran.wonjin){
+      L.push(`일지가 <b>원진</b>으로 맞물려 있어서, 가끔 <b>이유를 설명하기 어려운 엇박자</b>가 침대 위에서도 나타날 수 있어요. 하지만 원진은 '깊이 닿아있다'는 증거라, 이해하고 나면 대부분 녹아내려요.`);
+    } else {
+      L.push(`두 분의 일지는 서로를 크게 흔들지도 당기지도 않는 <b>평온한 결</b>이에요. 무심해지지 않도록 <b>서로의 몸에 관심을 남겨두는 것</b>이 중요해요.`);
+    }
+    if(Math.abs(yangDiff)<=2){
+      L.push(`또 음양이 고르게 섞여 있어서, <b>주는 쪽과 받는 쪽이 자연스레 오가는 결</b>이에요. 누구 한 명이 늘 이끌거나 늘 반응하는 구조가 아니라, 상황에 따라 역할이 부드럽게 바뀌는 궁합이랍니다.`);
+    } else if(i.totalYang>i.totalYin){
+      L.push(`양의 기운이 조금 더 많아서, <b>둘 다 주도적으로 움직이고 싶어하는 밤</b>이 종종 있을 수 있어요. 이 경우 <b>번갈아 리드를 맡아보는 것</b>이 서로를 지루하게 하지 않는 열쇠예요.`);
+    } else {
+      L.push(`음의 기운이 조금 더 많아서, <b>둘 다 받아주는 쪽을 편안해하는 결</b>이에요. 한 사람이 용기 내어 먼저 분위기를 만들어주는 시간이 필요하고, 말로 표현하는 것도 포함해서요.`);
+    }
+    L.push(`밤의 궁합은 두 분이 쌓아가는 시간과 대화로도 크게 달라져요. 사주는 출발점일 뿐이고, <b>서로가 무엇을 좋아하는지 물어보고 솔직하게 말해주는 습관</b>이 가장 큰 변수예요. 이 자리에서도 두 분이 오래 설레고, 편안하시기를 바라요.`);
+    return letterSec('INTIMACY','★ 둘만의 밤 · 몸과 마음의 결 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">(성인 · 중간맛)</span>',L.map(l=>`<p>${l}</p>`).join(''));
+  }
+
+  /* ===== 매운맛 ===== */
+  L.push(`이 자리는 두 분이 같은 이불을 덮을 때 사주가 미리 귀띔해 두는 결 — <b>몸의 리듬, 전희의 결, 주도권의 흐름, 예민하게 반응하는 부위, 절정의 타이밍, 끝난 뒤의 여운</b>까지 — 정면으로 들여다보는 자리예요. 에두르지 않고, 사주가 보여주는 결을 그대로 풀어드릴게요.`);
+
+  if(totalDohwa>=4||bothHongyeom){
+    const openLine = totalDohwa>=4 
+      ? `도화가 ${totalDohwa}개${bothHongyeom?', 두 분 모두에 홍염살까지 들어있어서 ':anyHongyeom?', 한쪽에 홍염살이 들어있어서 ':' '}`
+      : `두 분 모두 홍염살이 깊이 박혀 있어서 `;
+    L.push(`<b>⒈ 몸의 리듬 — 뜨거움이 일상인 결</b><br>${openLine}두 분은 <b>서로를 원하는 빈도 자체가 높은 커플</b>이에요. 전희를 건너뛰지 않고 <b>애무의 결을 길게 끌고 가는 타입</b>이고, 상대가 달아오르는 신호(호흡의 변화, 미세한 떨림, 피부의 열기)를 읽는 감각이 예민해요. ${i.aHongyeom?A.name+'님은 ':''}${i.bHongyeom?B.name+'님은 ':''}<b>상대의 반응에 자기가 먼저 흥분하는 거울 반응</b>을 가진 결이라, 주고받는 케미가 강하게 증폭돼요.`);
+  } else if(totalDohwa>=2||anyHongyeom){
+    const dohwaLine = totalDohwa>=2 ? `도화가 ${totalDohwa}개 흐르고 있어서` : `홍염살의 기운이 깔려 있어서`;
+    L.push(`<b>⒈ 몸의 리듬 — 길게 끌고 가는 전희</b><br>${dohwaLine} <b>전희를 생략하면 서로 허전해하는 결</b>이에요. 빠르게 달려드는 스타일은 아니고, <b>옷을 한 겹씩 벗기며 시간을 들이는 타입</b>. ${anyHongyeom?'한쪽이 홍염살을 품고 있어서 상대가 반응하면 자기도 함께 올라가는 <b>거울 반응</b>이 작동해요. ':''}서로가 "좋아"라고 말하는 횟수만큼 더 깊어지는 궁합이에요.`);
+  } else {
+    L.push(`<b>⒈ 몸의 리듬 — 조용한 결</b><br>두 분은 <b>폭발적인 성욕보다는 잔잔한 흐름</b>에 가까워요. 전희도 조용하고, 몸짓보다 대화로 먼저 감정을 나누는 편. 이런 결에서는 <b>말로 하는 유혹(달콤한 문장, 구체적인 요청)</b>이 오히려 강력해요. "지금 너의 어디가 예뻐" 같은 직접적 언어가 가장 센 자극이 되는 타입이에요.`);
+  }
+
+  const aStrong=A.strength==='신강', bStrong=B.strength==='신강';
+  const aYangPct=i.aYY.yang/(i.aYY.yang+i.aYY.yin);
+  const bYangPct=i.bYY.yang/(i.bYY.yang+i.bYY.yin);
+  let leadMsg='';
+  if(aStrong&&aYangPct>0.6&&!(bStrong&&bYangPct>0.6)){
+    leadMsg=`${A.name}님이 <b>주도적으로 이끄는 타입</b>이에요. 위에서 리드하거나 속도를 정하는 쪽을 편안해하고, ${B.name}님은 <b>맡기고 반응하는 쪽에서 더 깊게 느끼는 결</b>이라 자연스레 역할이 나뉘어요. 권장 체위: <b>정상위·후배위</b>처럼 ${A.name}님이 속도를 쥐는 구조, 가끔 ${B.name}님이 <b>기승위</b>로 올라와 주도권을 바꾸면 관계가 신선해져요.`;
+  } else if(bStrong&&bYangPct>0.6&&!(aStrong&&aYangPct>0.6)){
+    leadMsg=`${B.name}님이 <b>주도적으로 이끄는 타입</b>이에요. ${A.name}님은 <b>받아주는 쪽에서 더 깊게 느끼는 결</b>이고요. 권장 체위: <b>정상위·후배위</b>에서 ${B.name}님이 속도를 쥐고, 가끔 ${A.name}님이 <b>기승위</b>로 주도권을 바꿔요.`;
+  } else if(aStrong&&aYangPct>0.6&&bStrong&&bYangPct>0.6){
+    leadMsg=`두 분 다 <b>주도권을 쥐고 싶어하는 양강 타입</b>이에요. 같은 밤에 두 명이 리드를 동시에 원하면 묘한 긴장이 생기니, <b>날마다 교대</b>로 역할을 바꾸거나 <b>대면 체위(측위·얼굴 마주보기)</b>처럼 주도권이 공유되는 구조를 섞으세요. 격렬한 체위(후배위·입위)가 잘 맞는 궁합이기도 해요.`;
+  } else if(!aStrong&&!bStrong&&aYangPct<0.5&&bYangPct<0.5){
+    leadMsg=`두 분 다 <b>받아주는 쪽을 편안해하는 음강 타입</b>이에요. 누구도 먼저 불을 지피지 않으면 밤이 쉽게 지나가요. <b>느린 체위(측위·끌어안기·숟가락 자세)</b>로 서로를 천천히 녹이는 접근이 가장 편안하고, 가끔 한 명이 용기를 내어 <b>기승위로 올라가는 날</b>을 만드는 것이 이 궁합을 생기 있게 유지해요.`;
+  } else {
+    leadMsg=`두 분의 음양·강약은 <b>균형 잡힌 결</b>이라 주도권이 유연하게 오가요. 그날 컨디션에 따라 자연스레 역할이 바뀌는 편이고, <b>정상위·기승위·측위</b>를 골고루 섞을 수 있는 궁합이에요. 체위 변화를 두려워하지 말고 시도해보세요.`;
+  }
+  L.push(`<b>⒉ 체위·주도권 — 이끌고 맡기는 결</b><br>${leadMsg}`);
+
+  const sensMap={0:'귀·목덜미·발목',1:'허리선·아랫배',2:'가슴·등 윗부분',3:'목 뒤·손가락 끝',4:'엉덩이·허벅지 안쪽',5:'입술·혀·가슴 중앙',6:'입술·눈가·쇄골',7:'배·옆구리',8:'어깨·팔 안쪽',9:'목·쇄골·입술 라인',10:'엉덩이·발목·장딴지',11:'귀 뒤·손가락 끝·은밀한 안쪽'};
+  const aSens=sensMap[A.dP.bi], bSens=sensMap[B.dP.bi];
+  const aHid=HIDDEN[A.dP.bi].map(h=>STEM_E[h]);
+  const bHid=HIDDEN[B.dP.bi].map(h=>STEM_E[h]);
+  const hasWater=aHid.includes(4)||bHid.includes(4);
+  const hasFire=aHid.includes(1)||bHid.includes(1);
+  let hiddenMsg='';
+  if(hasWater) hiddenMsg+='지장간에 수가 숨어있어서 <b>가장 깊숙한 곳의 반응이 가장 빠르게 켜지는 타입</b>이 포함돼 있어요. ';
+  if(hasFire) hiddenMsg+='지장간에 화가 숨어있어서 <b>입술·혀의 자극에 먼저 몸이 풀리는 타입</b>이 포함돼 있어요. ';
+  if(!hiddenMsg) hiddenMsg='지장간 구성상 <b>단일 자극보다 여러 부위를 동시에 건드리는 접근</b>이 더 잘 먹히는 결이에요. ';
+  L.push(`<b>⒊ 민감대 — 몸이 먼저 대답하는 자리</b><br>${A.name}님(일지 ${BRANS_H[A.dP.bi]})은 <b>${aSens}</b>에서 반응이 시작되고, ${B.name}님(일지 ${BRANS_H[B.dP.bi]})은 <b>${bSens}</b>가 먼저 예민하게 켜지는 결이에요. ${hiddenMsg}전희 때 이 부위를 <b>의도적으로 공략</b>하면 몸의 대답이 훨씬 빨라져요. 손과 입의 순서를 바꿔가며 같은 자리에 여러 결의 자극을 겹치는 방식이 특히 잘 맞아요.`);
+
+  let climaxMsg='';
+  if(pair.dayBran.yukhap){
+    climaxMsg=`일지가 <b>육합</b>으로 맞물려서 <b>함께 절정에 이를 확률이 높은 희귀한 궁합</b>이에요. 서로의 호흡을 읽고 속도를 맞추는 감각이 본능적으로 작동해서, 대면 체위(정상위·측위)에서 호흡을 의식적으로 맞추면 <b>동기화 오르가슴</b>이 나오는 결이에요.`;
+  } else if(pair.dayBran.chung){
+    climaxMsg=`일지가 <b>충</b>이라 <b>한쪽이 먼저 끝나고 다른 쪽이 뒤따르는 구조</b>예요. 격렬한 체위(후배위·입위)가 잘 맞고, 한 사람이 절정에 먼저 이르면 <b>손과 입으로 마무리를 도와주는 방식</b>이 이 충의 기운을 건강하게 쓰는 법. 밀고 당기는 긴장이 그 자체로 자극이 되는 궁합이에요.`;
+  } else if(pair.dayBran.samhap_pair){
+    climaxMsg=`일지가 <b>삼합의 한 축</b>이라 <b>점진적 빌드업, 여러 번의 작은 파도</b>를 타는 결이에요. 한 번의 큰 절정보다 <b>여러 번 이어지는 작은 절정</b>이 서로에게 만족스러운 타입. 중단과 재개를 의도적으로 섞으면(직전에서 멈추고 숨 고르기) 궁합의 잠재력이 활짝 피어요.`;
+  } else if(pair.dayBran.wonjin){
+    climaxMsg=`일지가 <b>원진</b>이라 <b>타이밍이 어긋나 보이는 날</b>이 있을 수 있어요. 한쪽이 빨리 끝나거나, 한쪽이 끝까지 못 가는 경우도 생기고요. 이건 '궁합이 나쁘다'가 아니라 <b>서로의 리듬이 원래 다른 결</b>이라는 뜻. 대화로 리듬을 알려주는 것이 가장 강력한 해결책이에요.`;
+  } else {
+    climaxMsg=`일지가 특별한 합·충 관계는 아니지만, 이건 <b>자유롭게 리듬을 만들 수 있는 결</b>이라는 뜻이에요. 두 분이 쌓는 시간과 경험이 절정의 품질을 결정해요. 다양한 체위를 시도해보시면 각자의 몸에 맞는 공식을 찾을 수 있어요.`;
+  }
+  if(i.totalWater>=i.totalFire*1.5){
+    climaxMsg+=` 또 수의 기운이 풍부해서 <b>절정이 오래 머무는 결</b>, 긴 파동형이에요. 빠르게 끝내려 하지 말고 파도를 타세요.`;
+  } else if(i.totalFire>=i.totalWater*1.5){
+    climaxMsg+=` 또 화의 기운이 풍부해서 <b>절정이 강렬하고 짧게 터지는 결</b>, 폭발형이에요. 끝난 뒤에 다시 이어질 수 있는 궁합이기도 해요.`;
+  }
+  L.push(`<b>⒋ 절정의 타이밍 — 함께 도착하는 법</b><br>${climaxMsg}`);
+
+  const elemComp=pair.elemComplement;
+  let afterMsg='';
+  if(elemComp.aFills&&elemComp.bFills){
+    afterMsg=`두 분은 서로의 용신을 <b>양방향으로 채워주는 귀한 관계</b>예요. 그래서 끝난 뒤에 <b>허무하지 않고 평온이 남는 결</b>이고, "이 사람과 같이 있고 싶다"는 감정이 몸의 만족과 함께 따라오는 궁합이에요.`;
+  } else if(elemComp.aFills||elemComp.bFills){
+    afterMsg=`한쪽이 다른 쪽의 용신을 채워주는 결이라, <b>끝난 뒤의 안정감이 한 방향으로 더 강하게 느껴져요</b>. 채우는 쪽이 "좀 더 같이 있고 싶다"고 말하고, 받는 쪽이 그 말을 소중히 받아주면 여운이 오래 남아요.`;
+  } else {
+    afterMsg=`용신 보완이 직접 맞물려 있진 않아서, <b>애프터케어가 의식적으로 필요한 결</b>이에요. 끝난 뒤 바로 각자 잠들기보다는, 서로를 안아주고 5분이라도 대화하는 시간을 남기세요.`;
+  }
+  if(i.totalWater>=i.totalFire*1.5){
+    afterMsg+=` 수의 기운이 풍부하니 <b>긴 애프터케어가 자연스러운 타입</b>. 끝난 뒤 이야기하고 천천히 잠드는 결이 맞아요.`;
+  } else if(i.totalFire>=i.totalWater*1.5){
+    afterMsg+=` 화의 기운이 풍부하니 <b>짧고 강렬, 바로 잠들거나 다시 당기는 타입</b>. 이 경우 <b>"여운을 같이 보내는 5분"</b>을 의식적으로 남기지 않으면 한쪽이 공허함을 느낄 수 있어요.`;
+  }
+  L.push(`<b>⒌ 애프터·여운 — 끝난 뒤에 남는 결</b><br>${afterMsg}`);
+
+  L.push(`사주는 두 분의 <b>밤을 시작할 때의 기본 설정값</b>을 보여주는 지도일 뿐이에요. 실제 풍경은 두 분이 함께 써가는 문장이고, <b>솔직한 요청·정확한 피드백·서로의 리듬을 배우려는 태도</b>가 궁극의 궁합을 만들어요. 이 자리에서 읽으신 결은 출발점이지 종착점이 아니에요. 오래, 깊이, 생기 있게 서로의 가장 은밀한 자리까지 나누는 커플이 되시기를 바라요.`);
+
+  return letterSec('INTIMACY','★ 둘만의 밤 · 몸과 마음의 결 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">(성인 · 매운맛 🌶🌶🌶)</span>',L.map(l=>`<p>${l}</p>`).join(''));
+}
+function renderAppendix(A,B,pair,score){
+  const sr=[];
+  sr.push(`<tr><td>두 분의 본바탕(일간)</td><td>${STEMS_H[A.dP.si]}(${A.name}) · ${STEMS_H[B.dP.si]}(${B.name})</td></tr>`);
+  sr.push(`<tr><td>가장 가까운 자리(일지)</td><td>${BRANS_H[A.dP.bi]}(${A.name}) · ${BRANS_H[B.dP.bi]}(${B.name})</td></tr>`);
+  sr.push(`<tr><td>본바탕의 끌림</td><td>${pair.dayStem.hap?pair.dayStem.hap+' 결':'없음'}</td></tr>`);
+  sr.push(`<tr><td>본바탕 오행 관계</td><td>${pair.dayStem.relation.type}</td></tr>`);
+  sr.push(`<tr><td>가까운 자리의 맞물림</td><td>${pair.dayBran.yukhap||'—'}</td></tr>`);
+  sr.push(`<tr><td>가까운 자리의 자극</td><td>${pair.dayBran.chung?'있음':'—'}${pair.dayBran.hyung?' · '+pair.dayBran.hyung:''}</td></tr>`);
+  sr.push(`<tr><td>여덟 자리 전체의 결</td><td>합 ${pair.crossBranches.yukhap.length+pair.crossBranches.samhap.length+pair.crossBranches.banghap.length} · 자극 ${pair.crossBranches.chung.length+pair.crossBranches.hyung.length+pair.crossBranches.pa.length+pair.crossBranches.hae.length+pair.crossBranches.wonjin.length}</td></tr>`);
+  sr.push(`<tr><td>부족 채움</td><td>${A.name}→${B.name} ${pair.elemComplement.aFills?'✓':'—'} · ${B.name}→${A.name} ${pair.elemComplement.bFills?'✓':'—'}</td></tr>`);
+  sr.push(`<tr><td>삶의 계절 동조</td><td>${pair.daewoonSync.sameYearChange?'✓':'—'}</td></tr>`);
+  sr.push(`<tr><td>최종 점수</td><td><b>${score}점</b></td></tr>`);
+  const gl=`
+    <p><b>일간</b> — 태어난 날의 천간. 그 사람의 가장 본질적인 중심이에요.</p>
+    <p><b>일지(배우자궁)</b> — 태어난 날의 지지. 가장 가까운 사람이 머무는 자리라 배우자궁이라고도 불러요.</p>
+    <p><b>용신</b> — 그 사주에 가장 필요한 오행. 이 기운이 채워지면 본래 힘이 잘 발휘돼요.</p>
+    <p><b>합</b> (천간합·육합·삼합·방합) — 두세 글자가 만나 하나의 결로 어우러지는 끌림.</p>
+    <p><b>자극</b> (충·형·파·해·원진) — 지지들 사이의 긴장. 변화와 성장을 만드는 에너지예요. 나쁘기만 한 건 아니에요.</p>
+    <p><b>대운</b> — 10년 단위로 들어오는 삶의 큰 흐름.</p>
+    <p><b>세운</b> — 매년 들어오는 그 해의 기운.</p>
+  `;
+  const body=`
+    <p>지금까지 편지로 풀어드린 이야기를 한눈에 정리한 표와, 본문에 등장한 용어 풀이를 덧붙여요.</p>
+    <h5 style="color:var(--accent-dark);margin:16px 0 8px;letter-spacing:2px;font-size:14px;font-weight:500;">분석 요약</h5>
+    <table class="ap-table" style="width:100%;border-collapse:collapse;margin-bottom:12px;">${sr.join('')}</table>
+    <h5 style="color:var(--accent-dark);margin:16px 0 8px;letter-spacing:2px;font-size:14px;font-weight:500;">간단 용어 풀이</h5>
+    ${gl}
+  `;
+  return letterSec('APPENDIX','부록 · 한눈에 보기',body);
+}
+
+
+function renderFriendDynamic(A,B,pair){
+  const L=[];
+  const yukhap=pair.dayBran.yukhap, chung=pair.dayBran.chung, samhap=pair.dayBran.samhap_pair;
+  L.push(`이 자리는 친구 관계에 특별히 중요한 결 — <b>같이 보내는 시간의 질, 갈등이 생겼을 때 풀리는 방식, 거리 조절의 리듬</b> — 을 짚는 자리예요.`);
+  if(yukhap){
+    L.push(`<b>같이 보내는 시간의 결</b>이 자연스러워요. 약속을 잡는 게 부담스럽지 않고, 만나면 시간이 잘 가는 친구예요. 멀리 살아도 자주 보고 싶어지는 결이고, 같이 있을 때 굳이 무엇을 하지 않아도 편안해요.`);
+  } else if(samhap){
+    L.push(`<b>같이 시작한 일·취미가 의외로 멀리 가는 결</b>이에요. 한 번 같이 시작하면 둘 다 더 깊이 빠지게 되는 친구라, 함께 도전·배움·창작이 잘 어울려요.`);
+  } else if(chung){
+    L.push(`<b>같이 있으면 무언가 사고치는 결</b>이에요. 일상이 평범하게 흘러가다가도 이 친구만 만나면 큰 결정·여행·새로운 시도가 갑자기 생겨요. 정적인 우정은 아니지만 인생에서 가장 강렬한 추억이 만들어져요.`);
+  } else {
+    L.push(`<b>편안하지만 자극이 강하지 않은 결</b>이에요. 만나면 즐겁고 안 만나도 어색하지 않은, 가장 부담 없는 친구의 자리예요.`);
+  }
+
+  L.push(`<b>갈등이 생겼을 때의 결</b>이에요. ${pair.dayBran.wonjin?'두 분 사이엔 가끔 <b>이유 없는 거슬림</b>이 올라올 수 있어요. 이때 원인을 분석하려 들면 더 꼬여요. 잠깐 시간을 두고 돌아오는 게 가장 빠른 해소법이에요.':pair.dayBran.hyung?'<b>같은 패턴의 갈등이 모양만 바꿔 재등장</b>할 수 있어요. 한 번 풀린 것 같아도 다시 올라오는 결이라, 거리 조절이 중요해요.':'특별한 갈등 패턴은 사주에 잡히지 않아서, 갈등이 생겨도 <b>이성적인 대화로 풀리는 편안한 결</b>이에요.'}`);
+
+  L.push(`<b>거리 조절의 리듬</b>도 중요해요. ${pair.elemComplement.aFills&&pair.elemComplement.bFills?'두 분은 양방향으로 서로의 약점을 채워주는 결이라 자주 만나도 피로하지 않아요. <b>가까이 두는 친구</b>로 적합해요.':pair.dayStem.relation.type==='동일'?'두 분은 비슷한 결이라 자극이 약해요. 가끔은 <b>다른 결의 친구</b>도 함께 두는 것이 이 우정에 활기를 줘요.':'두 분의 거리감은 <b>본인들이 만들어가는 영역</b>이에요. 자주 봐도 좋고 가끔 봐도 자연스러운, 유연한 우정의 결이에요.'}`);
+
+  L.push(`친구는 시간이 만드는 거라, 사주가 다 결정하지 않아요. 다만 <b>이 친구와의 결을 알고 있으면, 우정의 깊이가 한 층 더 빨리 깊어져요.</b>`);
+
+  return letterSec('FRIEND_DYN','함께한 시간의 결 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">(친구 관계 전용)</span>', L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+function renderWorkDynamic(A,B,pair){
+  const L=[];
+  const f = analyzeFate(A,B,pair);
+  L.push(`이 자리는 동업·직장 관계에 특별히 중요한 결 — <b>역할 분담의 자연스러움, 의사결정의 비용, 자원의 흐름, 갈등 시 의사소통 방식</b> — 을 짚는 자리예요.`);
+
+  // 역할 분담
+  let role='';
+  if(pair.dayStem.relation.type==='극'){
+    const g=pair.dayStem.relation.from==='A'?A.name:B.name;
+    const r=pair.dayStem.relation.from==='A'?B.name:A.name;
+    role=`<b>역할 분담이 자연스러운 구조</b>예요. ${g}님이 견제·균형(검토·기획·관리), ${r}님이 추진·실행(영업·개발·확장) 쪽을 맡으면 자연스레 굴러가요. 한 명이 액셀, 한 명이 브레이크인 셈이라 의사결정의 균형이 잡혀요.`;
+  } else if(pair.dayStem.relation.type==='생'){
+    const g=pair.dayStem.relation.from==='A'?A.name:B.name;
+    const r=pair.dayStem.relation.from==='A'?B.name:A.name;
+    role=`<b>${g}님이 시니어·코치 역할, ${r}님이 실행·확장 역할</b>로 자연 분담돼요. ${g}님의 자원·아이디어가 ${r}님에게 흐르는 구조라, 권한·보상의 비대칭이 생기기 쉬우니 <b>역할의 차이를 명문화</b>하세요.`;
+  } else if(pair.dayStem.relation.type==='동일'){
+    role=`<b>역할 분담에 특별히 신경 써야 하는 구조</b>예요. 비슷한 결끼리 만나서 같은 영역을 두고 경쟁하거나 같은 약점을 공유하기 쉬워요. <b>책임 영역을 명시적으로 나누고, 강점이 다른 외부 멤버를 한 명 끼우는 것</b>이 위험 해소법이에요.`;
+  } else {
+    role=`<b>역할이 자동 분담되지 않는 구조</b>예요. 그만큼 출발 시점에 <b>역할·책임·보상을 미리 합의</b>해두는 것이 가장 중요해요. 모호하게 시작하면 나중에 갈등의 씨앗이 돼요.`;
+  }
+  L.push(role);
+
+  // 의사결정 비용
+  let dec='';
+  if(pair.dayBran.yukhap){
+    dec=`<b>의사결정 비용이 매우 낮은 협업</b>이에요. 회의 분위기가 자연히 부드럽고 합의가 빠르게 이뤄져요. 회의 시간을 줄이고 그 시간을 실행에 쓸 수 있는 구조라, 효율 면에서 큰 이점이에요.`;
+  } else if(pair.dayBran.chung){
+    dec=`<b>의사결정 속도는 매우 빠르지만, 부딪힘 빈도도 높은 협업</b>이에요. 합의 비용이 낮고 잘못된 방향이면 빨리 깨닫고 빨리 바꿔요. 단, 감정적 피로가 누적되니 <b>"의사결정 룰"을 명문화</b>하세요. 누가 어떤 영역에서 최종 결정권자인지를 미리 정해두면 충의 기운이 생산성으로 변환돼요.`;
+  } else if(pair.dayBran.hyung){
+    dec=`<b>같은 종류의 이슈가 반복적으로 떠오르는 협업</b>이에요. 같은 함정에 두 번 빠지지 않으려면 <b>회고(retrospective)를 정기화</b>하세요. 분기별 회고만으로도 패턴이 인지되고 함정을 피할 수 있어요.`;
+  } else {
+    dec=`<b>의사결정의 결이 중성적</b>이에요. 자동으로 빠르거나 느리거나 하지 않아서, <b>의사결정 프로세스를 명시적으로 설계</b>하는 것이 도움돼요.`;
+  }
+  L.push(dec);
+
+  // 자원 흐름
+  let res='';
+  if(f.aJaesungInB>=2 || f.bJaesungInA>=2){
+    res=`<b>자원의 흐름이 자연스럽게 한쪽으로 흘러요.</b> ${f.aJaesungInB>=2?`${B.name}님이 ${A.name}님의 매출·딜·기회 라인을 넓혀주는 결`:''}${f.aJaesungInB>=2&&f.bJaesungInA>=2?', 그리고 ':''}${f.bJaesungInA>=2?`${A.name}님이 ${B.name}님의 자원 라인을 받쳐주는 결`:''}이에요. <b>영업·BD·자원 끌어오기 역할 분담의 자연스러운 신호</b>예요.`;
+  } else {
+    res=`<b>자원·매출 라인은 양쪽이 직접 만들어가는 구조</b>예요. 한쪽이 일방적으로 가져오는 결이 아니라서, 영업·BD·고객 확보 책임을 <b>명확히 분담하거나 공동 책임</b>으로 가져가야 해요.`;
+  }
+  L.push(res);
+
+  // 갈등 / 거리감
+  let conf='';
+  if(pair.dayBran.wonjin){
+    conf=`<b>갈등 시에는 "이성적 분석"으로 풀리지 않는 결</b>이 있어요. 분명한 사건 없이 분위기가 무거워질 때, 원인을 뒤지지 말고 <b>"오늘 뭔가 안 맞네, 내일 다시"</b>라고 시간을 두는 것이 가장 빠른 해소법이에요.`;
+  } else if(pair.gongmang.aHasBGm.length+pair.gongmang.bHasAGm.length>=3){
+    conf=`<b>두 분 모두 약한 영역이 겹치는 사각지대</b>가 있어요. 이런 영역은 두 분 안에서 풀려고 하지 말고 <b>외부 인력·시스템·전문가</b>로 매우는 것이 가장 효율적이에요.`;
+  } else {
+    conf=`<b>갈등 패턴은 사주적으로 특별한 게 잡히지 않아요.</b> 협업의 기본기 — 명확한 합의, 정기적 동기화, 솔직한 피드백 — 이 잘 작동하는 결이에요.`;
+  }
+  L.push(conf);
+
+  L.push(`동업과 직장 협업의 본질은 <b>구조와 합의</b>예요. 사주는 그 구조를 어떻게 짜야 가장 자연스러운지 보여주는 가이드일 뿐, 실제로는 두 분이 만들어가는 운영 시스템이 결정해요. 위에 정리된 결을 참고로 두 분에게 맞는 운영 룰을 합의해 두시면, 이 협업의 잠재력이 크게 실현돼요.`);
+
+  return letterSec('WORK_DYN','협업의 결 <span style="font-size:13px;color:var(--text-muted);letter-spacing:1px;">(동업·직장 전용)</span>', L.map(l=>`<p>${l}</p>`).join(''));
+}
+
+function renderClosing(A,B,pair,score,mode){
+  mode = mode || 'couple';
+  if(score>=88) return byMode({
+    couple:`${A.name}님과 ${B.name}님, 봄이 길기를 바랄게요. ✿`,
+    friend:`${A.name}님과 ${B.name}님의 우정이 오래 깊기를 바랄게요. ✿`,
+    work:`${A.name}님과 ${B.name}님의 협업에 좋은 결과가 자라기를. ✿`
+  }, mode);
+  if(score>=68) return byMode({
+    couple:`두 분의 결이 오래 곱게 이어지기를 바랄게요. ✿`,
+    friend:`두 분의 우정이 잔잔하고 길게 이어지기를. ✿`,
+    work:`두 분의 협업이 안정적으로 자리잡기를 바랄게요. ✿`
+  }, mode);
+  return byMode({
+    couple:`함께 자라는 계절이 되시길 바랄게요. ✿`,
+    friend:`서로에게 배움이 되는 친구가 되시길. ✿`,
+    work:`재정비 후 더 단단한 협업이 되시기를. ✿`
+  }, mode);
+}
+
+
+let currentMode='couple';
+function syncAdultModeUI(){
+  const wrap=document.getElementById('adultModeWrap');
+  if(wrap)wrap.style.display=currentMode==='couple'?'':'none';
+}
+document.querySelectorAll('.rel-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');currentMode=btn.dataset.rel;
+    syncAdultModeUI();
+  });
+});
+function doCalc(){
+  try{
+    const A=buildSaju({name:document.getElementById('nameA').value||'사람 A',gender:document.getElementById('genderA').value,year:parseInt(document.getElementById('yearA').value,10),month:parseInt(document.getElementById('monthA').value,10),day:parseInt(document.getElementById('dayA').value,10),hour:parseInt(document.getElementById('hourA').value,10)});
+    const B=buildSaju({name:document.getElementById('nameB').value||'사람 B',gender:document.getElementById('genderB').value,year:parseInt(document.getElementById('yearB').value,10),month:parseInt(document.getElementById('monthB').value,10),day:parseInt(document.getElementById('dayB').value,10),hour:parseInt(document.getElementById('hourB').value,10)});
+    const pair=analyzePair(A,B);
+    const score=computeOverallScore(A,B,pair,currentMode);
+    const label=getScoreLabel(score,currentMode);
+    document.getElementById('heroCard').innerHTML=renderHero(A,B,score,label,currentMode);
+    document.getElementById('heroCard').className=score>=100?'hero legendary':'hero';
+    document.getElementById('dualChart').innerHTML=renderDualChart(A,B);
+        const rawSections=[
+      renderDayStem(A,B,pair,currentMode),renderDayBran(A,B,pair,currentMode),renderBranchCross(A,B,pair,currentMode),
+      renderElemComplement(A,B,pair,currentMode),renderFateChange(A,B,pair,currentMode),renderDaewoonSync(A,B,pair,currentMode),renderGongmang(A,B,pair,currentMode),
+      ...(currentMode==='friend'?[renderFriendDynamic(A,B,pair)]:[]),
+      ...(currentMode==='work'?[renderWorkDynamic(A,B,pair)]:[]),
+      ...(currentMode==='couple'&&document.getElementById('adultMode')&&document.getElementById('adultMode').checked?[renderIntimacy(A,B,pair,(document.querySelector('input[name=adultLevel]:checked')||{}).value||'medium')]:[]),
+      renderTimeline(A,B,pair,currentMode),renderStrengths(A,B,pair,score,currentMode),renderThankYou(A,B,pair,score,label,currentMode),renderAppendix(A,B,pair,score),
+    ];
+    document.getElementById('sections').innerHTML=wrapSections(rawSections);
+    document.getElementById('secNav').innerHTML=buildNav(rawSections);
+    document.getElementById('tocCard').innerHTML=buildToc(rawSections);document.getElementById('tocCard').classList.remove('hidden');document.getElementById('floatBar').classList.remove('hidden');
+    document.body.classList.add('has-fbar');
+    setTimeout(activeNavObserver,100);
+    document.getElementById('closingNote').textContent=renderClosing(A,B,pair,score,currentMode);
+    document.getElementById('inputCard').classList.add('hidden');
+    document.getElementById('resultArea').classList.remove('hidden');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){alert('계산 중 오류: '+e.message);console.error(e);}
+}
+function goBack(){
+  document.getElementById('inputCard').classList.remove('hidden');
+  document.getElementById('resultArea').classList.add('hidden');
+  document.getElementById('tocCard').classList.add('hidden');document.getElementById('floatBar').classList.add('hidden');
+  document.body.classList.remove('has-fbar');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     사주로그 — 모드 잠금 스크립트
+     ?mode=normal  → 일반 궁합 (성인 옵션 숨김)
+     ?mode=adult   → 성인용 궁합 (매운맛 자동 + 잠금)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<script>
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('mode');
+  if (!mode) return;  // 파라미터 없으면 원본 그대로 동작
+
+  function applyMode() {
+    const wrap     = document.getElementById('adultModeWrap');
+    const checkbox = document.getElementById('adultMode');
+    const levelRow = document.getElementById('adultLevelRow');
+    if (!wrap) return;
+
+    if (mode === 'normal') {
+      // ── 일반 궁합: 성인 모드 섹션 자체를 숨김 ──
+      wrap.style.display = 'none';
+      if (checkbox) checkbox.checked = false;
+      return;
+    }
+
+    if (mode === 'adult') {
+      // ── 성인용 궁합: 매운맛 자동 선택 + 잠금 ──
+      const spicyRadio = document.querySelector('input[name="adultLevel"][value="spicy"]');
+      if (checkbox) {
+        checkbox.checked = true;
+        checkbox.dispatchEvent(new Event('change'));
+      }
+      if (spicyRadio) spicyRadio.checked = true;
+
+      // 기존 컨트롤 시각적으로 숨기되 DOM에는 유지 (값 유지 위해)
+      Array.from(wrap.children).forEach(c => c.style.display = 'none');
+
+      // 잠금 라벨 추가
+      const lock = document.createElement('div');
+      lock.style.cssText =
+        'text-align:center;padding:14px 18px;margin-top:10px;' +
+        'background:linear-gradient(135deg,#fce4ec,#f8d7da);' +
+        'border-radius:14px;border:1px solid rgba(233,30,99,0.35);';
+      lock.innerHTML =
+        '<div style="font-size:14px;color:#8a2418;font-weight:700;letter-spacing:.02em;">' +
+        '🌶 桃花 · 성인 매운맛 모드</div>' +
+        '<div style="font-size:12px;color:#7a5d4f;margin-top:4px;">' +
+        '19세 이상 성인 인증 완료 · 옵션 변경 불가</div>';
+      wrap.appendChild(lock);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyMode);
+  } else {
+    applyMode();
+  }
+})();
+</script>
+
+</body>
+</html>

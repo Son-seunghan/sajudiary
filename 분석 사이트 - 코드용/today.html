@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>오늘의 운세 — 사주로그 四柱錄</title>
+<meta name="description" content="오늘 일진(日辰)을 사주명리학으로 풀어 주는 무료 데일리 운세. 매일 새로 업데이트됩니다.">
+<meta name="keywords" content="오늘의 운세, 일진, 데일리 운세, 무료 운세, 사주 일진">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="오늘의 운세 — 사주로그">
+<meta property="og:description" content="매일 무료로 보는 사주 일진 풀이. 오늘의 천간·지지로 풀어주는 행운의 색·방향까지.">
+<meta property="og:image" content="assets/og-image.svg">
+<meta property="og:url" content="https://sajulog.com/today.html">
+<meta property="og:site_name" content="사주로그">
+<meta property="og:locale" content="ko_KR">
+<link rel="canonical" href="https://sajulog.com/today.html">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728; --gold3:#d6b660;
+    --jade:#5a8a98; --plum:#b8607a; --wine:#8a3a4d;
+    --wood:#5a9a5a; --fire:#c85040; --earth:#b88030; --metal:#9098b0; --water:#4878a8;
+    /* ── 오늘의 운세 전용: 일출 톤 ── */
+    --sunrise:    #d4924a;
+    --sunrise2:   #b8732a;
+    --sunset:     #c85e3a;
+  }
+
+  html, body {
+    background: var(--paper);
+    /* 일출 그라디언트 분위기 */
+    background-image:
+      radial-gradient(ellipse at 50% -10%, rgba(212, 146, 74, 0.18) 0%, transparent 45%),
+      radial-gradient(circle at 90% 15%, rgba(184, 146, 60, 0.10) 0%, transparent 35%),
+      radial-gradient(circle at 10% 85%, rgba(177, 58, 44, 0.04) 0%, transparent 30%);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--jade) 0%, var(--jade) 20%, var(--vermil) 20%, var(--vermil) 40%, var(--gold) 40%, var(--gold) 60%, var(--plum) 60%, var(--plum) 80%, var(--ink) 80%, var(--ink) 100%);
+  }
+
+  .panel {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.06);
+  }
+  .panel-warm {
+    border-color: var(--gold3);
+    border-top: 3px solid var(--sunrise);
+    box-shadow: 0 6px 24px rgba(212, 146, 74, 0.12);
+  }
+
+  /* 페이지 상단 큰 한자 장식 */
+  .page-hanja {
+    position: absolute;
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    color: var(--sunrise);
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+    line-height: 1;
+  }
+
+  /* 오늘의 일진 큰 카드 — 일출 그라디언트 */
+  .today-pillar {
+    text-align: center;
+    padding: 44px 24px 36px;
+    background:
+      radial-gradient(ellipse at top, rgba(214, 182, 96, 0.20), transparent 60%),
+      linear-gradient(135deg, var(--paper2), var(--paper3));
+    border: 2px solid var(--gold);
+    border-top: 3px solid var(--sunrise);
+    border-radius: 18px;
+    margin-bottom: 24px;
+    position: relative;
+    box-shadow: 0 8px 28px rgba(212, 146, 74, 0.18);
+    overflow: hidden;
+  }
+  .today-pillar::before {
+    content: "";
+    position: absolute;
+    top: -40%; left: 50%; transform: translateX(-50%);
+    width: 200%; height: 200px;
+    background: radial-gradient(ellipse, rgba(214, 182, 96, 0.18) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .today-pillar > * { position: relative; z-index: 1; }
+  .today-pillar::after {
+    content: "日";
+    position: absolute;
+    bottom: -30px; right: -15px;
+    font-family: 'Shilla Culture', serif;
+    font-size: 180px;
+    color: var(--sunrise);
+    opacity: 0.06;
+    line-height: 1;
+    z-index: 0;
+  }
+  .today-stem-branch {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .today-stem-branch .han {
+    font-size: 80px;
+    display: inline-block;
+    margin: 0 4px;
+  }
+  .today-kor {
+    font-size: 18px;
+    color: var(--ink2);
+    margin-top: 8px;
+    font-family: 'Shilla Gothic', sans-serif;
+    letter-spacing: 0.05em;
+  }
+  .today-elements {
+    margin-top: 16px;
+    display: inline-flex;
+    gap: 16px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 999px;
+    font-size: 12px;
+    font-family: 'Shilla Gothic', sans-serif;
+    color: var(--ink3);
+  }
+
+  /* 오행 색상 */
+  .wood { color: var(--wood); }
+  .fire { color: var(--fire); }
+  .earth { color: var(--earth); }
+  .metal { color: var(--metal); }
+  .water { color: var(--water); }
+
+  /* 운세 항목 — 일출 톤 보더 */
+  .fortune-item {
+    padding: 16px 20px 16px 22px;
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--paper-dk);
+    border-left: 3px solid var(--sunrise);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    transition: all .2s ease;
+  }
+  .fortune-item:hover {
+    border-left-color: var(--vermil);
+    transform: translateX(2px);
+    box-shadow: 0 4px 14px rgba(212, 146, 74, 0.12);
+  }
+  .fortune-item h3 {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .fortune-item p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink2);
+  }
+
+  /* 행운/주의 박스 — 일출 골드 톤 */
+  .lucky-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .lucky-card {
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid var(--gold3);
+    background: linear-gradient(180deg, rgba(214, 182, 96, 0.12), rgba(184, 146, 60, 0.06));
+    transition: all .2s ease;
+  }
+  .lucky-card:hover {
+    border-color: var(--sunrise);
+    box-shadow: 0 4px 14px rgba(212, 146, 74, 0.20);
+    transform: translateY(-2px);
+  }
+  .lucky-card .label { font-size: 11px; font-family: 'Shilla Gothic', sans-serif; letter-spacing: 0.15em; color: var(--gold2); margin-bottom: 6px; }
+  .lucky-card .value { font-family: 'Shilla Culture', serif; font-weight: 700; font-size: 18px; color: var(--ink); }
+
+  /* 따뜻한 헤더 액센트 */
+  .daily-header-tag {
+    display: inline-block;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    color: var(--sunrise2);
+    background: linear-gradient(180deg, rgba(214,182,96,0.18), rgba(212,146,74,0.10));
+    border: 1px solid var(--gold3);
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+
+  /* ━━━━━━━━━━━━ 내 사주 등록 카드 ━━━━━━━━━━━━ */
+  .my-saju-card {
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px dashed var(--gold3);
+    border-radius: 14px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: all .3s ease;
+  }
+  .my-saju-card.is-set {
+    border-style: solid;
+    border-color: var(--jade);
+    border-left: 3px solid var(--jade);
+    background: linear-gradient(180deg, rgba(90,138,152,0.05), var(--paper));
+  }
+  .my-saju-toggle {
+    width: 100%;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 14px;
+    color: var(--ink2);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    text-align: left;
+    transition: background .2s;
+  }
+  .my-saju-toggle:hover { background: rgba(212, 146, 74, 0.06); }
+  .my-saju-card.is-set .my-saju-toggle:hover { background: rgba(90, 138, 152, 0.06); }
+
+  .my-saju-form {
+    padding: 0 18px 18px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height .35s ease, opacity .25s ease, padding .25s;
+  }
+  .my-saju-card.is-open .my-saju-form {
+    max-height: 720px;
+    opacity: 1;
+    padding: 6px 18px 18px;
+  }
+
+  .ms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ms-grid .full { grid-column: 1 / -1; }
+  .ms-grid label {
+    display: block;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 12px;
+    color: var(--ink3);
+    margin-bottom: 5px;
+    letter-spacing: 0.02em;
+  }
+  .ms-grid input, .ms-grid select {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .ms-grid input:focus, .ms-grid select:focus {
+    outline: none;
+    border-color: var(--jade);
+    box-shadow: 0 0 0 3px rgba(90,138,152,0.12);
+  }
+
+  .ms-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .btn-save-saju {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(180deg, var(--jade3), var(--jade));
+    color: #fff;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    border: 1px solid var(--jade2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .btn-save-saju:hover {
+    background: linear-gradient(180deg, var(--jade), var(--jade2));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(64,104,120,0.25);
+  }
+  .btn-clear-saju {
+    padding: 12px 16px;
+    background: transparent;
+    color: var(--ink3);
+    border: 1px solid var(--paper-dk);
+    border-radius: 8px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-clear-saju:hover { color: var(--vermil); border-color: var(--vermil); }
+
+  /* ━━━━━━━━━━━━ 개인 풀이 박스 (오늘 ↔ 내 사주) ━━━━━━━━━━━━ */
+  .personal-box {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(90,138,152,0.08), transparent 50%),
+      linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--jade3);
+    border-left: 3px solid var(--jade);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(64,104,120,0.10);
+  }
+  .personal-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-top: 1px dashed var(--paper-dk);
+  }
+  .personal-row:first-of-type { border-top: 0; padding-top: 4px; }
+  .personal-row .icon {
+    flex-shrink: 0;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 20px;
+  }
+  .icon-rel { background: rgba(212,146,74,0.18); color: var(--sunrise2); }
+  .icon-tg  { background: rgba(90,138,152,0.18); color: var(--jade2); }
+
+  .personal-line-title {
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    color: var(--ink4);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .personal-line-text {
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.55;
+    font-weight: 500;
+  }
+  .personal-line-text strong {
+    color: var(--vermil);
+    font-weight: 700;
+  }
+  .personal-cta {
+    text-align: center;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--paper-dk);
+  }
+  .personal-cta a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--vermil);
+    font-family: 'Shilla Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    transition: color .2s;
+  }
+  .personal-cta a:hover { color: var(--vermil2); }
+</style>
+</head>
+
+<body>
+  <div class="top-stripe"></div>
+
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="manse.html" class="hidden sm:inline font-shilla text-sm px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
+        <a href="index.html" class="font-shilla text-sm px-4 py-2 text-[var(--ink2)] hover:text-[var(--sunrise2)]">← 홈</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-6 py-12 relative">
+
+    <!-- 배경 한자 장식: 旦(아침) -->
+    <span class="page-hanja text-[280px] sm:text-[420px] -top-8 -left-12">旦</span>
+
+    <div class="text-center mb-10 relative">
+      <span class="daily-header-tag">DAILY FORTUNE ✦ 日辰</span>
+      <h1 class="font-display text-3xl md:text-4xl text-[var(--ink)] mb-2 mt-1">오늘의 운세</h1>
+      <p id="today-date" class="text-[var(--sunrise2)] text-sm font-shilla font-bold tracking-wider"></p>
+    </div>
+
+    <!-- 내 사주 등록 (접힘/펼침) -->
+    <div id="mySajuCard" class="my-saju-card">
+      <button id="mySajuToggle" type="button" class="my-saju-toggle">
+        <span id="mySajuToggleText">✦ 내 사주를 등록하면 오늘과의 관계를 볼 수 있어요</span>
+        <span id="mySajuToggleIcon" style="font-size:18px;font-weight:700;color:var(--ink3);margin-left:8px">+</span>
+      </button>
+      <div class="my-saju-form">
+        <div class="ms-grid">
+          <div class="full">
+            <label>이름 <span style="color:var(--ink4);font-weight:400">(선택)</span></label>
+            <input type="text" id="msName" placeholder="홍길동" maxlength="20">
+          </div>
+          <div>
+            <label>성별</label>
+            <select id="msGender">
+              <option value="male">남자</option>
+              <option value="female">여자</option>
+            </select>
+          </div>
+          <div>
+            <label>출생년도</label>
+            <input type="number" id="msYear" placeholder="예: 1990" min="1900" max="2050">
+          </div>
+          <div>
+            <label>출생월</label>
+            <select id="msMonth">
+              <option value="">--</option>
+              <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+              <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+              <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+            </select>
+          </div>
+          <div>
+            <label>출생일</label>
+            <input type="number" id="msDay" placeholder="예: 15" min="1" max="31">
+          </div>
+          <div class="full">
+            <label>출생 시간 <span style="color:var(--ink4);font-weight:400">(선택)</span></label>
+            <select id="msHour">
+              <option value="-1">시간 모름</option>
+              <option value="23">자시 子時 (23:30 ~ 01:30)</option>
+              <option value="1">축시 丑時 (01:30 ~ 03:30)</option>
+              <option value="3">인시 寅時 (03:30 ~ 05:30)</option>
+              <option value="5">묘시 卯時 (05:30 ~ 07:30)</option>
+              <option value="7">진시 辰時 (07:30 ~ 09:30)</option>
+              <option value="9">사시 巳時 (09:30 ~ 11:30)</option>
+              <option value="11">오시 午時 (11:30 ~ 13:30)</option>
+              <option value="13">미시 未時 (13:30 ~ 15:30)</option>
+              <option value="15">신시 申時 (15:30 ~ 17:30)</option>
+              <option value="17">유시 酉時 (17:30 ~ 19:30)</option>
+              <option value="19">술시 戌時 (19:30 ~ 21:30)</option>
+              <option value="21">해시 亥時 (21:30 ~ 23:30)</option>
+            </select>
+          </div>
+        </div>
+        <div class="ms-actions">
+          <button id="btnSaveSaju" type="button" class="btn-save-saju">사주 저장하기 →</button>
+          <button id="btnClearSaju" type="button" class="btn-clear-saju" style="display:none">삭제</button>
+        </div>
+        <p style="font-size:11px;color:var(--ink4);margin-top:10px;font-style:italic;line-height:1.5">
+          ※ 양력 기준 입력. 데이터는 본인 브라우저(localStorage)에만 저장되며, 서버로 전송되지 않습니다.
+        </p>
+      </div>
+    </div>
+
+    <!-- 오늘의 일진 큰 카드 -->
+    <div class="today-pillar">
+      <p class="font-shilla text-xs text-[var(--sunrise2)] tracking-[0.3em] mb-3 font-bold">TODAY'S PILLAR ✦ 日辰</p>
+      <div class="today-stem-branch">
+        <span id="today-stem-han" class="han"></span><span id="today-branch-han" class="han"></span>
+      </div>
+      <div id="today-kor" class="today-kor"></div>
+      <div class="today-elements">
+        <span>천간(天干): <strong id="today-stem-element"></strong></span>
+        <span>·</span>
+        <span>지지(地支): <strong id="today-branch-element"></strong></span>
+      </div>
+    </div>
+
+    <!-- 개인 풀이 박스 (사주 등록되었을 때만 표시) -->
+    <div id="personalBox" class="personal-box hidden">
+      <p class="font-shilla text-xs text-[var(--jade2)] tracking-widest mb-4 font-bold">
+        ✦ 오늘 ↔ 내 사주 <span id="personalName" style="color:var(--ink3);font-weight:400;font-size:11px;margin-left:6px"></span>
+      </p>
+
+      <div class="personal-row">
+        <div class="icon icon-rel" id="personalRelIcon">沖</div>
+        <div style="flex:1">
+          <p class="personal-line-title">오늘의 일지(地支)와 내 일지</p>
+          <p id="personalRelText" class="personal-line-text"></p>
+        </div>
+      </div>
+
+      <div class="personal-row">
+        <div class="icon icon-tg">十</div>
+        <div style="flex:1">
+          <p class="personal-line-title">오늘 일간(天干) → 내 일간 (십신)</p>
+          <p id="personalTGText" class="personal-line-text"></p>
+        </div>
+      </div>
+
+      <div class="personal-cta">
+        <a href="index.html?product=deep#products">
+          더 자세한 일진 풀이는 전문가용에서 →
+        </a>
+      </div>
+    </div>
+
+    <!-- 오늘의 풀이 -->
+    <div class="panel panel-warm p-6 mb-6">
+      <p class="font-shilla text-xs text-[var(--sunrise2)] tracking-widest mb-4 font-bold">TODAY'S READING ✦ 오늘의 풀이</p>
+
+      <div id="overall-fortune" class="fortune-item">
+        <h3>🌅 오늘의 총운</h3>
+        <p id="overall-text"></p>
+      </div>
+
+      <div class="fortune-item">
+        <h3>💼 일·학업</h3>
+        <p id="work-text"></p>
+      </div>
+
+      <div class="fortune-item">
+        <h3>💕 인간관계</h3>
+        <p id="relation-text"></p>
+      </div>
+
+      <div class="fortune-item">
+        <h3>💰 재물·금전</h3>
+        <p id="money-text"></p>
+      </div>
+
+      <div class="fortune-item">
+        <h3>🌿 건강·컨디션</h3>
+        <p id="health-text"></p>
+      </div>
+
+      <!-- 행운 / 주의 -->
+      <div class="lucky-box">
+        <div class="lucky-card good">
+          <div class="label">🍀 행운의 색</div>
+          <div class="value" id="lucky-color"></div>
+        </div>
+        <div class="lucky-card good">
+          <div class="label">🧭 행운의 방향</div>
+          <div class="value" id="lucky-direction"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="panel p-6">
+      <div class="text-center mb-6">
+        <p class="font-shilla text-xs text-[var(--vermil)] tracking-widest mb-3">PERSONALIZED ✦ 내 사주 풀이</p>
+        <h3 class="font-display text-2xl text-[var(--ink)] mb-3">오늘의 기운, 내 사주와 어떻게 맞물릴까?</h3>
+        <p class="text-sm text-[var(--ink3)] leading-relaxed">
+          오늘의 일진은 모두에게 같지만, <strong class="text-[var(--ink)]">내 사주</strong>와 만났을 때 비로소 의미가 생겨요.<br class="hidden sm:inline"/>
+          내 팔자에 맞춘 분석으로 진짜 흐름을 확인해보세요.
+        </p>
+      </div>
+
+      <!-- 3개 상품 미니 카드 -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+
+        <a href="index.html?product=light#products" class="block p-4 rounded-xl border border-[var(--paper-dk)] bg-[var(--paper2)] hover:border-[var(--jade)] hover:-translate-y-0.5 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-hanja text-2xl text-[var(--jade)]">始</span>
+            <span class="text-[10px] tracking-widest text-[var(--ink4)]">ENTRY</span>
+          </div>
+          <p class="font-display text-sm text-[var(--ink)] mb-1">입문용 <span class="font-shilla text-[var(--jade)]">Light</span></p>
+          <p class="text-xs text-[var(--ink3)] mb-3 leading-snug">사주가 처음이라면<br/>편지처럼 술술 읽히는 풀이</p>
+          <p class="font-display text-lg" style="color:var(--jade)">9,900<span class="text-xs font-shilla">원</span></p>
+        </a>
+
+        <a href="index.html?product=deep#products" class="block p-4 rounded-xl border border-[var(--gold)] bg-[var(--paper2)] hover:border-[var(--vermil)] hover:-translate-y-0.5 transition-all relative">
+          <span class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-shilla font-bold tracking-widest text-[var(--ink)] px-2 py-0.5 rounded-full border border-[var(--gold)]" style="background:linear-gradient(180deg,#d6b660,#b8923c)">BEST</span>
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-hanja text-2xl text-[var(--vermil)]">命</span>
+            <span class="text-[10px] tracking-widest text-[var(--ink4)]">PRO</span>
+          </div>
+          <p class="font-display text-sm text-[var(--ink)] mb-1">전문가용 <span class="font-shilla text-[var(--vermil)]">Deep</span></p>
+          <p class="text-xs text-[var(--ink3)] mb-3 leading-snug">십신·신살·대운·격국까지<br/>완전판 — 더 살 필요 없음</p>
+          <p class="font-display text-lg text-[var(--vermil)]">29,900<span class="text-xs font-shilla">원</span></p>
+        </a>
+
+        <a href="index.html?product=couple#products" class="block p-4 rounded-xl border border-[var(--paper-dk)] bg-[var(--paper2)] hover:border-[var(--plum)] hover:-translate-y-0.5 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-hanja text-2xl text-[var(--plum)]">緣</span>
+            <span class="text-[10px] tracking-widest text-[var(--ink4)]">PAIR</span>
+          </div>
+          <p class="font-display text-sm text-[var(--ink)] mb-1">궁합 분석 <span class="font-shilla text-[var(--plum)]">Pair</span></p>
+          <p class="text-xs text-[var(--ink3)] mb-3 leading-snug">두 사람의 인연·궁합<br/>연인·친구·동료까지</p>
+          <p class="font-display text-lg" style="color:var(--plum)">14,900<span class="text-xs font-shilla">원</span></p>
+        </a>
+
+      </div>
+
+      <div class="text-center">
+        <a href="index.html#products" class="inline-block px-6 py-2.5 rounded-lg bg-[var(--ink)] text-[var(--paper2)] text-sm font-bold hover:bg-[var(--vermil)] transition font-shilla">
+          전체 상품 자세히 보기 →
+        </a>
+        <p class="text-[11px] text-[var(--ink4)] mt-3 italic">2종 묶음 10% / 3종 20% / 전상품 30% OFF</p>
+      </div>
+    </div>
+
+    <!-- 만세력 보조 안내 — jade 톤으로 차별화 -->
+    <div class="text-center mt-8 mb-4">
+      <p class="text-sm text-[var(--ink3)] mb-3">아직 내 사주팔자를 모른다면?</p>
+      <a href="manse.html" class="inline-flex items-center gap-2 text-[var(--jade2)] font-shilla font-bold hover:text-[var(--jade)] transition border-b border-[var(--jade3)] hover:border-[var(--jade)] pb-1">
+        曆 무료 만세력에서 먼저 확인하기 →
+      </a>
+    </div>
+
+  </main>
+
+  <div class="top-stripe mt-16"></div>
+
+  <script>
+    // 오늘의 일진 계산
+    const STEMS = ['갑','을','병','정','무','기','경','신','임','계'];
+    const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
+    const STEMS_HAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+    const BRANCHES_HAN = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    const STEM_ELEMENT_NAME = ['양목','음목','양화','음화','양토','음토','양금','음금','양수','음수'];
+    const BRANCH_ELEMENT_NAME = ['수','토','목','목','토','화','화','토','금','금','토','수'];
+    const STEM_ELEMENT = ['wood','wood','fire','fire','earth','earth','metal','metal','water','water'];
+    const BRANCH_ELEMENT = ['water','earth','wood','wood','earth','fire','fire','earth','metal','metal','earth','water'];
+
+    const today = new Date();
+    const ref = new Date(Date.UTC(1900, 0, 31)); // 1900-01-31 = 甲辰(0)
+    const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    const diff = Math.floor((todayUTC - ref) / 86400000);
+    const dayIdx = ((diff % 60) + 60) % 60;
+    const stemIdx = dayIdx % 10;
+    const branchIdx = dayIdx % 12;
+
+    const stemEl = STEM_ELEMENT[stemIdx];
+    const branchEl = BRANCH_ELEMENT[branchIdx];
+
+    document.getElementById('today-date').textContent =
+      `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 ${'일월화수목금토'[today.getDay()]}요일`;
+
+    document.getElementById('today-stem-han').textContent = STEMS_HAN[stemIdx];
+    document.getElementById('today-stem-han').className = 'han ' + stemEl;
+    document.getElementById('today-branch-han').textContent = BRANCHES_HAN[branchIdx];
+    document.getElementById('today-branch-han').className = 'han ' + branchEl;
+
+    document.getElementById('today-kor').textContent =
+      `${STEMS[stemIdx]}${BRANCHES[branchIdx]}일 (${STEMS_HAN[stemIdx]}${BRANCHES_HAN[branchIdx]})`;
+    document.getElementById('today-stem-element').textContent = STEM_ELEMENT_NAME[stemIdx];
+    document.getElementById('today-branch-element').textContent = BRANCH_ELEMENT_NAME[branchIdx];
+
+    // ── 오행별 풀이 풀 ──
+    const ELEMENT_FORTUNES = {
+      wood: {
+        overall: '새로운 시작과 성장의 기운이 강한 날입니다. 미뤄둔 일을 시작하기 좋습니다.',
+        work: '창의적인 아이디어가 떠오릅니다. 회의·기획에 적극 참여해보세요.',
+        relation: '오랜 친구나 가족에게 먼저 연락해보면 좋은 만남이 될 수 있습니다.',
+        money: '장기적 안목으로 투자를 검토할 만한 날. 즉흥적 소비는 자제하세요.',
+        health: '간·신장 관리에 신경 쓰세요. 가벼운 산책이 도움됩니다.',
+        color: '초록색 / 청색', direction: '동쪽'
+      },
+      fire: {
+        overall: '활기차고 열정적인 하루. 추진력이 평소보다 강해집니다.',
+        work: '발표·설득에 유리한 날입니다. 자신감을 가지고 임하세요.',
+        relation: '새로운 만남, 사교 모임에서 좋은 인상을 남길 수 있습니다.',
+        money: '재물 흐름이 활발합니다. 다만 충동구매는 주의하세요.',
+        health: '심장·혈압 체크. 너무 무리하지 마시고 수분 충분히.',
+        color: '빨간색 / 분홍색', direction: '남쪽'
+      },
+      earth: {
+        overall: '안정과 신뢰가 중요한 날. 차분하게 일을 마무리하기 좋습니다.',
+        work: '꾸준함이 빛을 발합니다. 진행 중인 프로젝트를 정리·완성하세요.',
+        relation: '믿을 만한 사람과의 깊은 대화가 의미 있는 시간이 됩니다.',
+        money: '저축·정리에 좋은 날. 큰 결정은 신중하게.',
+        health: '소화기 관리에 신경 쓰세요. 규칙적인 식사가 중요합니다.',
+        color: '노란색 / 황금색', direction: '중앙'
+      },
+      metal: {
+        overall: '결단과 정리의 날. 명확한 판단이 필요한 결정에 좋습니다.',
+        work: '디테일에 강해지는 날. 검토·점검 작업에 유리합니다.',
+        relation: '직설적인 대화가 오히려 관계를 명료하게 만들 수 있습니다.',
+        money: '계약·정산에 적합. 숫자 꼼꼼히 확인하세요.',
+        health: '폐·호흡기 관리. 환기 자주 시키고 깊은 호흡을 의식적으로.',
+        color: '하얀색 / 은색', direction: '서쪽'
+      },
+      water: {
+        overall: '직관과 통찰이 빛나는 날. 깊은 사고에 적합합니다.',
+        work: '자료 조사·전략 수립에 유리합니다. 큰 그림을 그려보세요.',
+        relation: '말보다는 들어주는 날. 상대의 진심을 잘 읽을 수 있습니다.',
+        money: '큰 변동보다는 흐름을 관찰하는 게 좋습니다.',
+        health: '신장·방광 관리. 따뜻한 차를 자주 드세요.',
+        color: '검정색 / 남색', direction: '북쪽'
+      }
+    };
+
+    const fortune = ELEMENT_FORTUNES[stemEl] || ELEMENT_FORTUNES.earth;
+
+    document.getElementById('overall-text').textContent = fortune.overall;
+    document.getElementById('work-text').textContent = fortune.work;
+    document.getElementById('relation-text').textContent = fortune.relation;
+    document.getElementById('money-text').textContent = fortune.money;
+    document.getElementById('health-text').textContent = fortune.health;
+    document.getElementById('lucky-color').textContent = fortune.color;
+    document.getElementById('lucky-direction').textContent = fortune.direction;
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    //   내 사주 등록 / 오늘 ↔ 내 사주 풀이 (티저)
+    //   - localStorage 저장
+    //   - 일주 비교: 충/합/같음/평이
+    //   - 일간 십신: 비견/겁재/식신/상관/편재/정재/편관/정관/편인/정인
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    // ─ JDN 기반 일주 계산 (saju.html 동일 로직) ─
+    function _getJDN(y, m, d) {
+      const a = Math.floor((14 - m) / 12);
+      const yy = y + 4800 - a;
+      const mm = m + 12 * a - 3;
+      return d + Math.floor((153*mm + 2)/5) + 365*yy + Math.floor(yy/4) - Math.floor(yy/100) + Math.floor(yy/400) - 32045;
+    }
+    function _getDayPillar(year, month, day) {
+      const ref = _getJDN(2000, 1, 1);
+      const t = _getJDN(year, month, day);
+      const idx60 = ((54 + (t - ref)) % 60 + 60) % 60;
+      return { si: idx60 % 10, bi: idx60 % 12 };
+    }
+
+    // ─ 십신(十神) 계산 ─
+    const _STEM_E_IDX = [0,0,1,1,2,2,3,3,4,4]; // 0=목 1=화 2=토 3=금 4=수
+    const _STEM_Y     = [0,1,0,1,0,1,0,1,0,1]; // 0=양 1=음
+    const _GEN        = [1,2,3,4,0]; // i 가 생(生)하는 오행
+    const _GEN_BY     = [4,0,1,2,3]; // i 를 생하는 오행
+    const _CTRL       = [2,3,4,0,1]; // i 가 극(克)하는 오행
+    const _CTRL_BY    = [3,4,0,1,2]; // i 를 극하는 오행
+    const _TG_N    = ['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
+    const _TG_DESC = [
+      '동료·친구의 날 — 자기 페이스를 지키기 좋아요',
+      '경쟁·도전의 날 — 마음 단단히 갖고 임하세요',
+      '여유·표현의 날 — 가벼운 일에 좋은 기운',
+      '재능·발산의 날 — 창의력이 빛나는 시간',
+      '기회·움직이는 돈의 날 — 변화 속 기회 포착',
+      '안정·꾸준한 돈의 날 — 차근차근 다지기 좋은 흐름',
+      '압박·시험의 날 — 책임 있게, 단단하게',
+      '책임·명예의 날 — 공식적인 일에 길한 흐름',
+      '직관·통찰의 날 — 새로운 시각이 열리는 날',
+      '배움·도움 받는 날 — 어른·스승의 도움 가능'
+    ];
+    function _getTG(myDaySi, otherSi) {
+      const de = _STEM_E_IDX[myDaySi], te = _STEM_E_IDX[otherSi];
+      const sy = _STEM_Y[myDaySi] === _STEM_Y[otherSi];
+      if (de === te) return sy ? 0 : 1;
+      if (te === _GEN[de]) return sy ? 2 : 3;
+      if (te === _CTRL[de]) return sy ? 4 : 5;
+      if (te === _CTRL_BY[de]) return sy ? 6 : 7;
+      if (te === _GEN_BY[de]) return sy ? 8 : 9;
+      return -1;
+    }
+
+    // ─ 지지 충/합 판정 ─
+    function _isChung(a, b) { return Math.abs(a - b) === 6; }
+    function _isYukhap(a, b) {
+      // 자축, 인해, 묘술, 진유, 사신, 오미
+      const pairs = [[0,1],[2,11],[3,10],[4,9],[5,8],[6,7]];
+      return pairs.some(([x,y]) => (a===x && b===y) || (a===y && b===x));
+    }
+
+    // ─ localStorage ─
+    const _STORE_KEY = 'sajulog_my_saju';
+    function _saveMy(d) { localStorage.setItem(_STORE_KEY, JSON.stringify(d)); }
+    function _loadMy() {
+      try { return JSON.parse(localStorage.getItem(_STORE_KEY) || 'null'); } catch (e) { return null; }
+    }
+    function _clearMy() { localStorage.removeItem(_STORE_KEY); }
+
+    // ─ 관계 텍스트 ─
+    function _makeRelLine(myBi, todayBi) {
+      if (myBi === todayBi) {
+        return {
+          icon: '同',
+          html: `오늘은 내 일지와 <strong>같은 ${BRANCHES_HAN[myBi]}일</strong>이에요. 내 흐름이 또렷하게 드러나는 날 — 자기다움이 빛납니다.`
+        };
+      }
+      if (_isChung(myBi, todayBi)) {
+        return {
+          icon: '沖',
+          html: `오늘은 내 일지(${BRANCHES_HAN[myBi]})와 <strong>충(沖)</strong> 관계예요. 평소보다 부딪힘·변동이 있을 수 있으니 큰 결정은 미루는 편이 좋아요.`
+        };
+      }
+      if (_isYukhap(myBi, todayBi)) {
+        return {
+          icon: '合',
+          html: `오늘은 내 일지(${BRANCHES_HAN[myBi]})와 <strong>합(合)</strong> 관계예요. 협력·만남·인연 운이 평소보다 좋습니다.`
+        };
+      }
+      return {
+        icon: '常',
+        html: `오늘은 평이한 흐름이에요. 일상 페이스대로 진행하기 좋은 무난한 날입니다.`
+      };
+    }
+    function _makeTGLine(myDaySi, todayDaySi) {
+      const tg = _getTG(myDaySi, todayDaySi);
+      if (tg < 0) return { html: '오늘 일간과 내 일간 사이에 특별한 관계 없음' };
+      return {
+        html: `오늘 일간이 내 일간의 <strong>${_TG_N[tg]}</strong> — ${_TG_DESC[tg]}`
+      };
+    }
+
+    // ─ DOM 참조 ─
+    const _msCard       = document.getElementById('mySajuCard');
+    const _msToggle     = document.getElementById('mySajuToggle');
+    const _msToggleText = document.getElementById('mySajuToggleText');
+    const _msToggleIcon = document.getElementById('mySajuToggleIcon');
+    const _msPersonal   = document.getElementById('personalBox');
+    const _msBtnSave    = document.getElementById('btnSaveSaju');
+    const _msBtnClear   = document.getElementById('btnClearSaju');
+
+    // ─ 토글 ─
+    _msToggle.addEventListener('click', () => {
+      const open = _msCard.classList.toggle('is-open');
+      _msToggleIcon.textContent = open ? '−' : '+';
+    });
+
+    // ─ 저장 ─
+    _msBtnSave.addEventListener('click', () => {
+      const name   = (document.getElementById('msName').value || '').trim();
+      const gender = document.getElementById('msGender').value;
+      const year   = parseInt(document.getElementById('msYear').value, 10);
+      const month  = parseInt(document.getElementById('msMonth').value, 10);
+      const day    = parseInt(document.getElementById('msDay').value, 10);
+      const hour   = parseInt(document.getElementById('msHour').value, 10);
+
+      if (!year || year < 1900 || year > 2050) { alert('출생년도를 1900~2050 사이로 입력해주세요.'); return; }
+      if (!month || month < 1 || month > 12)   { alert('출생월을 선택해주세요.'); return; }
+      if (!day || day < 1 || day > 31)         { alert('출생일을 1~31 사이로 입력해주세요.'); return; }
+
+      const dP = _getDayPillar(year, month, day);
+      _saveMy({ name, gender, year, month, day, hour, dP });
+
+      // 폼 접고 개인 박스로 스크롤
+      _msCard.classList.remove('is-open');
+      _msToggleIcon.textContent = '+';
+      _applyMySaju();
+      setTimeout(() => {
+        _msPersonal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 280);
+    });
+
+    // ─ 삭제 ─
+    _msBtnClear.addEventListener('click', () => {
+      if (!confirm('저장된 내 사주를 삭제할까요?\n(브라우저에서만 지워지며, 다시 입력하면 복원됩니다.)')) return;
+      _clearMy();
+      _msCard.classList.remove('is-open');
+      _msToggleIcon.textContent = '+';
+      _applyMySaju();
+    });
+
+    // ─ 적용 (초기 로드 + 저장 후) ─
+    function _applyMySaju() {
+      const my = _loadMy();
+      if (my && my.dP) {
+        // 폼 값 복원
+        document.getElementById('msName').value   = my.name || '';
+        document.getElementById('msGender').value = my.gender || 'male';
+        document.getElementById('msYear').value   = my.year || '';
+        document.getElementById('msMonth').value  = my.month || '';
+        document.getElementById('msDay').value    = my.day || '';
+        document.getElementById('msHour').value   = (my.hour !== undefined && my.hour !== null) ? my.hour : -1;
+
+        // 토글 라벨 업데이트
+        const dKor = STEMS[my.dP.si] + BRANCHES[my.dP.bi];
+        const dHan = STEMS_HAN[my.dP.si] + BRANCHES_HAN[my.dP.bi];
+        const namePart = my.name ? `<span style="color:var(--ink2);margin-right:4px">${my.name}님 ·</span>` : '';
+        _msToggleText.innerHTML =
+          `<span style="color:var(--jade2);font-weight:700">✓ 내 사주 등록됨</span>` +
+          `<span style="color:var(--ink3);font-size:12px;margin-left:8px">${namePart}<strong style="color:var(--jade)">${dHan}</strong>일 (${dKor})</span>`;
+        _msCard.classList.add('is-set');
+        _msBtnClear.style.display = 'inline-block';
+
+        // 개인 풀이 박스 표시
+        _msPersonal.classList.remove('hidden');
+        _msPersonal.style.display = 'block';
+
+        const rel = _makeRelLine(my.dP.bi, branchIdx);
+        const tg  = _makeTGLine(my.dP.si, stemIdx);
+
+        document.getElementById('personalRelIcon').textContent = rel.icon;
+        document.getElementById('personalRelText').innerHTML  = rel.html;
+        document.getElementById('personalTGText').innerHTML   = tg.html;
+        document.getElementById('personalName').textContent =
+          (my.name ? `· ${my.name}님` : '') + ` (${dHan}일)`;
+      } else {
+        _msToggleText.innerHTML = '✦ 내 사주를 등록하면 오늘과의 관계를 볼 수 있어요';
+        _msCard.classList.remove('is-set');
+        _msBtnClear.style.display = 'none';
+        _msPersonal.classList.add('hidden');
+        _msPersonal.style.display = 'none';
+      }
+    }
+
+    // 페이지 로드 시 초기화
+    _applyMySaju();
+  </script>
+</body>
+</html>

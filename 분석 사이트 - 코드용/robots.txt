@@ -1,0 +1,21 @@
+# 사주로그 (Sajulog) — robots.txt
+# 검색엔진 크롤러 정책
+
+User-agent: *
+Allow: /
+Allow: /manse.html
+Allow: /today.html
+Allow: /terms.html
+Allow: /privacy.html
+
+# 사용자 전용 페이지 — 검색 노출 불필요
+Disallow: /login.html
+Disallow: /payment.html
+Disallow: /success.html
+Disallow: /fail.html
+Disallow: /mypage.html
+Disallow: /cart.html
+Disallow: /products/
+
+# 사이트맵
+Sitemap: https://sajulog.com/sitemap.xml

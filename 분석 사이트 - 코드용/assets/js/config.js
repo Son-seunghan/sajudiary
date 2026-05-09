@@ -1,0 +1,132 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   사주로그 - 전역 설정 (config.js)
+   카카오 / 토스페이먼츠 키를 여기에 입력합니다.
+   ⚠️ JS 키는 공개되어도 되는 키입니다 (REST/관리자 키와 다름).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+window.SAJULOG_CONFIG = {
+
+  // ─────────────────────────────────────────
+  // 1. 카카오 로그인 설정
+  // ─────────────────────────────────────────
+  // 발급 방법:
+  //   1) https://developers.kakao.com 접속 → 카카오 계정으로 로그인
+  //   2) "내 애플리케이션" → "애플리케이션 추가하기"
+  //   3) 앱 이름: 사주로그 / 사업자명: 본인 이름 또는 회사명
+  //   4) 생성 후 → 앱 키 → "JavaScript 키" 복사 → 아래에 붙여넣기
+  //   5) 플랫폼 → Web → 사이트 도메인 등록 (예: http://localhost:5500, https://sajulog.com)
+  //   6) 카카오 로그인 → "활성화" ON
+  //   7) 동의항목 → 닉네임(필수), 프로필 사진(선택)
+  KAKAO_JS_KEY: 'cc0a54d5766ad91297c565b0c3e9a589',  // 사주로그 앱 — JavaScript 키
+
+  // ─────────────────────────────────────────
+  // 2. 토스페이먼츠 결제 설정
+  // ─────────────────────────────────────────
+  // 발급 방법:
+  //   1) https://app.tosspayments.com/signup 가입
+  //   2) 회원가입 후 → 좌측 메뉴 "API 키" → 테스트 환경 클라이언트 키 복사
+  //   3) 사업자 등록 없이도 테스트 모드 사용 가능
+  //
+  // ⚠️ 아래는 토스가 공식 문서에서 제공하는 데모용 테스트 키입니다.
+  //    누구나 쓸 수 있고, 실제 돈이 빠지지 않습니다.
+  //    본인 계정 가입 후에는 본인 키로 교체하세요.
+  TOSS_CLIENT_KEY: 'test_ck_docs_Ovk5rk1EwkEbP0W43n07xlzm',  // 토스 데모 테스트 키
+
+  // 결제 성공/실패 시 돌아올 URL (자동 계산)
+  get TOSS_SUCCESS_URL() { return window.location.origin + '/success.html'; },
+  get TOSS_FAIL_URL()    { return window.location.origin + '/fail.html'; },
+
+  // ─────────────────────────────────────────
+  // 3. 상품 정보 (가격/이름/연결 파일)
+  // ─────────────────────────────────────────
+  PRODUCTS: {
+    light: {
+      id: 'light',
+      name: '입문용 (Light)',
+      hanja: '始',
+      price: 9900,
+      description: '사주가 처음이라면 — 나는 어떤 사람일까?',
+      file: 'products/saju_letter.html',
+      color: 'jade'
+    },
+    deep: {
+      id: 'deep',
+      name: '전문가용 (Deep)',
+      hanja: '命',
+      price: 29900,
+      description: '더 이상 사주에 돈을 쓰지 않아도 되는 완전판',
+      file: 'products/saju.html',
+      color: 'vermil'
+    },
+    couple: {
+      id: 'couple',
+      name: '궁합 분석',
+      hanja: '緣',
+      price: 14900,
+      description: '연인·친구·직장 — 두 사람의 깊은 인연',
+      file: 'products/gunghap_letter.html?mode=normal',
+      color: 'plum'
+    },
+    couple_plus: {
+      id: 'couple_plus',
+      name: '궁합 분석 (성인용)',
+      hanja: '桃',
+      price: 17900,
+      description: '연인·부부 — 더 깊고, 더 솔직하게',
+      file: 'products/gunghap_letter.html?mode=adult',
+      color: 'wine',
+      adultOnly: true
+    }
+  },
+
+  // ─────────────────────────────────────────
+  // 4. 쿠폰 정의
+  // ─────────────────────────────────────────
+  COUPONS: {
+    WELCOME3000: {
+      id: 'WELCOME3000',
+      name: '신규 환영 쿠폰',
+      description: '카카오 첫 로그인 감사 쿠폰',
+      discountType: 'fixed',  // 'fixed' (정액) | 'percent' (정률)
+      discountValue: 3000,    // 3,000원
+      minOrderAmount: 9900,   // 9,900원 이상 주문 시 사용 가능
+      autoIssue: 'first_login',  // 'first_login' | 'manual' | 'after_purchase'
+      validDays: 30           // 발급 후 30일
+    },
+    REPEAT5: {
+      id: 'REPEAT5',
+      name: '재구매 감사 쿠폰',
+      description: '다음 구매 시 5% 할인',
+      discountType: 'percent',
+      discountValue: 5,       // 5% 할인
+      minOrderAmount: 9900,
+      autoIssue: 'after_purchase',
+      validDays: 90           // 90일 동안 사용 가능
+    }
+  },
+
+  // ─────────────────────────────────────────
+  // 5. 동적 묶음 할인 규칙 (구매 상품 수에 따라)
+  // ─────────────────────────────────────────
+  // [최소 상품 수, 할인율(%)] — 상품 수 많을수록 큰 할인 적용
+  BUNDLE_DISCOUNTS: [
+    { minItems: 4, percent: 30, label: '🎁 전상품 패키지 30% OFF' },
+    { minItems: 3, percent: 20, label: '✨ 3종 묶음 20% OFF' },
+    { minItems: 2, percent: 10, label: '💫 2종 묶음 10% OFF' }
+    // 1개는 할인 없음
+  ],
+
+  // ─────────────────────────────────────────
+  // 6. 개발 모드 플래그
+  // ─────────────────────────────────────────
+  get DEV_MODE() {
+    return !this.KAKAO_JS_KEY || this.KAKAO_JS_KEY === 'YOUR_KAKAO_JS_KEY_HERE';
+  },
+
+  // ─────────────────────────────────────────
+  // 헬퍼: 묶음 할인 계산
+  // ─────────────────────────────────────────
+  getBundleDiscount(itemCount) {
+    return this.BUNDLE_DISCOUNTS.find(b => itemCount >= b.minItems) || null;
+  }
+};

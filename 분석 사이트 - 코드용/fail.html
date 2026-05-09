@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>결제 실패 — 사주로그 四柱錄</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728;
+    --jade:#5a8a98; --jade2:#406878;
+    --plum:#b8607a; --plum2:#944860;
+    --wine:#8a3a4d; --wine2:#6a2438;
+  }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--jade) 0%, var(--jade) 20%,
+      var(--vermil) 20%, var(--vermil) 40%,
+      var(--gold) 40%, var(--gold) 60%,
+      var(--plum) 60%, var(--plum) 80%,
+      var(--ink) 80%, var(--ink) 100%);
+  }
+
+  .fail-icon {
+    width: 110px; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700; font-size: 60px;
+    color: #fff;
+    background: linear-gradient(135deg, #888, #555);
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.2), inset 0 0 0 6px #777;
+    transform: rotate(-4deg);
+    margin: 0 auto;
+  }
+
+  .panel {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper2);
+    transition: all .2s ease;
+  }
+  .btn-primary:hover { background: var(--vermil); transform: translateY(-1px); }
+</style>
+</head>
+
+<body class="paper-bg min-h-screen flex flex-col">
+  <div class="top-stripe"></div>
+
+  <header class="border-b border-[var(--paper-dk)]/60">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="max-w-md w-full">
+
+      <div class="text-center mb-8">
+        <div class="fail-icon">未</div>
+        <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mt-6 mb-3">PAYMENT FAILED</p>
+        <h1 class="font-display text-3xl text-[var(--ink)] mb-3">결제가 완료되지 않았습니다</h1>
+        <p class="text-sm text-[var(--ink3)] leading-relaxed">
+          결제 처리 중 문제가 발생했습니다.<br/>다시 시도해주세요.
+        </p>
+      </div>
+
+      <div class="panel p-5 mb-6">
+        <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-3">ERROR DETAIL</p>
+        <div id="error-detail" class="space-y-2 text-sm">
+          <!-- JS로 채워짐 -->
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <a id="retry-btn" href="index.html" class="btn-primary block w-full text-center py-3 rounded-lg font-bold font-shilla">
+          다시 결제하기
+        </a>
+        <a href="index.html" class="block text-center text-sm text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla">
+          홈으로 돌아가기
+        </a>
+      </div>
+
+      <p class="text-center text-xs text-[var(--ink4)] mt-6">
+        문의: <a href="mailto:support@sajulog.com" class="underline hover:text-[var(--vermil)]">support@sajulog.com</a>
+      </p>
+    </div>
+  </main>
+
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="flex justify-center gap-4 font-shilla">
+        <a href="terms.html" class="hover:text-[var(--vermil)]">이용약관</a>
+        <span>·</span>
+        <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
+      </div>
+      <p>© 2026 사주로그. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="top-stripe"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code    = params.get('code')    || 'UNKNOWN';
+    const message = params.get('message') || '알 수 없는 오류가 발생했습니다.';
+    const orderId = params.get('orderId') || '';
+
+    // 에러 코드 한글 설명
+    const errorMap = {
+      'PAY_PROCESS_CANCELED':  '사용자가 결제를 취소했습니다.',
+      'PAY_PROCESS_ABORTED':   '결제 진행 중 중단되었습니다.',
+      'REJECT_CARD_COMPANY':   '카드사에서 결제를 거절했습니다.',
+      'INVALID_CARD_NUMBER':   '카드번호가 올바르지 않습니다.',
+      'NOT_ENOUGH_BALANCE':    '잔액이 부족합니다.',
+      'EXCEED_MAX_DAILY_PAYMENT_COUNT': '하루 결제 가능 횟수를 초과했습니다.',
+      'NOT_AVAILABLE_BANK':    '은행 점검 시간입니다.'
+    };
+
+    const friendlyMsg = errorMap[code] || message;
+
+    document.getElementById('error-detail').innerHTML = `
+      <div class="flex justify-between"><span class="text-[var(--ink3)]">에러 코드</span><span class="text-xs text-[var(--ink4)]">${code}</span></div>
+      <div class="text-[var(--ink2)] pt-2 border-t border-[var(--paper-dk)]">${friendlyMsg}</div>
+      ${orderId ? `<div class="flex justify-between text-xs"><span class="text-[var(--ink4)]">주문번호</span><span class="text-[var(--ink4)] truncate ml-3" style="max-width:60%">${orderId}</span></div>` : ''}
+    `;
+
+    // pending order 정리 (재시도 시 새 주문으로)
+    sessionStorage.removeItem('pending_order');
+
+    // 마지막 시도한 상품으로 다시 가기 옵션 — 가능하면 payment.html로
+    const lastProduct = JSON.parse(localStorage.getItem('last_attempted_product') || 'null');
+    if (lastProduct) {
+      document.getElementById('retry-btn').href = `payment.html?product=${lastProduct}`;
+    }
+  </script>
+</body>
+</html>

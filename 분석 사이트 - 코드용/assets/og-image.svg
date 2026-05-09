@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="paperBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf5e8"/>
+      <stop offset="100%" stop-color="#f0e8d2"/>
+    </linearGradient>
+    <linearGradient id="seal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d05848"/>
+      <stop offset="100%" stop-color="#8a2418"/>
+    </linearGradient>
+    <filter id="paperNoise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3"/>
+      <feColorMatrix values="0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0"/>
+      <feComposite in2="SourceGraphic" operator="atop"/>
+    </filter>
+  </defs>
+
+  <!-- 배경 한지 -->
+  <rect width="1200" height="630" fill="url(#paperBg)"/>
+  <rect width="1200" height="630" filter="url(#paperNoise)" opacity="0.5"/>
+
+  <!-- 상단 5색선 (오행) -->
+  <rect x="0" y="0" width="240" height="6" fill="#5a8a98"/>
+  <rect x="240" y="0" width="240" height="6" fill="#b13a2c"/>
+  <rect x="480" y="0" width="240" height="6" fill="#b8923c"/>
+  <rect x="720" y="0" width="240" height="6" fill="#b8607a"/>
+  <rect x="960" y="0" width="240" height="6" fill="#2c2520"/>
+  <rect x="0" y="624" width="240" height="6" fill="#5a8a98"/>
+  <rect x="240" y="624" width="240" height="6" fill="#b13a2c"/>
+  <rect x="480" y="624" width="240" height="6" fill="#b8923c"/>
+  <rect x="720" y="624" width="240" height="6" fill="#b8607a"/>
+  <rect x="960" y="624" width="240" height="6" fill="#2c2520"/>
+
+  <!-- 좌측 도장 (命) -->
+  <g transform="translate(180, 280) rotate(-4)">
+    <rect x="-80" y="-80" width="160" height="160" fill="url(#seal)" rx="14"/>
+    <rect x="-72" y="-72" width="144" height="144" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3" rx="10"/>
+    <text x="0" y="36" font-family="serif" font-size="120" font-weight="900" fill="#fff" text-anchor="middle">命</text>
+  </g>
+
+  <!-- 메인 텍스트 -->
+  <g transform="translate(330, 220)">
+    <!-- 작은 한자 -->
+    <text x="0" y="0" font-family="serif" font-size="28" font-weight="700" fill="#b13a2c" letter-spacing="6">四柱錄</text>
+    <!-- 큰 한국어 제목 -->
+    <text x="0" y="80" font-family="serif" font-size="78" font-weight="900" fill="#2c2520">사주로그</text>
+    <!-- 부제 -->
+    <text x="0" y="135" font-family="sans-serif" font-size="26" fill="#6b5d4f">정통 명리학과 데이터 분석가의 시선으로</text>
+    <text x="0" y="170" font-family="sans-serif" font-size="26" fill="#6b5d4f">당신의 운명을 한 글자씩 풀어드립니다</text>
+
+    <!-- 구분선 -->
+    <line x1="0" y1="210" x2="120" y2="210" stroke="#b8923c" stroke-width="2"/>
+
+    <!-- 태그 -->
+    <text x="0" y="252" font-family="sans-serif" font-size="22" font-weight="500" fill="#b13a2c">10년차 데이터 분석가가 만든 사주</text>
+    <text x="0" y="285" font-family="sans-serif" font-size="20" fill="#8a7d6b">3,000건 사주 데이터로 다진 알고리즘</text>
+  </g>
+
+  <!-- 우상단 한자 장식 -->
+  <text x="1100" y="120" font-family="serif" font-size="44" font-weight="700" fill="#b8923c" opacity="0.4" text-anchor="end">運</text>
+  <text x="1140" y="200" font-family="serif" font-size="44" font-weight="700" fill="#b8923c" opacity="0.4" text-anchor="end">命</text>
+</svg>

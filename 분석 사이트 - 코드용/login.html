@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>로그인 — 사주로그 四柱錄</title>
+<meta name="description" content="사주로그 로그인 페이지">
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="사주로그">
+<meta property="og:image" content="assets/og-image.svg">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  /* ━━━━ 신라 폰트 등록 ━━━━ */
+  @font-face {
+    font-family: 'Shilla Culture';
+    src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype");
+    font-weight: 500; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Shilla Culture';
+    src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype");
+    font-weight: 700; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Shilla Gothic';
+    src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype");
+    font-weight: 400; font-display: swap;
+  }
+
+  :root {
+    --paper:    #f7f0df;
+    --paper2:   #faf5e8;
+    --paper3:   #f0e8d2;
+    --paper-dk: #ebe1c4;
+    --ink:      #2c2520;
+    --ink2:     #4a3f33;
+    --ink3:     #6b5d4f;
+    --ink4:     #8a7d6b;
+    --vermil:   #b13a2c;
+    --vermil2:  #8a2418;
+    --vermil3:  #d05848;
+    --gold:     #b8923c;
+    --gold2:    #9b7728;
+    --jade:     #5a8a98;
+    --jade2:    #406878;
+    --plum:     #b8607a;
+    --plum2:    #944860;
+    --kakao:    #FEE500;
+    --kakao-dk: #3C1E1E;
+  }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: -0.01em; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  /* ━━━━ 한지 배경 ━━━━ */
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 50% 30%, rgba(177, 58, 44, 0.04) 0%, transparent 40%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ━━━━ 오행 5색선 ━━━━ */
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--jade)   0%, var(--jade)   20%,
+      var(--vermil) 20%, var(--vermil) 40%,
+      var(--gold)   40%, var(--gold)   60%,
+      var(--plum)   60%, var(--plum)   80%,
+      var(--ink)    80%, var(--ink)   100%
+    );
+  }
+
+  /* ━━━━ 한자 도장 ━━━━ */
+  .seal {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', 'Noto Serif KR', serif;
+    font-weight: 700; font-size: 22px;
+    color: #fff;
+    background: var(--vermil);
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18), inset 0 0 0 3px var(--vermil);
+    transform: rotate(-3deg);
+    flex-shrink: 0;
+  }
+  .seal-jade  { background: var(--jade);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--jade); }
+  .seal-plum  { background: var(--plum);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--plum); }
+
+  /* ━━━━ 카카오 버튼 (공식 가이드 준수) ━━━━ */
+  .btn-kakao {
+    width: 100%;
+    background: var(--kakao);
+    color: var(--kakao-dk);
+    font-weight: 700;
+    font-size: 16px;
+    padding: 16px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all .2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .btn-kakao:hover { background: #fdd900; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(254,229,0,0.35); }
+  .btn-kakao svg { flex-shrink: 0; }
+
+  /* ━━━━ 카드 ━━━━ */
+  .login-card {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    padding: 36px 32px 32px;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.06);
+  }
+
+  .selected-product-card {
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* ━━━━ DEV 배지 ━━━━ */
+  .dev-badge {
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.15em;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+</style>
+</head>
+
+<body class="paper-bg min-h-screen flex flex-col">
+
+  <!-- 상단 5색선 -->
+  <div class="top-stripe"></div>
+
+  <!-- ━━━━━━━━━━━ Header ━━━━━━━━━━━ -->
+  <header class="border-b border-[var(--paper-dk)]/60">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+      <a href="index.html" class="font-shilla text-sm px-4 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 돌아가기</a>
+    </div>
+  </header>
+
+  <!-- ━━━━━━━━━━━ Main ━━━━━━━━━━━ -->
+  <main class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md">
+
+      <!-- 페이지 타이틀 -->
+      <div class="text-center mb-8">
+        <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">LOGIN</p>
+        <h1 class="font-display text-3xl text-[var(--ink)] mb-3">로그인</h1>
+        <p class="text-sm text-[var(--ink3)] leading-relaxed">
+          분석 결과를 마이페이지에 저장하기 위해<br/>
+          간편 로그인이 필요합니다
+        </p>
+      </div>
+
+      <!-- 로그인 카드 -->
+      <div class="login-card">
+
+        <!-- 선택한 상품 표시 -->
+        <div id="selected-product-area" class="mb-6">
+          <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-2">SELECTED PRODUCT</p>
+          <div id="selected-product-card" class="selected-product-card">
+            <!-- JS로 채워짐 -->
+          </div>
+        </div>
+
+        <!-- 카카오 로그인 버튼 -->
+        <button id="btn-kakao-login" class="btn-kakao">
+          <svg width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 0C4.477 0 0 3.582 0 8c0 2.842 1.852 5.336 4.65 6.74l-1.18 4.317c-.105.385.331.69.667.466L9.4 16.166c.197.018.397.03.6.03 5.523 0 10-3.582 10-8s-4.477-8-10-8z" fill="currentColor"/>
+          </svg>
+          <span>카카오로 시작하기</span>
+        </button>
+
+        <!-- DEV 모드 안내 -->
+        <div id="dev-notice" class="hidden mt-4 p-3 rounded-lg bg-[var(--paper3)] border border-[var(--paper-dk)] text-xs text-[var(--ink3)] leading-relaxed">
+          <span class="dev-badge inline-block mr-2">DEV MODE</span>
+          카카오 JS 키가 설정되지 않아 <strong class="text-[var(--vermil)]">시뮬레이션 모드</strong>로 동작합니다.
+          버튼을 누르면 가짜 로그인으로 다음 단계(결제)를 테스트할 수 있습니다.
+        </div>
+
+        <!-- 약관 안내 -->
+        <p class="mt-6 text-[11px] text-[var(--ink4)] text-center leading-relaxed">
+          로그인하면 <a href="#" class="underline hover:text-[var(--vermil)]">이용약관</a>과
+          <a href="#" class="underline hover:text-[var(--vermil)]">개인정보처리방침</a>에 동의하는 것으로 간주됩니다
+        </p>
+      </div>
+
+      <!-- 다른 상품 보기 -->
+      <p class="text-center mt-6">
+        <a href="index.html" class="font-shilla text-sm text-[var(--ink3)] hover:text-[var(--vermil)]">다른 상품 보기 →</a>
+      </p>
+
+    </div>
+  </main>
+
+  <!-- ━━━━━━━━━━━ Footer ━━━━━━━━━━━ -->
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="flex justify-center gap-4 font-shilla">
+        <a href="terms.html" class="hover:text-[var(--vermil)]">이용약관</a>
+        <span>·</span>
+        <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
+      </div>
+      <p>© 2026 사주로그. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="top-stripe"></div>
+
+  <!-- ━━━━━━━━━━━ Scripts ━━━━━━━━━━━ -->
+  <!-- Kakao SDK (integrity 해시는 카카오 공식 문서에서 최신 것으로 교체 가능) -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+
+  <!-- 사주로그 공통 스크립트 -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/auth.js"></script>
+
+  <script>
+    // ─── URL 파라미터 읽기 ───
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product') || (params.get('state') !== '__cart__' ? params.get('state') : null);
+    const fromCart  = params.get('fromCart') === '1' || params.get('state') === '__cart__';
+    const cfg = window.SAJULOG_CONFIG;
+
+    // ─── 선택한 상품/장바구니 카드 표시 ───
+    const productArea = document.getElementById('selected-product-area');
+    const productCard = document.getElementById('selected-product-card');
+
+    if (fromCart) {
+      // 장바구니 결제 모드
+      const items = Cart.getItems();
+      const calc = Cart.calculate(items, sessionStorage.getItem('checkout_coupon') || null);
+      productCard.innerHTML = `
+        <div class="seal" style="background:linear-gradient(135deg,var(--gold),var(--vermil))">🛒</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-display text-base text-[var(--ink)]">장바구니 ${calc.itemCount}개 상품</p>
+          <p class="text-xs text-[var(--ink3)] truncate">${calc.products.map(p=>p.name).join(', ')}</p>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <p class="font-display text-lg text-[var(--vermil)]">${calc.total.toLocaleString()}<span class="text-xs ml-0.5">원</span></p>
+          ${calc.totalSaved > 0 ? `<p class="text-[10px] text-[var(--ink4)] line-through">${calc.subtotal.toLocaleString()}원</p>` : ''}
+        </div>
+      `;
+    } else if (productId && cfg.PRODUCTS[productId]) {
+      const p = cfg.PRODUCTS[productId];
+      const sealClass = p.color === 'jade' ? 'seal-jade' : (p.color === 'plum' ? 'seal-plum' : '');
+      const colorVar  = p.color === 'jade' ? '--jade2' : (p.color === 'plum' ? '--plum2' : '--vermil');
+      productCard.innerHTML = `
+        <div class="seal ${sealClass}">${p.hanja}</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-display text-base text-[var(--ink)] truncate">${p.name}</p>
+          <p class="text-xs text-[var(--ink3)] truncate">${p.description}</p>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <p class="font-display text-lg text-[var(${colorVar})]">${p.price.toLocaleString()}<span class="text-xs ml-0.5">원</span></p>
+        </div>
+      `;
+    } else {
+      productArea.style.display = 'none';
+    }
+
+    // ─── DEV 모드 안내 표시 ───
+    if (cfg.DEV_MODE) {
+      document.getElementById('dev-notice').classList.remove('hidden');
+    }
+
+    // ─── 카카오 콜백 처리 (?code=... 으로 돌아왔을 때) ───
+    if (params.get('code')) {
+      Auth.handleCallback();
+    }
+
+    // ─── 카카오 로그인 버튼 클릭 ───
+    document.getElementById('btn-kakao-login').addEventListener('click', () => {
+      if (fromCart) {
+        Auth.login('__cart__');
+      } else {
+        Auth.login(productId);
+      }
+    });
+  </script>
+
+</body>
+</html>

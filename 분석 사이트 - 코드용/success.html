@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>결제 완료 — 사주로그 四柱錄</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728;
+    --jade:#5a8a98; --jade2:#406878;
+    --plum:#b8607a; --plum2:#944860;
+    --wine:#8a3a4d; --wine2:#6a2438;
+  }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 50% 30%, rgba(184,146,60,0.08) 0%, transparent 45%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--jade) 0%, var(--jade) 20%,
+      var(--vermil) 20%, var(--vermil) 40%,
+      var(--gold) 40%, var(--gold) 60%,
+      var(--plum) 60%, var(--plum) 80%,
+      var(--ink) 80%, var(--ink) 100%);
+  }
+
+  /* 성공 도장 */
+  .success-seal {
+    width: 110px; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700; font-size: 64px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--vermil), var(--vermil2));
+    border-radius: 14px;
+    box-shadow:
+      inset 0 0 0 3px rgba(255,255,255,0.2),
+      inset 0 0 0 6px var(--vermil),
+      0 8px 24px rgba(177,58,44,0.3);
+    transform: rotate(-4deg);
+    margin: 0 auto;
+    animation: stamp 0.6s cubic-bezier(0.2, 1.2, 0.4, 1);
+  }
+  @keyframes stamp {
+    0%   { transform: rotate(-4deg) scale(2); opacity: 0; }
+    60%  { transform: rotate(-4deg) scale(0.92); opacity: 1; }
+    100% { transform: rotate(-4deg) scale(1); }
+  }
+
+  .panel {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.06);
+  }
+
+  .countdown-bar {
+    height: 4px;
+    background: var(--paper-dk);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .countdown-bar::after {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--gold3, var(--gold)), var(--vermil));
+    width: 100%;
+    animation: countdown 4s linear forwards;
+  }
+  @keyframes countdown {
+    from { width: 100%; }
+    to   { width: 0%; }
+  }
+</style>
+</head>
+
+<body class="paper-bg min-h-screen flex flex-col">
+  <div class="top-stripe"></div>
+
+  <!-- Header -->
+  <header class="border-b border-[var(--paper-dk)]/60">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="max-w-md w-full">
+
+      <!-- 성공 인장 -->
+      <div class="text-center mb-8">
+        <div class="success-seal">完</div>
+        <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mt-6 mb-3">PAYMENT COMPLETED</p>
+        <h1 class="font-display text-3xl text-[var(--ink)] mb-3">결제가 완료되었습니다</h1>
+        <p class="text-sm text-[var(--ink3)] leading-relaxed">
+          잠시 후 분석 페이지로 자동 이동합니다.<br/>
+          <span class="text-[var(--ink4)]">언제든 마이페이지에서 다시 확인할 수 있습니다.</span>
+        </p>
+      </div>
+
+      <!-- 주문 요약 -->
+      <div class="panel p-6 mb-6">
+        <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-4">ORDER DETAIL</p>
+        <div id="order-detail" class="space-y-2 text-sm">
+          <!-- JS로 채워짐 -->
+        </div>
+      </div>
+
+      <!-- 재구매 쿠폰 발급 안내 -->
+      <div id="repeat-coupon-banner" class="hidden mb-6 p-5 rounded-xl border-2 border-[var(--gold)] bg-gradient-to-br from-[var(--paper2)] to-[var(--paper3)] text-center">
+        <div class="text-3xl mb-2">🎁</div>
+        <p class="font-display text-base text-[var(--ink)] mb-1">감사 쿠폰이 도착했습니다</p>
+        <p class="text-sm text-[var(--ink2)] mb-2">
+          다음 구매 시 사용 가능한 <strong class="text-[var(--vermil)]">5% 할인 쿠폰</strong>이 발급되었습니다
+        </p>
+        <p class="text-xs text-[var(--ink4)] font-shilla">90일 동안 마이페이지에서 확인 가능</p>
+      </div>
+
+      <!-- 카운트다운 + 버튼 -->
+      <div class="mb-5">
+        <p class="text-center text-xs text-[var(--ink4)] mb-2">
+          <span id="countdown-text">4초</span> 후 자동으로 분석 페이지로 이동합니다
+        </p>
+        <div class="countdown-bar"></div>
+      </div>
+
+      <a id="goto-product" href="#" class="block w-full text-center py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-bold hover:bg-[var(--vermil)] transition font-shilla">
+        지금 바로 분석 결과 보기 →
+      </a>
+
+      <a href="mypage.html" class="block text-center mt-3 text-sm text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla">
+        나중에 마이페이지에서 후기 남기기 →
+      </a>
+
+      <a href="index.html" class="block text-center mt-4 text-xs text-[var(--ink4)] hover:text-[var(--vermil)] font-shilla">
+        홈으로 돌아가기
+      </a>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="flex justify-center gap-4 font-shilla">
+        <a href="terms.html" class="hover:text-[var(--vermil)]">이용약관</a>
+        <span>·</span>
+        <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
+      </div>
+      <p>© 2026 사주로그. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="top-stripe"></div>
+
+  <!-- Scripts -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/auth-guard.js"></script>
+
+  <script>
+    const cfg = window.SAJULOG_CONFIG;
+    const params = new URLSearchParams(window.location.search);
+
+    // 토스에서 전달하는 파라미터들
+    const paymentKey = params.get('paymentKey');
+    const orderId    = params.get('orderId');
+    const amount     = parseInt(params.get('amount') || '0', 10);
+
+    // sessionStorage에 저장한 pending order 정보 가져오기
+    const pending = JSON.parse(sessionStorage.getItem('pending_order') || '{}');
+    sessionStorage.removeItem('pending_order');
+
+    // 검증
+    if (!paymentKey || !orderId || !pending.items || pending.items.length === 0) {
+      alert('결제 정보가 올바르지 않습니다.\n홈으로 이동합니다.');
+      window.location.href = 'index.html';
+      throw new Error('invalid payment params');
+    }
+
+    // ⚠️ 실서비스: 백엔드에서 /v1/payments/confirm 호출 필요.
+    //    여기서는 테스트 모드 → 클라이언트에서 구매 기록 저장.
+
+    // 모든 상품에 대해 구매 기록 저장
+    pending.items.forEach(productId => {
+      const p = cfg.PRODUCTS[productId];
+      if (p) {
+        AuthGuard.addPurchase({
+          productId,
+          orderId, paymentKey,
+          amount: p.price,  // 개별 상품의 정가
+          productName: p.name
+        });
+      }
+    });
+
+    // 사용한 쿠폰 처리
+    if (pending.couponId) {
+      Cart.useCoupon(pending.couponId);
+    }
+
+    // 🎁 결제 완료 감사 쿠폰 자동 발급 (다음 구매 5% 할인, 90일 유효)
+    const issuedCoupon = Cart.issueCoupon('REPEAT5');
+    if (issuedCoupon) {
+      console.log('[Success] 🎁 재구매 5% 할인 쿠폰 발급');
+      document.getElementById('repeat-coupon-banner').classList.remove('hidden');
+    }
+
+    // 결제 완료 → 장바구니 비우기
+    Cart.clear();
+
+    // 첫 상품 = 메인 상품 (자동 이동 대상)
+    const mainProduct = cfg.PRODUCTS[pending.items[0]];
+
+    // 주문 상세 표시
+    let detailHtml = '';
+    if (pending.items.length === 1) {
+      detailHtml = `
+        <div class="flex justify-between"><span class="text-[var(--ink3)]">상품</span><span class="font-medium text-[var(--ink)]">${mainProduct.name}</span></div>
+        <div class="flex justify-between"><span class="text-[var(--ink3)]">결제 금액</span><span class="font-medium text-[var(--ink)]">${amount.toLocaleString()}원</span></div>
+      `;
+    } else {
+      detailHtml = `
+        <div>
+          <p class="text-[var(--ink3)] mb-2">구매 상품 (${pending.items.length}개)</p>
+          ${pending.items.map(id => `
+            <p class="font-medium text-[var(--ink)] text-sm pl-2 py-0.5">· ${cfg.PRODUCTS[id]?.name || id}</p>
+          `).join('')}
+        </div>
+        ${pending.bundleDiscount > 0 ? `<div class="flex justify-between text-[var(--vermil)]"><span>묶음 할인</span><span>-${pending.bundleDiscount.toLocaleString()}원</span></div>` : ''}
+        ${pending.couponDiscount > 0 ? `<div class="flex justify-between text-[var(--vermil)]"><span>쿠폰 할인</span><span>-${pending.couponDiscount.toLocaleString()}원</span></div>` : ''}
+        <div class="flex justify-between pt-2 border-t border-[var(--paper-dk)]"><span class="text-[var(--ink3)]">최종 결제</span><span class="font-bold text-[var(--ink)]">${amount.toLocaleString()}원</span></div>
+      `;
+    }
+    detailHtml += `<div class="flex justify-between"><span class="text-[var(--ink3)]">주문번호</span><span class="text-xs text-[var(--ink4)] truncate ml-3" style="max-width:60%">${orderId}</span></div>`;
+    document.getElementById('order-detail').innerHTML = detailHtml;
+
+    // 분석 페이지 링크 설정 (메인 상품)
+    document.getElementById('goto-product').href = mainProduct.file;
+    if (pending.items.length > 1) {
+      document.getElementById('goto-product').textContent = `${mainProduct.name} 분석 결과 보기 →`;
+    }
+
+    // 카운트다운 후 자동 이동 (메인 상품으로)
+    let secs = 4;
+    const txt = document.getElementById('countdown-text');
+    const timer = setInterval(() => {
+      secs--;
+      if (secs <= 0) {
+        clearInterval(timer);
+        window.location.href = mainProduct.file;
+      } else {
+        txt.textContent = secs + '초';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>사주로그 四柱錄 — 10년 데이터 분석가가 만든 사주 분석</title>
+<meta name="description" content="10년 데이터 분석가가 3,000건의 사주 데이터로 만든 정통 명리학 분석. 입문용·전문가용·궁합 분석을 한 번 결제로 마이페이지에서 언제든 다시 봅니다.">
+<meta name="keywords" content="사주, 사주풀이, 사주팔자, 만세력, 무료 사주, 궁합, 사주명리, 명리학, 일진, 신년운세, 띠별운세">
+<meta name="author" content="사주로그">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph (카카오톡, 페이스북 공유 미리보기) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="사주로그 四柱錄 — 10년 데이터 분석가가 만든 사주">
+<meta property="og:description" content="정통 명리학과 데이터 분석가의 시선으로 풀어낸 나만의 사주. 무료 만세력으로 미리 체험해보세요.">
+<meta property="og:image" content="assets/og-image.svg">
+<meta property="og:url" content="https://sajulog.com/">
+<meta property="og:site_name" content="사주로그">
+<meta property="og:locale" content="ko_KR">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="사주로그 — 10년 데이터 분석가가 만든 사주">
+<meta name="twitter:description" content="정통 명리학을 데이터 분석가의 시선으로">
+<meta name="twitter:image" content="assets/og-image.svg">
+
+<!-- Canonical URL -->
+<link rel="canonical" href="https://sajulog.com/">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  /* ━━━━━━━━━━━━ 신라 폰트 등록 ━━━━━━━━━━━━ */
+  @font-face {
+    font-family: 'Shilla Culture';
+    src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype");
+    font-weight: 500;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Shilla Culture';
+    src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Shilla Gothic';
+    src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype");
+    font-weight: 400;
+    font-display: swap;
+  }
+
+  :root {
+    /* ── 한지 톤 ── */
+    --paper:    #f7f0df;
+    --paper2:   #faf5e8;
+    --paper3:   #f0e8d2;
+    --paper-dk: #ebe1c4;
+
+    /* ── 먹빛 ── */
+    --ink:      #2c2520;
+    --ink2:     #4a3f33;
+    --ink3:     #6b5d4f;
+    --ink4:     #8a7d6b;
+
+    /* ── 인주 주홍 ── */
+    --vermil:   #b13a2c;
+    --vermil2:  #8a2418;
+    --vermil3:  #d05848;
+
+    /* ── 앤틱 골드 ── */
+    --gold:     #b8923c;
+    --gold2:    #9b7728;
+    --gold3:    #d6b660;
+
+    /* ── 청옥 (입문용) ── */
+    --jade:     #5a8a98;
+    --jade2:    #406878;
+    --jade3:    #7aa8b5;
+
+    /* ── 매화 (궁합) ── */
+    --plum:     #b8607a;
+    --plum2:    #944860;
+    --plum3:    #d0809a;
+
+    /* ── 와인 (궁합 성인용) ── */
+    --wine:     #8a3a4d;
+    --wine2:    #6a2438;
+    --wine3:    #a8526a;
+  }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 신라문화체 — 큰 제목·로고·헤드라인 */
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: -0.01em; }
+  /* 신라고딕체 — 서브 제목·UI·라벨 */
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  /* 명조 — 보조 텍스트 (운치 있는 부분) */
+  .font-serif-ko { font-family: 'Noto Serif KR', serif; }
+  /* 한자 — 신라문화체로 (도장에는 별도 처리) */
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  /* ━━━━━━━━━━━━ 한지 + 운문 배경 ━━━━━━━━━━━━ */
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      /* 운문(雲紋) 패턴 - 옅게 */
+      radial-gradient(circle at 12% 18%, rgba(177, 58, 44, 0.04) 0%, transparent 22%),
+      radial-gradient(circle at 88% 30%, rgba(184, 146, 60, 0.05) 0%, transparent 25%),
+      radial-gradient(circle at 50% 70%, rgba(90, 138, 152, 0.03) 0%, transparent 30%),
+      /* 한지 결 (얇은 노이즈) */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ━━━━━━━━━━━━ 운문(雲紋) 디바이더 ━━━━━━━━━━━━ */
+  .ornament-divider {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    color: var(--gold);
+  }
+  .ornament-divider::before, .ornament-divider::after {
+    content: ""; flex: 1; height: 1px; max-width: 80px;
+    background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+  }
+
+  /* ━━━━━━━━━━━━ 한자 도장 (印章) ━━━━━━━━━━━━ */
+  .seal {
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 30px;
+    color: #fff;
+    background: var(--vermil);
+    border-radius: 6px;
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,0.18),
+      inset 0 0 0 4px var(--vermil),
+      0 2px 8px rgba(177, 58, 44, 0.25);
+    position: relative;
+    transform: rotate(-3deg);
+  }
+  .seal-jade  { background: var(--jade);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 4px var(--jade), 0 2px 8px rgba(90,138,152,0.3); }
+  .seal-gold  { background: var(--gold);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 4px var(--gold), 0 2px 8px rgba(184,146,60,0.35); }
+  .seal-plum  { background: var(--plum);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 4px var(--plum), 0 2px 8px rgba(184,96,122,0.3); }
+  .seal-wine  { background: var(--wine);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 4px var(--wine), 0 2px 8px rgba(138,58,77,0.4); }
+
+  /* ━━━━━━━━━━━━ 카드 공통 ━━━━━━━━━━━━ */
+  .product-card {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    padding: 32px 28px 28px;
+    transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+    position: relative;
+    /* 카드 내부를 flex로 만들어서 버튼들을 하단 정렬 */
+    display: flex;
+    flex-direction: column;
+  }
+  /* 체크리스트(ul)가 남은 공간을 차지 → 버튼들이 항상 카드 하단에 정렬됨 */
+  .product-card > ul {
+    flex: 1;
+  }
+  .product-card::before {
+    /* 카드 우상단 운문 장식 (카드 안쪽에 위치 — overflow 의존 X) */
+    content: ""; position: absolute; top: 0; right: 0;
+    width: 100px; height: 100px;
+    border-top-right-radius: 14px;       /* 카드 모서리 따라가게 */
+    opacity: 0.10;
+    background: radial-gradient(circle at top right, currentColor, transparent 70%);
+    pointer-events: none;
+  }
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(60, 45, 30, 0.12);
+  }
+
+  .card-light  { color: var(--jade); }
+  .card-light:hover  { border-color: var(--jade3); }
+  .card-deep   { color: var(--vermil); }
+  .card-deep:hover   { border-color: var(--gold); box-shadow: 0 18px 50px rgba(177, 58, 44, 0.18); }
+  .card-couple { color: var(--plum); }
+  .card-couple:hover { border-color: var(--plum3); }
+
+  .card-wine { color: var(--wine); }
+  .card-wine:hover { border-color: var(--wine3); box-shadow: 0 16px 40px rgba(138,58,77,0.18); }
+
+  /* ━━━━━━━━━━━━ 버튼 ━━━━━━━━━━━━ */
+  .btn-base {
+    width: 100%; padding: 14px 20px;
+    border-radius: 8px;
+    font-weight: 700; letter-spacing: 0.02em;
+    color: #fff; font-size: 15px;
+    transition: all .25s ease;
+    border: 1px solid transparent;
+  }
+  .btn-light  { background: linear-gradient(180deg, var(--jade3), var(--jade)); }
+  .btn-light:hover  { background: linear-gradient(180deg, var(--jade), var(--jade2)); transform: translateY(-1px); }
+  .btn-deep   { background: linear-gradient(180deg, var(--vermil3), var(--vermil)); border: 1px solid var(--gold); }
+  .btn-deep:hover   { background: linear-gradient(180deg, var(--vermil), var(--vermil2)); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(177, 58, 44, 0.3); }
+  .btn-couple { background: linear-gradient(180deg, var(--plum3), var(--plum)); }
+  .btn-couple:hover { background: linear-gradient(180deg, var(--plum), var(--plum2)); transform: translateY(-1px); }
+  .btn-wine   { background: linear-gradient(180deg, var(--wine3), var(--wine)); }
+  .btn-wine:hover   { background: linear-gradient(180deg, var(--wine), var(--wine2)); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(138,58,77,0.3); }
+
+  .btn-primary {
+    background: var(--ink); color: var(--paper2);
+    padding: 14px 32px; border-radius: 8px; font-weight: 700;
+    transition: all .25s ease;
+  }
+  .btn-primary:hover { background: var(--vermil); transform: translateY(-1px); }
+
+  /* ━━━━━━━━━━━━ 무료 도구 (Hero CTA + 카드) ━━━━━━━━━━━━ */
+  /* 일출 톤 변수 (오늘의 운세 카드용) */
+  :root {
+    --sunrise:  #d4924a;
+    --sunrise2: #b8732a;
+  }
+
+  .btn-free {
+    background: linear-gradient(180deg, var(--gold3), var(--gold));
+    color: var(--ink);
+    border: 1px solid var(--gold2);
+    font-weight: 700;
+  }
+  .btn-free:hover {
+    background: linear-gradient(180deg, var(--gold), var(--gold2));
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(184, 146, 60, 0.3);
+  }
+
+  /* 청옥 버튼 (만세력 카드용) */
+  .btn-jade {
+    background: linear-gradient(180deg, var(--jade3), var(--jade));
+    color: #fff;
+    border: 1px solid var(--jade2);
+    font-weight: 700;
+  }
+  .btn-jade:hover {
+    background: linear-gradient(180deg, var(--jade), var(--jade2));
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(64, 104, 120, 0.30);
+  }
+
+  /* 일출 버튼 (오늘의 운세 카드용) */
+  .btn-sunrise {
+    background: linear-gradient(180deg, #e0a062, var(--sunrise));
+    color: #fff;
+    border: 1px solid var(--sunrise2);
+    font-weight: 700;
+  }
+  .btn-sunrise:hover {
+    background: linear-gradient(180deg, var(--sunrise), var(--sunrise2));
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(212, 146, 74, 0.32);
+  }
+
+  .btn-ghost {
+    width: 100%; padding: 14px 20px;
+    border-radius: 8px;
+    font-weight: 600; letter-spacing: 0.02em;
+    font-size: 15px;
+    transition: all .25s ease;
+    border: 1px solid var(--paper-dk);
+    background: transparent;
+    color: var(--ink2);
+  }
+  .btn-ghost:hover {
+    background: var(--paper3);
+    border-color: var(--gold);
+    color: var(--vermil);
+  }
+
+  /* 만세력 카드 — 청옥 테마 */
+  .card-manse {
+    color: var(--jade);
+    background:
+      radial-gradient(circle at 100% 0%, rgba(90,138,152,0.10), transparent 50%),
+      linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%) !important;
+    border-color: var(--jade3) !important;
+    border-top: 3px solid var(--jade) !important;
+  }
+  .card-manse:hover {
+    border-color: var(--jade) !important;
+    box-shadow: 0 16px 40px rgba(64, 104, 120, 0.18) !important;
+  }
+
+  /* 오늘의 운세 카드 — 일출 테마 */
+  .card-today {
+    color: var(--sunrise);
+    background:
+      radial-gradient(circle at 100% 0%, rgba(212,146,74,0.12), transparent 50%),
+      linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%) !important;
+    border-color: var(--gold3) !important;
+    border-top: 3px solid var(--sunrise) !important;
+  }
+  .card-today:hover {
+    border-color: var(--sunrise) !important;
+    box-shadow: 0 16px 40px rgba(212, 146, 74, 0.20) !important;
+  }
+
+  /* 카드별 도장 색상 오버라이드 */
+  .seal-jade-card { background: var(--jade) !important; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 4px var(--jade), 0 2px 8px rgba(64,104,120,0.30) !important; }
+  .seal-sunrise   { background: var(--sunrise); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.22), inset 0 0 0 4px var(--sunrise), 0 2px 8px rgba(212,146,74,0.35); }
+
+  /* 카드별 체크마크 */
+  .check-sunrise { background: var(--sunrise); }
+
+  .free-tag {
+    display: inline-block;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--gold2);
+    background: linear-gradient(180deg, rgba(214,182,96,0.18), rgba(184,146,60,0.10));
+    border: 1px solid var(--gold3);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .free-tools-banner {
+    background:
+      radial-gradient(ellipse at 25% 50%, rgba(64,104,120,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 50%, rgba(212,146,74,0.08) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(214,182,96,0.06) 0%, rgba(177,58,44,0.03) 100%);
+    border-top: 1px solid var(--gold3);
+    border-bottom: 1px solid var(--gold3);
+  }
+
+  /* ━━━━━━━━━━━━ BEST 배지 ━━━━━━━━━━━━ */
+  .badge-best {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(180deg, var(--gold3), var(--gold));
+    color: var(--ink);
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 11px; letter-spacing: 0.2em;
+    padding: 4px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--gold2);
+    box-shadow: 0 2px 8px rgba(184, 146, 60, 0.35);
+  }
+
+  /* ━━━━━━━━━━━━ 체크 마크 ━━━━━━━━━━━━ */
+  .check-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    color: #fff; font-size: 11px; font-weight: bold;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .check-jade { background: var(--jade); }
+  .check-gold { background: var(--gold); }
+  .check-plum { background: var(--plum); }
+  .check-wine { background: var(--wine); }
+
+  /* ━━━━━━━━━━━━ 19+ 배지 ━━━━━━━━━━━━ */
+  .badge-adult {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(180deg, var(--wine3), var(--wine));
+    color: #fff;
+    font-family: 'Shilla Gothic', 'Pretendard', sans-serif;
+    font-weight: 700;
+    font-size: 11px; letter-spacing: 0.18em;
+    padding: 4px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--wine2);
+    box-shadow: 0 2px 8px rgba(138,58,77,0.4);
+  }
+
+  /* ━━━━━━━━━━━━ 리뷰 카드 ━━━━━━━━━━━━ */
+  .review-card {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    padding: 22px 22px 20px;
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    position: relative;
+    flex-shrink: 0;
+    width: 320px;
+  }
+  .review-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold);
+    box-shadow: 0 10px 30px rgba(60, 45, 30, 0.10);
+  }
+
+  /* ━━━━━━━━━━━━ 후기 마키 (자동 스크롤) ━━━━━━━━━━━━ */
+  .reviews-marquee {
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(90deg, transparent 0, black 80px, black calc(100% - 80px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, black 80px, black calc(100% - 80px), transparent 100%);
+  }
+  .reviews-track {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    animation: marquee 60s linear infinite;
+  }
+  .reviews-marquee:hover .reviews-track {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* 별점 */
+  .stars { letter-spacing: 1px; }
+  .star-on  { color: var(--vermil); }
+  .star-off { color: var(--paper-dk); }
+
+  /* 상품 태그 */
+  .product-tag {
+    display: inline-block;
+    font-family: 'Shilla Gothic', 'Pretendard', sans-serif;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .tag-light  { background: rgba(90,138,152,0.15);  color: var(--jade2); }
+  .tag-deep   { background: rgba(177,58,44,0.12);   color: var(--vermil2); }
+  .tag-couple { background: rgba(184,96,122,0.15);  color: var(--plum2); }
+  .tag-wine   { background: rgba(138,58,77,0.15);   color: var(--wine2); }
+
+  /* 리뷰 평균 박스 */
+  .rating-summary {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 14px 24px;
+    background: linear-gradient(180deg, var(--paper2), var(--paper3));
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+    box-shadow: 0 2px 12px rgba(184, 146, 60, 0.15);
+  }
+
+  /* ━━━━━━━━━━━━ 헤더 상단 5색선 (오행) ━━━━━━━━━━━━ */
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--jade)   0%,  var(--jade)   20%,
+      var(--vermil) 20%, var(--vermil) 40%,
+      var(--gold)   40%, var(--gold)   60%,
+      var(--plum)   60%, var(--plum)   80%,
+      var(--ink)    80%, var(--ink)   100%
+    );
+  }
+
+  /* ━━━━━━━━━━━━ 가격 표기 ━━━━━━━━━━━━ */
+  .price-num {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1;
+  }
+  .price-unit {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px; font-weight: 500;
+    margin-left: 2px; opacity: 0.85;
+  }
+
+  /* ━━━━━━━━━━━━ 한자 큰 글씨 (히어로) ━━━━━━━━━━━━ */
+  .hero-hanja {
+    position: absolute;
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 300;
+    color: var(--vermil);
+    opacity: 0.06;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ━━━━━━━━━━━━ 호버 트랜지션 ━━━━━━━━━━━━ */
+  a, button { transition: all .25s ease; }
+
+  details summary { list-style: none; cursor: pointer; }
+  details summary::-webkit-details-marker { display: none; }
+
+  /* ━━━━━━━━━━━━ 성인 인증 모달 ━━━━━━━━━━━━ */
+  .adult-modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(20, 14, 10, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    animation: fadeIn .25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .adult-modal {
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 2px solid var(--wine);
+    border-radius: 18px;
+    padding: 36px 32px 28px;
+    max-width: 420px;
+    width: calc(100% - 32px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+    animation: scaleIn .3s cubic-bezier(0.2, 1, 0.4, 1);
+  }
+  @keyframes scaleIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .adult-seal-big {
+    width: 72px; height: 72px;
+    margin: 0 auto 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700; font-size: 40px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--wine3), var(--wine2));
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.2), 0 8px 20px rgba(138,58,77,0.4);
+    transform: rotate(-4deg);
+  }
+
+  /* 미세 둥둥 애니메이션 */
+  @keyframes float-slow {
+    0%, 100% { transform: rotate(-3deg) translateY(0); }
+    50%      { transform: rotate(-3deg) translateY(-3px); }
+  }
+  .float-slow { animation: float-slow 5s ease-in-out infinite; }
+
+  /* 페이지 페이드인 (브랜드 일관성) */
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* 부드러운 스크롤 (앵커 링크) */
+  html { scroll-behavior: smooth; }
+
+  /* 모바일 반응형 보완 */
+  @media (max-width: 640px) {
+    .hero-hanja { font-size: 200px !important; }
+    .product-card { padding: 28px 22px 22px; }
+    .price-num { font-size: 22px; }
+    .seal { width: 48px; height: 48px; font-size: 24px; }
+    .review-card { width: 280px !important; padding: 18px; }
+    .reviews-track { gap: 14px !important; }
+    /* BEST VALUE 배지 모바일 */
+    .badge-best, .badge-adult { font-size: 10px; padding: 3px 10px; }
+  }
+  @media (max-width: 380px) {
+    .hero-hanja { font-size: 160px !important; }
+    .price-num { font-size: 20px; }
+  }
+</style>
+</head>
+
+<body class="paper-bg min-h-screen">
+
+  <!-- ━━━━━━━━━━━ 상단 오행 5색선 ━━━━━━━━━━━ -->
+  <div class="top-stripe"></div>
+
+  <!-- ━━━━━━━━━━━ Header ━━━━━━━━━━━ -->
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+      <nav class="font-shilla flex items-center gap-1 sm:gap-2 text-sm">
+        <a href="manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">무료 만세력</a>
+        <a href="today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="#products" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="#reviews"  class="hidden lg:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">후기</a>
+        <a href="#faq"      class="hidden lg:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">FAQ</a>
+
+        <!-- 장바구니 아이콘 -->
+        <a href="cart.html" class="relative px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)] inline-flex items-center" title="장바구니">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span id="cart-badge" class="hidden absolute -top-1 -right-1 bg-[var(--vermil)] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
+        </a>
+
+        <!-- 로그인 안 된 상태 -->
+        <a id="nav-login" href="login.html" class="ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)]">로그인</a>
+
+        <!-- 로그인 된 상태 (JS로 표시 토글) -->
+        <a id="nav-mypage" href="mypage.html" class="hidden ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)] items-center gap-2">
+          <span id="nav-nickname" class="hidden sm:inline truncate max-w-[100px]"></span>
+          <span class="text-[10px] opacity-70">마이</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ━━━━━━━━━━━ Hero ━━━━━━━━━━━ -->
+  <section class="relative max-w-6xl mx-auto px-6 pt-24 pb-20 text-center overflow-hidden">
+    <!-- 배경 큰 한자 -->
+    <span class="hero-hanja text-[260px] sm:text-[400px] -top-10 left-1/2 -translate-x-1/2">命</span>
+
+    <p class="font-hanja text-sm text-[var(--ink3)] mb-6 tracking-[0.4em]">正統命理 ✦ 十年分析</p>
+
+    <h1 class="font-display text-4xl sm:text-5xl md:text-6xl mb-6 leading-tight text-[var(--ink)] relative">
+      당신의 운명을<br/>
+      <span class="text-[var(--vermil)]">한 글자씩</span> 풀어드립니다
+    </h1>
+
+    <p class="text-[var(--ink3)] text-base sm:text-lg max-w-2xl mx-auto mb-4 leading-relaxed relative">
+      10년간 데이터를 다뤘고, 3,000건 이상의 사주를 분석했습니다.
+    </p>
+    <p class="text-[var(--ink3)] text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed relative">
+      정통 명리학을 <span class="text-[var(--vermil)] font-medium">데이터 분석가의 시선</span>으로 풀어드립니다.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center relative">
+      <a href="#free-tools" class="btn-base btn-free font-shilla inline-block sm:max-w-xs">
+        ✦ 무료로 먼저 체험하기 →
+      </a>
+      <a href="#products" class="btn-ghost font-shilla inline-block sm:max-w-xs text-center">
+        유료 분석 둘러보기
+      </a>
+    </div>
+    <p class="text-xs text-[var(--ink4)] font-shilla mt-4 relative">가입 없이 무료 만세력·오늘의 운세부터 체험해보세요</p>
+  </section>
+
+  <!-- 운문 디바이더 -->
+  <div class="ornament-divider max-w-2xl mx-auto px-6 my-4">
+    <span class="font-hanja text-lg">✦</span>
+  </div>
+
+  <!-- ━━━━━━━━━━━ Free Tools (무료 체험) ━━━━━━━━━━━ -->
+  <section id="free-tools" class="free-tools-banner py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <span class="free-tag">FREE ✦ 무료 체험</span>
+        <h2 class="font-display text-3xl md:text-4xl mt-5 mb-3 text-[var(--ink)]">
+          먼저 무료로 시작해보세요
+        </h2>
+        <p class="text-[var(--ink3)] max-w-xl mx-auto leading-relaxed">
+          가입 없이 즉시 — 만세력으로 내 사주팔자를 확인하고,<br class="hidden sm:inline"/>
+          오늘의 일진부터 가볍게 만나보세요.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+
+        <!-- ── 무료 만세력 (청옥 테마 — 학문/명리) ── -->
+        <div class="product-card card-manse">
+          <div class="flex justify-between items-start mb-7">
+            <div class="seal seal-jade-card float-slow">曆</div>
+            <div class="text-right">
+              <span class="font-display text-3xl text-[var(--jade2)]">무료</span>
+              <p class="text-[10px] text-[var(--ink4)] mt-1 tracking-widest">MANSE</p>
+            </div>
+          </div>
+
+          <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+            무료 만세력 <span class="font-shilla text-[var(--jade2)] text-base font-medium">萬歲曆</span>
+          </h3>
+          <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+            생년월일·시로 내 사주팔자를 1초만에 확인
+          </p>
+
+          <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
+            <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>24절기 정밀 계산 (전문가용 동일 로직)</span></li>
+            <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>천간·지지 + 오행 색상 표시</span></li>
+            <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>일주(日柱) 한 줄 풀이 미리보기</span></li>
+            <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>가입·로그인 없이 즉시 이용</span></li>
+          </ul>
+
+          <a href="manse.html" class="btn-base btn-jade block text-center">바로 만세력 보기 →</a>
+          <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">사주가 처음이라면 여기서 시작</p>
+        </div>
+
+        <!-- ── 오늘의 운세 (일출 테마 — 일상/매일) ── -->
+        <div class="product-card card-today">
+          <div class="flex justify-between items-start mb-7">
+            <div class="seal seal-sunrise float-slow">日</div>
+            <div class="text-right">
+              <span class="font-display text-3xl" style="color:var(--sunrise2)">무료</span>
+              <p class="text-[10px] text-[var(--ink4)] mt-1 tracking-widest">DAILY</p>
+            </div>
+          </div>
+
+          <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+            오늘의 운세 <span class="font-shilla text-base font-medium" style="color:var(--sunrise2)">日辰</span>
+          </h3>
+          <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+            매일 자동 갱신 — 오늘 하루 흐름과 키워드
+          </p>
+
+          <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
+            <li class="flex gap-3"><span class="check-mark check-sunrise">✓</span><span>오늘의 일진(干支)과 오행 풀이</span></li>
+            <li class="flex gap-3"><span class="check-mark check-sunrise">✓</span><span>총운·일·관계·재물·건강 5분야</span></li>
+            <li class="flex gap-3"><span class="check-mark check-sunrise">✓</span><span>오늘의 행운 색·방향</span></li>
+            <li class="flex gap-3"><span class="check-mark check-sunrise">✓</span><span>매일 자정 자동 갱신</span></li>
+          </ul>
+
+          <a href="today.html" class="btn-base btn-sunrise block text-center">오늘의 운세 보기 →</a>
+          <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">매일 한 번씩 들러보기 좋아요</p>
+        </div>
+
+      </div>
+
+      <!-- 유료 유도 보조 텍스트 -->
+      <div class="text-center mt-12">
+        <p class="text-sm text-[var(--ink3)] mb-4">
+          더 깊이 있는 분석이 궁금하시다면?
+        </p>
+        <a href="#products" class="inline-flex items-center gap-2 text-[var(--vermil)] font-shilla font-bold hover:text-[var(--vermil2)] transition border-b border-[var(--vermil)]/30 hover:border-[var(--vermil)] pb-1">
+          전문가 분석 4종 둘러보기
+          <span class="text-base">↓</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━ Products ━━━━━━━━━━━ -->
+  <section id="products" class="max-w-6xl mx-auto px-6 pt-12 pb-24">
+    <div class="text-center mb-14">
+      <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">PRODUCTS</p>
+      <h2 class="font-display text-3xl md:text-4xl mb-3 text-[var(--ink)]">
+        당신에게 맞는 분석을 선택하세요
+      </h2>
+      <p class="text-[var(--ink3)]">한 번 결제하시면 마이페이지에서 언제든 다시 보실 수 있어요</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+
+      <!-- ── Card 1: 입문용 (Light) — 始 ── -->
+      <div class="product-card card-light">
+        <div class="flex justify-between items-start mb-7">
+          <div class="seal seal-jade float-slow">始</div>
+          <div class="text-right">
+            <span class="price-num text-[var(--jade2)]">9,900</span><span class="price-unit text-[var(--jade2)]">원</span>
+            <p class="text-[10px] text-[var(--ink4)] mt-1 tracking-widest">ENTRY</p>
+          </div>
+        </div>
+
+        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+          입문용 <span class="font-shilla text-[var(--jade)] text-base font-medium">Light</span>
+        </h3>
+        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+          사주가 처음이라면 — 나는 어떤 사람일까?
+        </p>
+
+        <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
+          <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>타고난 성격과 기질 분석</span></li>
+          <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>강점과 약점 핵심 정리</span></li>
+          <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>인생 흐름 미리보기</span></li>
+          <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>어려운 용어 없이 술술 읽히는 풀이</span></li>
+        </ul>
+
+        <button data-product="light" class="product-btn btn-base btn-light">시작하기 →</button>
+        <button data-add-cart="light" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
+        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">사주 입문자에게 가장 적합한 라이트 버전</p>
+      </div>
+
+      <!-- ── Card 2: 전문가용 (Deep) — 命 — BEST ── -->
+      <div class="product-card card-deep">
+        <span class="badge-best">BEST VALUE</span>
+
+        <div class="flex justify-between items-start mb-7">
+          <div class="seal float-slow">命</div>
+          <div class="text-right">
+            <span class="price-num text-[var(--vermil)]">29,900</span><span class="price-unit text-[var(--vermil)]">원</span>
+            <p class="text-[10px] text-[var(--ink4)] mt-1 tracking-widest">COMPLETE</p>
+          </div>
+        </div>
+
+        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+          전문가용 <span class="font-shilla text-[var(--vermil)] text-base font-medium">Deep</span>
+        </h3>
+        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+          더 이상 사주에 돈을 쓰지 않아도 되는 완전판
+        </p>
+
+        <ul class="space-y-3 text-sm text-[var(--ink2)] mb-5">
+          <li class="flex gap-3"><span class="check-mark check-gold">✓</span><span>십신·십이운성·신살 완전 분석</span></li>
+          <li class="flex gap-3"><span class="check-mark check-gold">✓</span><span>대운·세운·월운 흐름 해석</span></li>
+          <li class="flex gap-3"><span class="check-mark check-gold">✓</span><span>직업·재물·연애·건강 종합</span></li>
+          <li class="flex gap-3"><span class="check-mark check-gold">✓</span><span>본인 사주 구조와 용신 보는 방법 포함</span></li>
+        </ul>
+
+        <!-- 라이트한 경고 문구 -->
+        <div class="mb-5 px-3 py-2.5 rounded-lg bg-[var(--paper3)] border border-[var(--paper-dk)] text-xs text-[var(--ink3)] leading-relaxed">
+          <span class="font-shilla font-bold text-[var(--vermil)]">📚 안내</span>
+          명리학 용어가 다수 포함되어 있어 사주 입문자에게는 다소 어려울 수 있습니다
+        </div>
+
+        <button data-product="deep" class="product-btn btn-base btn-deep">시작하기 →</button>
+        <button data-add-cart="deep" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
+        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">사주를 깊이 이해하고 싶은 분께</p>
+      </div>
+
+      <!-- ── Card 3: 궁합 (Couple) — 緣 ── -->
+      <div class="product-card card-couple">
+        <div class="flex justify-between items-start mb-7">
+          <div class="seal seal-plum float-slow">緣</div>
+          <div class="text-right">
+            <span class="price-num text-[var(--plum2)]">14,900</span><span class="price-unit text-[var(--plum2)]">원</span>
+            <p class="text-[10px] text-[var(--ink4)] mt-1 tracking-widest">COMPATIBILITY</p>
+          </div>
+        </div>
+
+        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+          궁합 분석 <span class="font-shilla text-[var(--plum)] text-base font-medium">Couple</span>
+        </h3>
+        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+          연인·친구·직장 — 두 사람의 깊은 인연
+        </p>
+
+        <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
+          <li class="flex gap-3"><span class="check-mark check-plum">✓</span><span>음양오행 궁합 분석</span></li>
+          <li class="flex gap-3"><span class="check-mark check-plum">✓</span><span>연애·결혼·동업 적합도</span></li>
+          <li class="flex gap-3"><span class="check-mark check-plum">✓</span><span>갈등 요인과 극복법</span></li>
+        </ul>
+
+        <button data-product="couple" class="product-btn btn-base btn-couple">시작하기 →</button>
+        <button data-add-cart="couple" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
+        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">두 사람의 에너지가 어떻게 만나는지</p>
+      </div>
+
+      <!-- ── Card 4: 궁합 성인용 (Couple+) — 桃 — 19+ ── -->
+      <div class="product-card card-wine">
+        <span class="badge-adult">19+ ADULT</span>
+
+        <div class="flex justify-between items-start mb-7">
+          <div class="seal seal-wine float-slow">桃</div>
+          <div class="text-right">
+            <span class="price-num text-[var(--wine)]">17,900</span><span class="price-unit text-[var(--wine)]">원</span>
+            <p class="text-[10px] text-[var(--ink4)] mt-1 tracking-widest">INTIMATE</p>
+          </div>
+        </div>
+
+        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+          궁합 분석 성인용 <span class="font-shilla text-[var(--wine)] text-base font-medium">Couple+</span>
+        </h3>
+        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+          연인·부부 — 솜사탕 말고 매운탕 🌶
+        </p>
+
+        <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
+          <li class="flex gap-3"><span class="check-mark check-wine">✓</span><span>도화·홍염살 등 매력 코드 분석</span></li>
+          <li class="flex gap-3"><span class="check-mark check-wine">✓</span><span>스킨십·욕망의 케미스트리</span></li>
+          <li class="flex gap-3"><span class="check-mark check-wine">✓</span><span>관계의 솔직한 강점·갈등 진단</span></li>
+        </ul>
+
+        <button data-product="couple_plus" class="product-btn btn-base btn-wine">시작하기 →</button>
+        <button data-add-cart="couple_plus" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
+        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">桃花는 어른의 꽃 — 19세 이상만 입장</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━ Trust Section ━━━━━━━━━━━ -->
+  <section id="trust" class="border-y border-[var(--paper-dk)]/70 bg-[var(--paper2)]">
+    <div class="max-w-6xl mx-auto px-6 py-20">
+
+      <div class="text-center mb-14">
+        <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">WHY 四柱錄</p>
+        <h2 class="font-display text-3xl md:text-4xl text-[var(--ink)]">
+          기계가 만들어준 결과가 아닙니다
+        </h2>
+        <p class="mt-3 text-[var(--ink3)] text-sm sm:text-base">
+          10년의 데이터 분석 경험과 3,000건의 사주 풀이가 만든 알고리즘입니다
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-3 gap-10 text-center">
+        <div>
+          <div class="font-hanja text-5xl text-[var(--vermil)] mb-4">典</div>
+          <h3 class="font-display text-lg mb-2 text-[var(--ink)]">정통 명리학 기반</h3>
+          <p class="text-sm text-[var(--ink3)] leading-relaxed">
+            적천수·자평진전·궁통보감 등<br/>고전 명리서의 이론을 충실히 반영
+          </p>
+        </div>
+        <div>
+          <div class="font-hanja text-5xl text-[var(--gold2)] mb-4">人</div>
+          <h3 class="font-display text-lg mb-2 text-[var(--ink)]">10년의 분석 노하우</h3>
+          <p class="text-sm text-[var(--ink3)] leading-relaxed">
+            대기업 데이터 분석가가<br/>3,000건 사주 데이터로 다진 알고리즘
+          </p>
+        </div>
+        <div>
+          <div class="font-hanja text-5xl text-[var(--jade2)] mb-4">信</div>
+          <h3 class="font-display text-lg mb-2 text-[var(--ink)]">안전한 결제</h3>
+          <p class="text-sm text-[var(--ink3)] leading-relaxed">
+            카카오 로그인 +<br/>토스페이먼츠 보안 결제
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━ Reviews ━━━━━━━━━━━ -->
+  <section id="reviews" class="max-w-6xl mx-auto px-6 py-24">
+    <div class="text-center mb-12">
+      <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">REVIEWS</p>
+      <h2 class="font-display text-3xl md:text-4xl mb-3 text-[var(--ink)]">실제 사용자들의 후기</h2>
+      <p id="reviews-subtitle" class="text-[var(--ink3)] mb-8">결제하신 분들이 직접 남긴 후기입니다</p>
+
+      <!-- 평균 별점 박스 (리뷰 있을 때만) -->
+      <div id="rating-summary-box" class="hidden">
+        <div class="rating-summary">
+          <div class="text-left">
+            <div id="summary-stars" class="stars text-2xl"></div>
+          </div>
+          <div class="w-px h-10 bg-[var(--paper-dk)]"></div>
+          <div class="text-left">
+            <p class="font-display text-2xl text-[var(--ink)] leading-none">
+              <span id="summary-avg">0.0</span>
+              <span class="text-sm text-[var(--ink3)] font-normal">/ 5.0</span>
+            </p>
+            <p class="font-shilla text-xs text-[var(--ink3)] mt-1">
+              누적 후기 <span id="summary-count" class="text-[var(--vermil)] font-bold">0</span>건
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 리뷰 마키 — 자동 스크롤 (호버 시 일시정지) -->
+    <div id="reviews-marquee" class="reviews-marquee">
+      <div id="reviews-grid" class="reviews-track">
+        <!-- JS로 동적 채워짐 -->
+      </div>
+    </div>
+
+    <!-- 빈 상태 (리뷰 0건일 때) -->
+    <div id="reviews-empty" class="hidden text-center py-12">
+      <div class="text-5xl mb-4 opacity-30">📜</div>
+      <p class="font-display text-xl text-[var(--ink2)] mb-2">첫 후기를 기다리고 있습니다</p>
+      <p class="font-shilla text-sm text-[var(--ink3)] mb-6">결제하신 후 첫 번째 후기를 남겨보세요</p>
+      <a href="#products" class="inline-block px-6 py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-bold hover:bg-[var(--vermil)] transition font-shilla">
+        상품 둘러보기 →
+      </a>
+    </div>
+
+    <!-- 더 보기 안내 -->
+    <p id="reviews-footer" class="hidden text-center mt-10 font-shilla text-sm text-[var(--ink4)]">
+      후기는 <span class="text-[var(--vermil)]">결제 완료자만</span> 작성할 수 있습니다
+    </p>
+  </section>
+
+  <!-- ━━━━━━━━━━━ FAQ ━━━━━━━━━━━ -->
+  <section id="faq" class="max-w-3xl mx-auto px-6 py-24">
+    <div class="text-center mb-12">
+      <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">FAQ</p>
+      <h2 class="font-display text-3xl text-[var(--ink)]">자주 묻는 질문</h2>
+    </div>
+
+    <div class="space-y-3">
+      <details class="group bg-[var(--paper2)] border border-[var(--paper-dk)] rounded-lg px-6 py-4 hover:border-[var(--gold)]">
+        <summary class="font-medium flex justify-between items-center text-[var(--ink)]">
+          <span class="flex items-center gap-3"><span class="font-hanja text-[var(--vermil)]">問</span>출생 시간을 모르는데 가능한가요?</span>
+          <span class="text-[var(--ink4)] group-open:rotate-180 transition">▾</span>
+        </summary>
+        <p class="mt-3 text-sm text-[var(--ink3)] leading-relaxed pl-7">생년월일과 성별만으로도 분석 가능합니다. 출생 시간을 알면 더 정밀한 결과를 얻을 수 있습니다.</p>
+      </details>
+
+      <details class="group bg-[var(--paper2)] border border-[var(--paper-dk)] rounded-lg px-6 py-4 hover:border-[var(--gold)]">
+        <summary class="font-medium flex justify-between items-center text-[var(--ink)]">
+          <span class="flex items-center gap-3"><span class="font-hanja text-[var(--vermil)]">問</span>결제 후 환불이 가능한가요?</span>
+          <span class="text-[var(--ink4)] group-open:rotate-180 transition">▾</span>
+        </summary>
+        <p class="mt-3 text-sm text-[var(--ink3)] leading-relaxed pl-7">디지털 콘텐츠 특성상 분석 결과 제공 후에는 환불이 어렵습니다. 결제 전 신중히 선택해주세요.</p>
+      </details>
+
+      <details class="group bg-[var(--paper2)] border border-[var(--paper-dk)] rounded-lg px-6 py-4 hover:border-[var(--gold)]">
+        <summary class="font-medium flex justify-between items-center text-[var(--ink)]">
+          <span class="flex items-center gap-3"><span class="font-hanja text-[var(--vermil)]">問</span>분석 결과는 어디서 다시 볼 수 있나요?</span>
+          <span class="text-[var(--ink4)] group-open:rotate-180 transition">▾</span>
+        </summary>
+        <p class="mt-3 text-sm text-[var(--ink3)] leading-relaxed pl-7">카카오 로그인 후 마이페이지에서 언제든 다시 확인할 수 있습니다.</p>
+      </details>
+
+      <details class="group bg-[var(--paper2)] border border-[var(--paper-dk)] rounded-lg px-6 py-4 hover:border-[var(--gold)]">
+        <summary class="font-medium flex justify-between items-center text-[var(--ink)]">
+          <span class="flex items-center gap-3"><span class="font-hanja text-[var(--vermil)]">問</span>입문용과 전문가용의 차이는?</span>
+          <span class="text-[var(--ink4)] group-open:rotate-180 transition">▾</span>
+        </summary>
+        <p class="mt-3 text-sm text-[var(--ink3)] leading-relaxed pl-7">입문용은 핵심만 압축한 라이트 버전이고, 전문가용은 격국·용신·신살까지 포함한 완전판입니다. 사주에 익숙하시다면 전문가용을 추천드립니다.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━ Footer ━━━━━━━━━━━ -->
+  <footer class="border-t border-[var(--paper-dk)]/70 bg-[var(--paper)]">
+    <div class="max-w-6xl mx-auto px-6 py-12">
+
+      <!-- 상단: 로고 + 메뉴 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 pb-8 border-b border-[var(--paper-dk)]/60">
+        <!-- 브랜드 -->
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="font-hanja text-xl text-[var(--vermil)]">四柱錄</span>
+            <span class="w-px h-5 bg-[var(--paper-dk)]"></span>
+            <span class="font-display text-lg text-[var(--ink)]">사주로그</span>
+          </div>
+          <p class="text-xs text-[var(--ink3)] leading-relaxed font-shilla">
+            정통 명리학과 데이터 분석가의 시선으로<br/>
+            당신의 운명을 한 글자씩 풀어드립니다.
+          </p>
+        </div>
+
+        <!-- 서비스 메뉴 -->
+        <div>
+          <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-3">SERVICE</p>
+          <ul class="space-y-2 text-sm font-shilla">
+            <li><a href="manse.html"     class="text-[var(--ink2)] hover:text-[var(--vermil)]">무료 만세력</a></li>
+            <li><a href="today.html"     class="text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a></li>
+            <li><a href="#products"      class="text-[var(--ink2)] hover:text-[var(--vermil)]">유료 분석 상품</a></li>
+            <li><a href="mypage.html"    class="text-[var(--ink2)] hover:text-[var(--vermil)]">마이페이지</a></li>
+          </ul>
+        </div>
+
+        <!-- 법적 정보 -->
+        <div>
+          <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-3">LEGAL</p>
+          <ul class="space-y-2 text-sm font-shilla">
+            <li><a href="terms.html"   class="text-[var(--ink2)] hover:text-[var(--vermil)]">이용약관</a></li>
+            <li><a href="privacy.html" class="text-[var(--ink2)] hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a></li>
+            <li><a href="#faq"         class="text-[var(--ink2)] hover:text-[var(--vermil)]">자주 묻는 질문</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 사업자 정보 -->
+      <div class="text-xs text-[var(--ink4)] font-shilla space-y-1.5 leading-relaxed">
+        <p><strong class="text-[var(--ink3)]">사주로그 (四柱錄)</strong> &nbsp;·&nbsp; 상호: 마일 &nbsp;·&nbsp; 대표: 손승한 &nbsp;·&nbsp; 이메일: cleanblue99@gmail.com</p>
+        <p>사업자등록번호: 254-32-01626 &nbsp;·&nbsp; 통신판매업신고: 제2025-경기남부-5033호</p>
+        <p>주소: 경기도 양주시 부흥로 1936, 406호 (광사동, 다온프라자)</p>
+        <p class="text-[var(--ink4)] mt-3">© 2026 사주로그. All rights reserved.</p>
+        <p class="text-[var(--ink4)] italic">※ 본 서비스는 인생의 가이드를 제공하며, 절대적 결정론이 아닙니다. 의학·법률·재무 조언으로 사용할 수 없습니다.</p>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- 하단 오행 5색선 -->
+  <div class="top-stripe"></div>
+
+  <!-- ━━━━━━━━━━━ 성인 인증 모달 (궁합 성인용) ━━━━━━━━━━━ -->
+  <div id="adult-modal" class="adult-modal-backdrop hidden">
+    <div class="adult-modal">
+      <div class="adult-seal-big">桃</div>
+      <h3 class="font-display text-2xl text-center text-[var(--ink)] mb-2">성인 확인</h3>
+      <p class="font-shilla text-center text-sm text-[var(--ink3)] mb-6">
+        해당 분석은 만 19세 이상만 이용 가능합니다
+      </p>
+
+      <div class="bg-[var(--paper3)] border border-[var(--paper-dk)] rounded-lg p-4 mb-5">
+        <label class="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" id="adult-confirm" class="mt-1 accent-[var(--wine)]" style="width:18px;height:18px">
+          <span class="text-sm text-[var(--ink2)] leading-relaxed">
+            본인은 <strong class="text-[var(--wine)]">만 19세 이상의 성인</strong>이며,<br/>
+            성적 코드(도화·홍염살·관능)에 대한 분석을<br/>
+            자발적으로 열람함을 확인합니다.
+          </span>
+        </label>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="adult-cancel" class="flex-1 py-3 rounded-lg border border-[var(--paper-dk)] text-[var(--ink3)] font-shilla hover:border-[var(--vermil)] hover:text-[var(--vermil)] transition">
+          취소
+        </button>
+        <button id="adult-proceed" disabled class="flex-1 py-3 rounded-lg bg-gradient-to-b from-[var(--wine3)] to-[var(--wine)] text-white font-shilla font-bold transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:from-[var(--wine)] enabled:hover:to-[var(--wine2)]">
+          확인 후 진행
+        </button>
+      </div>
+
+      <p class="text-[10px] text-center text-[var(--ink4)] mt-4">
+        ⚠️ 추후 본인인증(PASS) 도입 예정. 허위 확인 시 환불 불가
+      </p>
+    </div>
+  </div>
+
+  <!-- ━━━━━━━━━━━ Scripts ━━━━━━━━━━━ -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/reviews.js"></script>
+  <script src="assets/js/auth-guard.js"></script>
+  <script>
+    // ─── 마스터 모드 토글 (?master=on / ?master=off) ───
+    (function () {
+      const masterParam = new URLSearchParams(window.location.search).get('master');
+      if (masterParam === 'on' || masterParam === 'off') {
+        if (!AuthGuard.isLoggedIn()) {
+          alert('마스터 권한 부여 전에 카카오 로그인이 필요합니다.\n로그인 후 다시 ?master=on URL로 접속해주세요.');
+          return;
+        }
+        AuthGuard.setMaster(masterParam === 'on');
+        alert(`✦ 마스터 권한이 ${masterParam === 'on' ? '활성화' : '해제'}되었습니다.\n이제 모든 분석 페이지를 결제 없이 열람할 수 있습니다.`);
+        // URL에서 파라미터 제거
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+      }
+    })();
+
+    // ─── 리뷰 동적 로딩 (자동 스크롤 마키) ───
+    (function () {
+      const reviews = Reviews.getAll();
+      const grid = document.getElementById('reviews-grid');
+      const marquee = document.getElementById('reviews-marquee');
+      const emptyEl = document.getElementById('reviews-empty');
+      const footerEl = document.getElementById('reviews-footer');
+      const summaryBox = document.getElementById('rating-summary-box');
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
+      if (reviews.length === 0) {
+        marquee.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      // 최신순 정렬 (최근 후기가 앞에)
+      const sorted = [...reviews].sort((a, b) => b.createdAt - a.createdAt);
+
+      const cfg = window.SAJULOG_CONFIG;
+      const cardHtml = (r) => {
+        const product = cfg.PRODUCTS[r.productId];
+        if (!product) return '';
+        return `
+          <div class="review-card">
+            <div class="flex items-center justify-between mb-3">
+              ${Reviews.renderStars(r.rating)}
+              <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product.name.replace(/\s*\(.*?\)/, '')}</span>
+            </div>
+            <p class="text-sm text-[var(--ink2)] leading-relaxed mb-4 min-h-[60px]">${escapeHtml(r.content)}</p>
+            <div class="flex items-center justify-between text-xs text-[var(--ink3)] font-shilla">
+              <span>${escapeHtml(r.userNickname)}</span>
+              <span>${Reviews.formatDate(r.createdAt)}</span>
+            </div>
+          </div>
+        `;
+      };
+
+      // 부드러운 무한 루프를 위해 카드 두 번 복제
+      const html = sorted.map(cardHtml).join('');
+      grid.innerHTML = html + html;
+
+      // 카드 수가 너무 적으면 애니메이션 비활성화 (3개 미만이면 멈춤)
+      if (sorted.length < 3) {
+        grid.style.animation = 'none';
+        grid.style.justifyContent = 'center';
+      }
+
+      // 평균 별점 박스
+      const summary = Reviews.getAverageRating();
+      summaryBox.classList.remove('hidden');
+      footerEl.classList.remove('hidden');
+      document.getElementById('summary-stars').innerHTML = Reviews.renderStars(summary.average);
+      document.getElementById('summary-avg').textContent = summary.average.toFixed(1);
+      document.getElementById('summary-count').textContent = summary.count;
+    })();
+
+    // ─── 로그인 상태 + 마스터 모드에 따라 헤더/카드 변경 ───
+    (function () {
+      try {
+        const user = JSON.parse(localStorage.getItem('sajulog_user') || 'null');
+        if (!user) return;
+
+        // 헤더 메뉴 토글
+        document.getElementById('nav-login').classList.add('hidden');
+        const myBtn = document.getElementById('nav-mypage');
+        myBtn.classList.remove('hidden');
+        myBtn.classList.add('inline-flex');
+        document.getElementById('nav-nickname').textContent = user.nickname;
+
+        // 마스터 계정 전용 UI
+        if (user.isMaster) {
+          // 헤더에 마스터 배지 추가
+          myBtn.innerHTML = `<span class="hidden sm:inline truncate max-w-[100px]">${user.nickname}</span><span class="text-[10px] bg-[var(--gold)] text-[var(--ink)] px-1.5 py-0.5 rounded font-bold">MASTER</span>`;
+
+          // 모든 시작하기 버튼 → "결과 보기 (마스터)"
+          const cfg = window.SAJULOG_CONFIG;
+          document.querySelectorAll('.product-btn').forEach(btn => {
+            const productId = btn.dataset.product;
+            const product = cfg.PRODUCTS[productId];
+            btn.innerHTML = `결과 보기 ✦ <span class="text-xs opacity-80">MASTER</span>`;
+            btn.dataset.masterMode = 'true';
+            btn.dataset.productFile = product?.file || '';
+          });
+
+          // 장바구니 버튼들은 숨김 (마스터는 결제 안 하니까)
+          document.querySelectorAll('.add-cart-btn').forEach(btn => {
+            btn.style.display = 'none';
+          });
+
+          // 마스터 안내 띠
+          const banner = document.createElement('div');
+          banner.style.cssText = 'background:linear-gradient(135deg,var(--gold),var(--vermil));color:#fff;text-align:center;padding:8px 16px;font-family:"Shilla Gothic",sans-serif;font-size:13px;letter-spacing:.05em;font-weight:600';
+          banner.innerHTML = '✦ 마스터 모드 — 모든 분석을 결제 없이 열람 가능합니다 ✦';
+          document.body.insertBefore(banner, document.body.firstChild);
+        }
+      } catch (e) { /* localStorage 오류 무시 */ }
+    })();
+
+    // ─── 헤더 장바구니 뱃지 자동 업데이트 ───
+    Cart.bindCartBadge(document.getElementById('cart-badge'));
+
+    // ─── 성인 인증 모달 ───
+    const ADULT_KEY = 'sajulog_adult_confirmed';
+    const adultModal = document.getElementById('adult-modal');
+    let pendingAdultAction = null;  // 인증 후 실행할 콜백
+
+    function isAdultConfirmed() {
+      return localStorage.getItem(ADULT_KEY) === '1';
+    }
+    function showAdultModal(onConfirm) {
+      pendingAdultAction = onConfirm;
+      document.getElementById('adult-confirm').checked = false;
+      document.getElementById('adult-proceed').disabled = true;
+      adultModal.classList.remove('hidden');
+    }
+    function hideAdultModal() {
+      adultModal.classList.add('hidden');
+      pendingAdultAction = null;
+    }
+
+    document.getElementById('adult-confirm').addEventListener('change', (e) => {
+      document.getElementById('adult-proceed').disabled = !e.target.checked;
+    });
+    document.getElementById('adult-cancel').addEventListener('click', hideAdultModal);
+    document.getElementById('adult-proceed').addEventListener('click', () => {
+      localStorage.setItem(ADULT_KEY, '1');
+      const action = pendingAdultAction;
+      hideAdultModal();
+      if (action) action();
+    });
+    // 배경 클릭으로 닫기
+    adultModal.addEventListener('click', (e) => { if (e.target === adultModal) hideAdultModal(); });
+
+    // ─── "시작하기" 버튼 → 단품 결제 흐름 (마스터는 바로 결과로) ───
+    document.querySelectorAll('.product-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const product = btn.dataset.product;
+        const isMaster = btn.dataset.masterMode === 'true';
+
+        const proceed = () => {
+          if (isMaster) {
+            // 마스터 → 분석 페이지로 직접 이동
+            const file = btn.dataset.productFile;
+            if (file) window.location.href = file;
+            return;
+          }
+          const user = JSON.parse(localStorage.getItem('sajulog_user') || 'null');
+          window.location.href = user ? `payment.html?product=${product}` : `login.html?product=${product}`;
+        };
+
+        // 궁합 성인용 → 성인 인증 필요 (마스터도 적용)
+        if (product === 'couple_plus' && !isAdultConfirmed()) {
+          showAdultModal(proceed);
+        } else {
+          proceed();
+        }
+      });
+    });
+
+    // ─── "장바구니에 담기" 버튼 → 카트에 추가 + 시각 피드백 ───
+    document.querySelectorAll('.add-cart-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const productId = btn.dataset.addCart;
+        const doAdd = () => {
+          const added = Cart.addItem(productId);
+          if (added) {
+            btn.innerHTML = '✓ 담겼습니다';
+            btn.style.color = 'var(--vermil)';
+            btn.style.fontWeight = '700';
+            setTimeout(() => {
+              btn.innerHTML = '+ 장바구니에 담기';
+              btn.style.color = '';
+              btn.style.fontWeight = '';
+            }, 1800);
+          } else {
+            btn.innerHTML = '✓ 이미 장바구니에 있습니다';
+            btn.style.color = 'var(--ink3)';
+            setTimeout(() => {
+              btn.innerHTML = '+ 장바구니에 담기';
+              btn.style.color = '';
+            }, 1800);
+          }
+        };
+        // 궁합 성인용 → 성인 인증 필요
+        if (productId === 'couple_plus' && !isAdultConfirmed()) {
+          showAdultModal(doAdd);
+        } else {
+          doAdd();
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

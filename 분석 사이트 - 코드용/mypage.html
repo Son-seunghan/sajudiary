@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>마이페이지 — 사주로그 四柱錄</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728;
+    --jade:#5a8a98; --jade2:#406878;
+    --plum:#b8607a; --plum2:#944860;
+    --wine:#8a3a4d; --wine2:#6a2438;
+  }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 50% 30%, rgba(184,146,60,0.06) 0%, transparent 45%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--jade) 0%, var(--jade) 20%,
+      var(--vermil) 20%, var(--vermil) 40%,
+      var(--gold) 40%, var(--gold) 60%,
+      var(--plum) 60%, var(--plum) 80%,
+      var(--ink) 80%, var(--ink) 100%);
+  }
+
+  .seal {
+    width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', 'Noto Serif KR', serif;
+    font-weight: 700; font-size: 26px;
+    color: #fff; background: var(--vermil);
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18), inset 0 0 0 3px var(--vermil);
+    transform: rotate(-3deg);
+    flex-shrink: 0;
+  }
+  .seal-jade { background: var(--jade);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--jade); }
+  .seal-plum { background: var(--plum);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--plum); }
+  .seal-wine { background: var(--wine);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--wine); }
+
+  .panel {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.06);
+  }
+
+  .purchase-card {
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: all .25s ease;
+  }
+  .purchase-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(60,45,30,0.10);
+  }
+
+  .btn-view {
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    transition: all .2s ease;
+    font-family: 'Shilla Gothic', sans-serif;
+  }
+  .btn-view:hover { background: var(--vermil); }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid var(--paper-dk);
+    color: var(--ink3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    font-family: 'Shilla Gothic', sans-serif;
+    transition: all .2s ease;
+  }
+  .btn-logout:hover { border-color: var(--vermil); color: var(--vermil); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink3);
+  }
+
+  /* 리뷰 작성 영역 */
+  .review-write-card {
+    background: var(--paper2);
+    border: 1px dashed var(--gold);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .star-input {
+    display: inline-flex;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .star-input span {
+    font-size: 28px;
+    color: var(--paper-dk);
+    transition: color .15s ease;
+  }
+  .star-input span.on {
+    color: var(--vermil);
+  }
+  .stars { letter-spacing: 1px; }
+  .star-on  { color: var(--vermil); }
+  .star-off { color: var(--paper-dk); }
+  .product-tag {
+    display: inline-block;
+    font-family: 'Shilla Gothic', 'Pretendard', sans-serif;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .tag-light  { background: rgba(90,138,152,0.15);  color: var(--jade2); }
+  .tag-deep   { background: rgba(177,58,44,0.12);   color: var(--vermil2); }
+  .tag-couple { background: rgba(184,96,122,0.15);  color: var(--plum2); }
+  .tag-wine   { background: rgba(138,58,77,0.15);   color: var(--wine2); }
+</style>
+</head>
+
+<body class="paper-bg min-h-screen flex flex-col">
+  <div class="top-stripe"></div>
+
+  <!-- Header -->
+  <header class="border-b border-[var(--paper-dk)]/60">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+      <nav class="font-shilla flex items-center gap-3 text-sm">
+        <a href="index.html#products" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 px-6 py-12">
+    <div class="max-w-3xl mx-auto">
+
+      <!-- 페이지 타이틀 -->
+      <div class="text-center mb-10">
+        <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">MY PAGE</p>
+        <h1 class="font-display text-3xl text-[var(--ink)] mb-2">마이페이지</h1>
+      </div>
+
+      <!-- 사용자 정보 + 로그아웃 -->
+      <div class="panel p-6 mb-6 flex items-center gap-4">
+        <div id="user-avatar" class="flex-shrink-0">
+          <!-- JS로 채워짐 -->
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-shilla text-xs text-[var(--ink4)]">로그인 계정</p>
+          <p id="user-nickname" class="font-display text-xl text-[var(--ink)] truncate"></p>
+          <p id="user-provider" class="font-shilla text-xs text-[var(--ink4)] mt-0.5"></p>
+        </div>
+        <button id="btn-logout" class="btn-logout flex-shrink-0">로그아웃</button>
+      </div>
+
+      <!-- 구매 내역 -->
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="font-display text-xl text-[var(--ink)]">구매한 분석</h2>
+        <span class="font-shilla text-xs text-[var(--ink3)]">총 <span id="purchase-count" class="text-[var(--vermil)] font-bold">0</span>건</span>
+      </div>
+
+      <div id="purchase-list" class="space-y-3">
+        <!-- JS로 채워짐 -->
+      </div>
+
+      <!-- 내 리뷰 섹션 -->
+      <div id="my-reviews-section" class="hidden mt-12">
+        <h2 class="font-display text-xl text-[var(--ink)] mb-4">내가 쓴 후기</h2>
+        <div id="my-reviews-list" class="space-y-3">
+          <!-- JS로 채워짐 -->
+        </div>
+      </div>
+
+      <!-- 추가 상품 안내 -->
+      <div class="mt-10 text-center">
+        <p class="font-shilla text-sm text-[var(--ink3)] mb-3">아직 보지 않은 다른 분석도 궁금하신가요?</p>
+        <a href="index.html#products" class="inline-block px-6 py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-bold hover:bg-[var(--vermil)] transition font-shilla">
+          상품 더 보기 →
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="flex justify-center gap-4 font-shilla">
+        <a href="terms.html" class="hover:text-[var(--vermil)]">이용약관</a>
+        <span>·</span>
+        <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
+      </div>
+      <p>© 2026 사주로그. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="top-stripe"></div>
+
+  <!-- Scripts -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/reviews.js"></script>
+  <script src="assets/js/auth-guard.js"></script>
+
+  <script>
+    const cfg = window.SAJULOG_CONFIG;
+
+    // ─── 1) 로그인 검사 ───
+    const user = AuthGuard.getUser();
+    if (!user) {
+      window.location.href = 'login.html';
+      throw new Error('not logged in');
+    }
+
+    // ─── 2) 사용자 정보 표시 ───
+    document.getElementById('user-nickname').textContent = user.nickname;
+
+    const providerLabel = {
+      'kakao':           '카카오 로그인',
+      'kakao_fallback':  '카카오 로그인 (간편)',
+      'dev':             '개발자 모드'
+    }[user.provider] || user.provider;
+    document.getElementById('user-provider').textContent = providerLabel;
+
+    document.getElementById('user-avatar').innerHTML = user.profile_image
+      ? `<img src="${user.profile_image}" alt="" class="w-14 h-14 rounded-full object-cover" />`
+      : `<div class="w-14 h-14 rounded-full bg-[var(--paper3)] flex items-center justify-center text-[var(--ink3)] text-2xl">👤</div>`;
+
+    // ─── 3) 구매 내역 표시 ───
+    const purchases = AuthGuard.getPurchases();
+    document.getElementById('purchase-count').textContent = purchases.length;
+
+    const listEl = document.getElementById('purchase-list');
+    if (purchases.length === 0) {
+      listEl.innerHTML = `
+        <div class="empty-state panel">
+          <div class="text-5xl mb-4 opacity-30">📜</div>
+          <p class="font-display text-lg mb-2 text-[var(--ink2)]">아직 구매한 분석이 없습니다</p>
+          <p class="font-shilla text-sm text-[var(--ink4)]">상품 페이지에서 마음에 드는 분석을 골라보세요</p>
+        </div>
+      `;
+    } else {
+      // 최신순 정렬
+      const sorted = [...purchases].sort((a, b) =>
+        new Date(b.purchasedAt) - new Date(a.purchasedAt)
+      );
+
+      listEl.innerHTML = sorted.map(p => {
+        const product = cfg.PRODUCTS[p.productId];
+        if (!product) return '';
+
+        const sealClass = product.color === 'jade' ? 'seal-jade'
+                        : product.color === 'plum' ? 'seal-plum'
+                        : product.color === 'wine' ? 'seal-wine'
+                        : '';
+
+        const date = new Date(p.purchasedAt);
+        const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')}`;
+
+        // 이미 리뷰 작성했는지 체크
+        const existingReview = Reviews.getUserReviewForProduct(user.id, p.productId);
+        const reviewBtn = existingReview
+          ? `<button class="btn-view flex-shrink-0" data-edit-review="${p.productId}" style="background:var(--gold)">후기 수정</button>`
+          : `<button class="btn-view flex-shrink-0" data-write-review="${p.productId}" style="background:var(--vermil)">후기 쓰기</button>`;
+
+        return `
+          <div class="purchase-card">
+            <div class="flex items-center gap-4">
+              <div class="seal ${sealClass}">${product.hanja}</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-display text-base text-[var(--ink)] truncate">${product.name}</p>
+                <p class="font-shilla text-xs text-[var(--ink3)] mt-0.5">${dateStr} · ${p.amount.toLocaleString()}원</p>
+              </div>
+              <div class="flex flex-col gap-2 flex-shrink-0">
+                <a href="${product.file}" class="btn-view text-center">다시 보기</a>
+                ${reviewBtn}
+              </div>
+            </div>
+            <!-- 인라인 리뷰 작성 폼 (토글) -->
+            <div id="review-form-${p.productId}" class="hidden mt-4 review-write-card">
+              <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-2">REVIEW</p>
+              <div class="mb-3">
+                <p class="text-sm text-[var(--ink2)] mb-2">별점</p>
+                <div class="star-input" data-rating-input="${p.productId}">
+                  <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+                </div>
+              </div>
+              <textarea
+                id="review-text-${p.productId}"
+                class="w-full p-3 border border-[var(--paper-dk)] rounded-lg text-sm text-[var(--ink)] bg-white"
+                rows="3"
+                maxlength="500"
+                placeholder="이 분석을 사용하신 솔직한 후기를 남겨주세요 (5자 이상, 500자 이내)"></textarea>
+              <div class="flex justify-end gap-2 mt-3">
+                <button class="btn-logout" data-cancel-review="${p.productId}">취소</button>
+                <button class="btn-view" data-submit-review="${p.productId}" style="background:var(--vermil)">후기 등록</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ─── 내가 쓴 리뷰 표시 ───
+    function renderMyReviews() {
+      const myReviews = Reviews.getByUser(user.id);
+      const section = document.getElementById('my-reviews-section');
+      if (myReviews.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+      section.classList.remove('hidden');
+      const sorted = [...myReviews].sort((a,b)=>b.createdAt-a.createdAt);
+      document.getElementById('my-reviews-list').innerHTML = sorted.map(r => {
+        const product = cfg.PRODUCTS[r.productId];
+        if (!product) return '';
+        return `
+          <div class="purchase-card">
+            <div class="flex items-center justify-between mb-2">
+              ${Reviews.renderStars(r.rating)}
+              <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product.name.replace(/\s*\(.*?\)/, '')}</span>
+            </div>
+            <p class="text-sm text-[var(--ink2)] leading-relaxed mb-2">${escapeHtml(r.content)}</p>
+            <div class="flex items-center justify-between text-xs text-[var(--ink4)] font-shilla">
+              <span>${Reviews.formatDate(r.createdAt)}${r.updatedAt ? ` (수정됨)` : ''}</span>
+              <button class="text-[var(--vermil)] hover:underline" data-delete-review="${r.id}">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    renderMyReviews();
+
+    // ─── 리뷰 폼 이벤트 처리 ───
+    let currentRatings = {};  // 각 상품별 선택된 별점
+
+    document.addEventListener('click', (e) => {
+      // 후기 쓰기/수정 토글
+      const writeId = e.target.dataset.writeReview || e.target.dataset.editReview;
+      if (writeId) {
+        const form = document.getElementById('review-form-' + writeId);
+        form.classList.toggle('hidden');
+        // 수정 모드면 기존 내용 채우기
+        const existing = Reviews.getUserReviewForProduct(user.id, writeId);
+        if (existing) {
+          document.getElementById('review-text-' + writeId).value = existing.content;
+          setStarRating(writeId, existing.rating);
+        }
+        return;
+      }
+
+      // 별점 클릭
+      const starParent = e.target.closest('[data-rating-input]');
+      if (starParent && e.target.dataset.val) {
+        const productId = starParent.dataset.ratingInput;
+        const val = parseInt(e.target.dataset.val);
+        setStarRating(productId, val);
+        return;
+      }
+
+      // 취소
+      const cancelId = e.target.dataset.cancelReview;
+      if (cancelId) {
+        document.getElementById('review-form-' + cancelId).classList.add('hidden');
+        return;
+      }
+
+      // 등록
+      const submitId = e.target.dataset.submitReview;
+      if (submitId) {
+        const rating = currentRatings[submitId];
+        const content = document.getElementById('review-text-' + submitId).value;
+        if (!rating) { alert('별점을 선택해주세요.'); return; }
+        const result = Reviews.write({
+          userId: user.id,
+          userNickname: user.nickname,
+          productId: submitId,
+          rating, content
+        });
+        if (result.success) {
+          alert('후기가 등록되었습니다. 감사합니다 🙏');
+          location.reload();
+        } else {
+          alert('등록 실패: ' + result.error);
+        }
+        return;
+      }
+
+      // 삭제
+      const deleteId = e.target.dataset.deleteReview;
+      if (deleteId) {
+        if (!confirm('이 후기를 삭제하시겠습니까?')) return;
+        Reviews.remove(deleteId, user.id);
+        location.reload();
+        return;
+      }
+    });
+
+    function setStarRating(productId, val) {
+      currentRatings[productId] = val;
+      const stars = document.querySelectorAll(`[data-rating-input="${productId}"] span`);
+      stars.forEach((s, i) => {
+        s.classList.toggle('on', i < val);
+      });
+    }
+
+    // ─── 4) 로그아웃 ───
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      if (!confirm('로그아웃 하시겠습니까?\n구매 내역은 그대로 유지됩니다.')) return;
+
+      // 카카오 SDK 로그아웃 (있는 경우)
+      if (typeof Kakao !== 'undefined' && Kakao.Auth?.getAccessToken()) {
+        Kakao.Auth.logout();
+      }
+
+      // 사용자 정보만 삭제 (구매 내역은 유지)
+      localStorage.removeItem('sajulog_user');
+
+      alert('로그아웃 되었습니다.');
+      window.location.href = 'index.html';
+    });
+  </script>
+
+  <!-- 카카오 SDK (로그아웃 처리용) -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+</body>
+</html>

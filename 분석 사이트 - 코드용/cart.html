@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>장바구니 — 사주로그 四柱錄</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728;
+    --jade:#5a8a98; --jade2:#406878;
+    --plum:#b8607a; --plum2:#944860;
+    --wine:#8a3a4d; --wine2:#6a2438;
+  }
+
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Pretendard', sans-serif; }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(184,146,60,0.05) 0%, transparent 45%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--jade) 0%, var(--jade) 20%, var(--vermil) 20%, var(--vermil) 40%, var(--gold) 40%, var(--gold) 60%, var(--plum) 60%, var(--plum) 80%, var(--ink) 80%, var(--ink) 100%);
+  }
+
+  .seal {
+    width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Culture', 'Noto Serif KR', serif;
+    font-weight: 700; font-size: 26px;
+    color: #fff; background: var(--vermil);
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18), inset 0 0 0 3px var(--vermil);
+    transform: rotate(-3deg);
+    flex-shrink: 0;
+  }
+  .seal-jade { background: var(--jade);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--jade); }
+  .seal-plum { background: var(--plum);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--plum); }
+  .seal-wine { background: var(--wine);  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2), inset 0 0 0 3px var(--wine); }
+
+  .panel {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.06);
+  }
+
+  .cart-item {
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: all .2s ease;
+  }
+  .cart-item:hover { border-color: var(--gold); }
+
+  .btn-checkout {
+    background: linear-gradient(180deg, var(--vermil3), var(--vermil));
+    color: #fff;
+    font-weight: 700; font-size: 16px;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--gold);
+    transition: all .25s ease;
+    width: 100%;
+  }
+  .btn-checkout:hover { background: linear-gradient(180deg, var(--vermil), var(--vermil2)); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(177,58,44,0.3); }
+
+  .btn-remove {
+    color: var(--ink4);
+    font-size: 13px;
+    padding: 6px 12px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 6px;
+    transition: all .2s ease;
+    font-family: 'Shilla Gothic', sans-serif;
+  }
+  .btn-remove:hover { color: var(--vermil); border-color: var(--vermil); }
+
+  .badge-discount {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--gold), var(--vermil));
+    color: #fff;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+
+  .price-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; font-size: 14px; color: var(--ink2);
+  }
+  .price-line.discount { color: var(--vermil); }
+  .price-line.total {
+    border-top: 2px solid var(--paper-dk);
+    margin-top: 6px; padding-top: 16px;
+    font-size: 18px; color: var(--ink);
+  }
+
+  /* 장바구니 비어있을 때 */
+  .empty-cart {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--ink3);
+  }
+
+  /* 추천 상품 (없는 것만) */
+  .recommend-card {
+    background: var(--paper3);
+    border: 1px dashed var(--paper-dk);
+    border-radius: 10px;
+    padding: 14px;
+    transition: all .2s ease;
+  }
+  .recommend-card:hover { background: var(--paper2); border-color: var(--gold); border-style: solid; }
+</style>
+</head>
+
+<body class="paper-bg min-h-screen flex flex-col">
+  <div class="top-stripe"></div>
+
+  <header class="border-b border-[var(--paper-dk)]/60">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+      <a href="index.html" class="font-shilla text-sm px-4 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 쇼핑 계속하기</a>
+    </div>
+  </header>
+
+  <main class="flex-1 px-6 py-12">
+    <div class="max-w-3xl mx-auto">
+
+      <div class="text-center mb-10">
+        <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">CART</p>
+        <h1 class="font-display text-3xl text-[var(--ink)] mb-2">장바구니</h1>
+        <p class="text-sm text-[var(--ink3)]">여러 상품을 함께 담을수록 할인이 커집니다</p>
+      </div>
+
+      <!-- 할인 안내 -->
+      <div id="discount-tier-info" class="panel p-4 mb-6 text-center text-sm font-shilla text-[var(--ink2)]">
+        <!-- JS로 채워짐 -->
+      </div>
+
+      <!-- 장바구니 항목 -->
+      <div id="cart-items" class="space-y-3 mb-6">
+        <!-- JS로 채워짐 -->
+      </div>
+
+      <!-- 추천 (장바구니에 안 담은 상품) -->
+      <div id="recommend-section" class="mb-6 hidden">
+        <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-3">+ 함께 담으면 더 큰 할인</p>
+        <div id="recommend-list" class="space-y-2">
+          <!-- JS로 채워짐 -->
+        </div>
+      </div>
+
+      <!-- 가격 요약 -->
+      <div id="summary-section" class="panel p-6 mb-6">
+        <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-3">SUMMARY</p>
+        <div id="price-detail" class="space-y-1">
+          <!-- JS로 채워짐 -->
+        </div>
+
+        <!-- 쿠폰 영역 -->
+        <div id="coupon-section" class="mt-5 pt-5 border-t border-[var(--paper-dk)] hidden">
+          <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-2">사용 가능한 쿠폰</p>
+          <div id="coupon-list" class="space-y-2">
+            <!-- JS로 채워짐 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 결제 버튼 -->
+      <button id="btn-checkout" class="btn-checkout">
+        결제하기
+      </button>
+
+      <!-- 빈 장바구니일 때 -->
+      <div id="empty-cart" class="hidden empty-cart">
+        <div class="text-6xl mb-4 opacity-30">🛒</div>
+        <p class="font-display text-xl text-[var(--ink2)] mb-2">장바구니가 비어 있습니다</p>
+        <p class="font-shilla text-sm text-[var(--ink3)] mb-6">상품 페이지에서 마음에 드는 분석을 담아보세요</p>
+        <a href="index.html#products" class="inline-block px-6 py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-bold hover:bg-[var(--vermil)] transition font-shilla">
+          상품 보러 가기 →
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="flex justify-center gap-4 font-shilla">
+        <a href="terms.html" class="hover:text-[var(--vermil)]">이용약관</a>
+        <span>·</span>
+        <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
+      </div>
+      <p>© 2026 사주로그. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="top-stripe"></div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/auth-guard.js"></script>
+
+  <script>
+    const cfg = window.SAJULOG_CONFIG;
+    let selectedCouponId = null;  // 선택된 쿠폰 ID
+
+    // ─── 화면 렌더링 ───
+    function render() {
+      const items = Cart.getItems();
+
+      // 빈 장바구니
+      if (items.length === 0) {
+        document.getElementById('cart-items').innerHTML = '';
+        document.getElementById('discount-tier-info').classList.add('hidden');
+        document.getElementById('summary-section').classList.add('hidden');
+        document.getElementById('btn-checkout').classList.add('hidden');
+        document.getElementById('recommend-section').classList.add('hidden');
+        document.getElementById('empty-cart').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('empty-cart').classList.add('hidden');
+      document.getElementById('summary-section').classList.remove('hidden');
+      document.getElementById('btn-checkout').classList.remove('hidden');
+
+      // ── 할인 단계 안내 ──
+      const tierInfo = document.getElementById('discount-tier-info');
+      tierInfo.classList.remove('hidden');
+      const nextTier = cfg.BUNDLE_DISCOUNTS.find(b => b.minItems > items.length);
+      const currentTier = cfg.getBundleDiscount(items.length);
+
+      if (currentTier) {
+        tierInfo.innerHTML = `<span class="text-[var(--vermil)] font-bold">${currentTier.label}</span> 적용 중!`;
+        if (nextTier) {
+          const need = nextTier.minItems - items.length;
+          tierInfo.innerHTML += ` &nbsp;·&nbsp; <span class="text-[var(--ink3)]">${need}개 더 담으면 ${nextTier.percent}% 할인</span>`;
+        }
+      } else if (nextTier) {
+        const need = nextTier.minItems - items.length;
+        tierInfo.innerHTML = `${need}개 더 담으면 <span class="text-[var(--vermil)] font-bold">${nextTier.percent}% 할인</span>이 시작됩니다`;
+      }
+
+      // ── 장바구니 항목 ──
+      const itemsHtml = items.map(id => {
+        const p = cfg.PRODUCTS[id];
+        if (!p) return '';
+        const sealClass = p.color === 'jade' ? 'seal-jade' : (p.color === 'plum' ? 'seal-plum' : (p.color === 'wine' ? 'seal-wine' : ''));
+        return `
+          <div class="cart-item flex items-center gap-4">
+            <div class="seal ${sealClass}">${p.hanja}</div>
+            <div class="flex-1 min-w-0">
+              <p class="font-display text-base text-[var(--ink)] truncate">${p.name}</p>
+              <p class="font-shilla text-xs text-[var(--ink3)] mt-0.5">${p.description}</p>
+              <p class="font-display text-sm text-[var(--ink2)] mt-1">${p.price.toLocaleString()}<span class="text-xs">원</span></p>
+            </div>
+            <button class="btn-remove" data-remove="${id}">제거</button>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('cart-items').innerHTML = itemsHtml;
+
+      // ── 추천 상품 (장바구니에 없는 것) ──
+      const allProductIds = Object.keys(cfg.PRODUCTS);
+      const notInCart = allProductIds.filter(id => !items.includes(id));
+      const recommendSection = document.getElementById('recommend-section');
+      if (notInCart.length > 0) {
+        recommendSection.classList.remove('hidden');
+        document.getElementById('recommend-list').innerHTML = notInCart.map(id => {
+          const p = cfg.PRODUCTS[id];
+          const sealClass = p.color === 'jade' ? 'seal-jade' : (p.color === 'plum' ? 'seal-plum' : (p.color === 'wine' ? 'seal-wine' : ''));
+          return `
+            <button class="recommend-card w-full flex items-center gap-3 text-left" data-add="${id}">
+              <div class="seal ${sealClass}" style="width:36px;height:36px;font-size:18px">${p.hanja}</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-display text-sm text-[var(--ink)] truncate">${p.name}</p>
+                <p class="text-xs text-[var(--ink3)]">${p.price.toLocaleString()}원</p>
+              </div>
+              <span class="text-xl text-[var(--vermil)]">+</span>
+            </button>
+          `;
+        }).join('');
+      } else {
+        recommendSection.classList.add('hidden');
+      }
+
+      // ── 가격 계산 + 표시 ──
+      renderSummary();
+    }
+
+    function renderSummary() {
+      const items = Cart.getItems();
+      const calc = Cart.calculate(items, selectedCouponId);
+
+      const lines = [];
+      lines.push(`<div class="price-line"><span>상품 금액 (${calc.itemCount}개)</span><span>${calc.subtotal.toLocaleString()}원</span></div>`);
+
+      if (calc.bundleDiscount > 0) {
+        lines.push(`<div class="price-line discount"><span>${calc.bundle.label}</span><span>-${calc.bundleDiscount.toLocaleString()}원</span></div>`);
+      }
+
+      if (calc.couponDiscount > 0) {
+        lines.push(`<div class="price-line discount"><span>🎟 ${calc.couponInfo.name}</span><span>-${calc.couponDiscount.toLocaleString()}원</span></div>`);
+      }
+
+      lines.push(`<div class="price-line total"><span class="font-display">최종 결제 금액</span><span class="font-display text-[var(--vermil)]">${calc.total.toLocaleString()}<span class="text-sm">원</span></span></div>`);
+
+      if (calc.totalSaved > 0) {
+        lines.push(`<div class="text-center mt-2"><span class="badge-discount">총 ${calc.totalSaved.toLocaleString()}원 절약!</span></div>`);
+      }
+
+      document.getElementById('price-detail').innerHTML = lines.join('');
+
+      // 쿠폰 영역 — 보유 쿠폰 표시
+      const myCoupons = Cart.getAvailableCoupons();
+      const couponSection = document.getElementById('coupon-section');
+      if (myCoupons.length > 0 && items.length > 0) {
+        couponSection.classList.remove('hidden');
+        document.getElementById('coupon-list').innerHTML = myCoupons.map(c => {
+          const def = cfg.COUPONS[c.id];
+          const isSelected = selectedCouponId === c.id;
+          const expDate = new Date(c.expiresAt);
+          const expStr = `${expDate.getFullYear()}.${String(expDate.getMonth()+1).padStart(2,'0')}.${String(expDate.getDate()).padStart(2,'0')}`;
+          return `
+            <label class="flex items-center gap-3 p-3 rounded-lg border ${isSelected ? 'border-[var(--vermil)] bg-[var(--paper2)]' : 'border-[var(--paper-dk)]'} cursor-pointer hover:border-[var(--gold)]">
+              <input type="radio" name="coupon" value="${c.id}" ${isSelected ? 'checked' : ''} class="accent-[var(--vermil)]">
+              <div class="flex-1">
+                <p class="font-display text-sm text-[var(--ink)]">${def.name}</p>
+                <p class="text-xs text-[var(--ink3)]">${def.description}</p>
+                <p class="text-xs text-[var(--ink4)] mt-0.5">~ ${expStr}까지</p>
+              </div>
+              <span class="font-display text-base text-[var(--vermil)]">
+                ${def.discountType === 'fixed' ? '-' + def.discountValue.toLocaleString() + '원' : '-' + def.discountValue + '%'}
+              </span>
+            </label>
+          `;
+        }).join('');
+      } else {
+        couponSection.classList.add('hidden');
+      }
+    }
+
+    // ─── 이벤트 바인딩 ───
+    document.addEventListener('click', (e) => {
+      const removeId = e.target.closest('[data-remove]')?.dataset.remove;
+      if (removeId) {
+        Cart.removeItem(removeId);
+        // 쿠폰 선택 해제 (조건 변경됨)
+        selectedCouponId = null;
+        render();
+        return;
+      }
+      const addId = e.target.closest('[data-add]')?.dataset.add;
+      if (addId) {
+        Cart.addItem(addId);
+        render();
+        return;
+      }
+    });
+
+    document.addEventListener('change', (e) => {
+      if (e.target.name === 'coupon') {
+        selectedCouponId = selectedCouponId === e.target.value ? null : e.target.value;
+        if (e.target.checked && selectedCouponId !== e.target.value) {
+          selectedCouponId = e.target.value;
+        }
+        renderSummary();
+      }
+    });
+
+    document.getElementById('btn-checkout').addEventListener('click', () => {
+      const items = Cart.getItems();
+      if (items.length === 0) return;
+
+      // 쿠폰 선택 정보를 세션에 저장 (payment.html에서 사용)
+      sessionStorage.setItem('checkout_coupon', selectedCouponId || '');
+
+      // 로그인 검사
+      const user = AuthGuard.getUser();
+      if (!user) {
+        window.location.href = 'login.html?fromCart=1';
+      } else {
+        window.location.href = 'payment.html?fromCart=1';
+      }
+    });
+
+    // 첫 렌더
+    render();
+  </script>
+</body>
+</html>

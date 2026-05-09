@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>무료 만세력 — 사주로그 四柱錄</title>
+<meta name="description" content="생년월일과 시간을 입력하면 내 사주 사주팔자(연주·월주·일주·시주)를 무료로 확인할 수 있습니다.">
+<meta name="keywords" content="무료 만세력, 사주팔자, 만세력 계산, 사주 무료, 일주, 월주, 연주">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="무료 만세력 — 사주로그">
+<meta property="og:description" content="내 사주 사주팔자를 무료로 확인하세요. 정통 명리학과 데이터 분석가가 풀어드립니다.">
+<meta property="og:image" content="assets/og-image.svg">
+<meta property="og:url" content="https://sajulog.com/manse.html">
+<meta property="og:site_name" content="사주로그">
+<meta property="og:locale" content="ko_KR">
+<link rel="canonical" href="https://sajulog.com/manse.html">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728; --gold3:#d6b660;
+    --jade:#5a8a98; --jade2:#406878; --jade3:#7aa8b5;
+    --plum:#b8607a; --wine:#8a3a4d;
+    /* 오행 컬러 */
+    --wood:#5a9a5a; --fire:#c85040; --earth:#b88030;
+    --metal:#9098b0; --water:#4878a8;
+  }
+
+  html, body {
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 15% 25%, rgba(90, 138, 152, 0.06) 0%, transparent 30%),
+      radial-gradient(circle at 85% 70%, rgba(64, 104, 120, 0.05) 0%, transparent 35%);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--jade) 0%, var(--jade) 20%, var(--vermil) 20%, var(--vermil) 40%, var(--gold) 40%, var(--gold) 60%, var(--plum) 60%, var(--plum) 80%, var(--ink) 80%, var(--ink) 100%);
+  }
+
+  /* ━━━━━━━━━━━━ 만세력 = 청옥(jade) 테마 ━━━━━━━━━━━━ */
+  .panel {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.06);
+  }
+  .panel-jade {
+    border-color: var(--jade3);
+    border-top: 3px solid var(--jade);
+    box-shadow: 0 6px 24px rgba(64, 104, 120, 0.10);
+  }
+
+  /* 페이지 상단 큰 한자 장식 */
+  .page-hanja {
+    position: absolute;
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    color: var(--jade);
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
+    line-height: 1;
+  }
+
+  /* 입력 폼 */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .fg label {
+    display: block;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 12px;
+    color: var(--ink3);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .fg input, .fg select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+    color: var(--ink);
+    font-family: inherit;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .fg input:focus, .fg select:focus {
+    outline: none;
+    border-color: var(--jade);
+    box-shadow: 0 0 0 3px rgba(90, 138, 152, 0.12);
+  }
+  .input-hint {
+    font-size: 11px;
+    color: var(--ink4);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+  .input-hint a { color: var(--jade2); text-decoration: underline; }
+
+  /* 청옥 버튼 */
+  .btn-jade {
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(180deg, var(--jade3), var(--jade));
+    color: #fff;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    border-radius: 10px;
+    border: 1px solid var(--jade2);
+    transition: all .25s ease;
+    cursor: pointer;
+  }
+  .btn-jade:hover {
+    background: linear-gradient(180deg, var(--jade), var(--jade2));
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(64, 104, 120, 0.30);
+  }
+
+  /* 사주 결과 카드 */
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .pillar {
+    text-align: center;
+    padding: 16px 8px;
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    transition: all .25s ease;
+    position: relative;
+  }
+  .pillar:hover {
+    border-color: var(--jade3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(64, 104, 120, 0.12);
+  }
+  .pillar-label {
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--ink3);
+    margin-bottom: 10px;
+  }
+  .pillar-stem, .pillar-branch {
+    font-family: 'Shilla Culture', 'Noto Serif KR', serif;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .pillar-stem { margin-bottom: 2px; }
+  .pillar-branch { margin-bottom: 6px; }
+  .pillar-kor {
+    font-size: 10px;
+    color: var(--ink4);
+    font-family: 'Shilla Gothic', sans-serif;
+    letter-spacing: 0.04em;
+  }
+  .pillar-day {
+    background: linear-gradient(180deg, rgba(90,138,152,0.08), rgba(90,138,152,0.03));
+    border-color: var(--jade3);
+  }
+  .pillar-day::after {
+    content: "本人";
+    position: absolute;
+    top: 4px; right: 6px;
+    font-family: 'Shilla Culture', serif;
+    font-size: 9px;
+    color: var(--jade);
+    letter-spacing: 0.05em;
+  }
+
+  /* 오행 색상 */
+  .wood  { color: var(--wood); }
+  .fire  { color: var(--fire); }
+  .earth { color: var(--earth); }
+  .metal { color: var(--metal); }
+  .water { color: var(--water); }
+</style>
+</head>
+
+<body>
+  <div class="top-stripe"></div>
+
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱錄</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주로그</span>
+      </a>
+      <div class="flex items-center gap-1">
+        <a href="today.html" class="hidden sm:inline font-shilla text-sm px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="index.html" class="font-shilla text-sm px-4 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">← 홈</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 py-12 relative">
+
+    <!-- 배경 한자 장식 -->
+    <span class="page-hanja text-[280px] sm:text-[420px] -top-12 right-0 sm:-right-12">曆</span>
+
+    <div class="text-center mb-10 relative">
+      <p class="font-shilla text-sm text-[var(--jade2)] tracking-[0.3em] mb-3">FREE MANSE ✦ 萬歲曆</p>
+      <h1 class="font-display text-3xl md:text-4xl text-[var(--ink)] mb-3">무료 만세력</h1>
+      <p class="text-[var(--ink3)] mb-2">생년월일을 입력하시면 사주팔자를 확인할 수 있어요</p>
+      <p class="font-shilla text-xs text-[var(--ink4)]">24절기 정밀 계산 · 한국천문연구원 데이터 기반</p>
+    </div>
+
+    <!-- 입력 폼 -->
+    <div class="panel panel-jade p-6 mb-6 relative">
+      <p class="font-shilla text-xs text-[var(--jade2)] tracking-widest mb-5">INPUT ✦ 생년월일시 입력</p>
+
+      <div class="form-grid">
+
+        <div class="fg full">
+          <label>이름 <span class="text-[var(--ink4)] font-normal">(선택)</span></label>
+          <input type="text" id="bName" placeholder="예: 홍길동" maxlength="20">
+        </div>
+
+        <div class="fg">
+          <label>성별</label>
+          <select id="bGender">
+            <option value="male">남자</option>
+            <option value="female">여자</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label>출생년도</label>
+          <input type="number" id="bYear" placeholder="예: 1990" min="1900" max="2050">
+        </div>
+
+        <div class="fg">
+          <label>출생월</label>
+          <select id="bMonth">
+            <option value="">-- 선택 --</option>
+            <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+            <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+            <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label>출생일</label>
+          <input type="number" id="bDay" placeholder="예: 15" min="1" max="31">
+        </div>
+
+        <div class="fg full">
+          <label>출생 시간</label>
+          <select id="bHour">
+            <option value="-1">시간 모름 (시주 미산출)</option>
+            <option value="23">자시 子時 (23:30 ~ 01:30)</option>
+            <option value="1">축시 丑時 (01:30 ~ 03:30)</option>
+            <option value="3">인시 寅時 (03:30 ~ 05:30)</option>
+            <option value="5">묘시 卯時 (05:30 ~ 07:30)</option>
+            <option value="7">진시 辰時 (07:30 ~ 09:30)</option>
+            <option value="9">사시 巳時 (09:30 ~ 11:30)</option>
+            <option value="11">오시 午時 (11:30 ~ 13:30)</option>
+            <option value="13">미시 未時 (13:30 ~ 15:30)</option>
+            <option value="15">신시 申時 (15:30 ~ 17:30)</option>
+            <option value="17">유시 酉時 (17:30 ~ 19:30)</option>
+            <option value="19">술시 戌時 (19:30 ~ 21:30)</option>
+            <option value="21">해시 亥時 (21:30 ~ 23:30)</option>
+          </select>
+          <p class="input-hint">※ <strong>양력(Solar)</strong> 기준입니다. 음력 생일이라면 <a href="https://www.convert-me.com/en/convert/date/lunarsolar.html" target="_blank" rel="noopener">양력 변환</a> 후 입력하세요.</p>
+        </div>
+
+        <div class="full mt-2">
+          <button id="btnCalc" class="btn-jade">사주팔자 확인하기 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 결과 -->
+    <div id="result" class="hidden">
+      <div class="panel panel-jade p-6">
+        <p class="font-shilla text-xs text-[var(--jade2)] tracking-widest mb-4">RESULT ✦ 사주팔자</p>
+        <h2 id="resultTitle" class="font-display text-2xl text-[var(--ink)] mb-1 text-center">사주팔자</h2>
+        <p id="resultDate" class="text-center text-sm text-[var(--ink3)] mb-6"></p>
+
+        <div class="pillar-grid">
+          <div class="pillar" id="pillar-hour">
+            <div class="pillar-label">시주</div>
+            <div id="hourStem" class="pillar-stem"></div>
+            <div id="hourBranch" class="pillar-branch"></div>
+            <div class="pillar-kor">時柱 · 자녀</div>
+          </div>
+          <div class="pillar pillar-day">
+            <div class="pillar-label">일주</div>
+            <div id="dayStem" class="pillar-stem"></div>
+            <div id="dayBranch" class="pillar-branch"></div>
+            <div class="pillar-kor">日柱 · 본인</div>
+          </div>
+          <div class="pillar">
+            <div class="pillar-label">월주</div>
+            <div id="monthStem" class="pillar-stem"></div>
+            <div id="monthBranch" class="pillar-branch"></div>
+            <div class="pillar-kor">月柱 · 부모</div>
+          </div>
+          <div class="pillar">
+            <div class="pillar-label">연주</div>
+            <div id="yearStem" class="pillar-stem"></div>
+            <div id="yearBranch" class="pillar-branch"></div>
+            <div class="pillar-kor">年柱 · 조상</div>
+          </div>
+        </div>
+
+        <div class="bg-[var(--paper3)] rounded-lg p-4 text-sm text-[var(--ink2)] leading-relaxed mt-4 border-l-4 border-[var(--jade)]">
+          <p class="font-shilla font-bold text-[var(--jade2)] mb-2">📚 일주(日柱) 풀이</p>
+          <p id="dayMeaning" class="text-[var(--ink2)]"></p>
+        </div>
+
+        <div class="text-xs text-[var(--ink4)] mt-4 italic text-center">
+          ※ 본 무료 만세력은 사주팔자(8글자)만 표시합니다. 십신·신살·대운·격국 분석은 아래 전문가용을 이용하세요.
+        </div>
+      </div>
+
+      <!-- CTA: 더 자세한 분석 -->
+      <div class="mt-8 p-6 panel">
+        <div class="text-center mb-6">
+          <p class="font-shilla text-xs text-[var(--vermil)] tracking-widest mb-3">DEEP ANALYSIS ✦ 전문 분석</p>
+          <h3 class="font-display text-2xl text-[var(--ink)] mb-3">사주를 보셨다면, 이젠 풀이를 만나볼 차례</h3>
+          <p class="text-sm text-[var(--ink3)] leading-relaxed">
+            팔자(八字)는 시작일 뿐이에요. 십신·신살·대운·격국까지 풀어내야<br class="hidden sm:inline"/>
+            진짜 본인의 사주 구조가 보입니다.
+          </p>
+        </div>
+
+        <!-- 3개 상품 미니 카드 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+
+          <a href="index.html?product=light#products" class="block p-4 rounded-xl border border-[var(--paper-dk)] bg-[var(--paper2)] hover:border-[var(--jade)] hover:-translate-y-0.5 transition-all group">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-hanja text-2xl text-[var(--jade)]">始</span>
+              <span class="text-[10px] tracking-widest text-[var(--ink4)]">ENTRY</span>
+            </div>
+            <p class="font-display text-sm text-[var(--ink)] mb-1">입문용 <span class="font-shilla text-[var(--jade)]">Light</span></p>
+            <p class="text-xs text-[var(--ink3)] mb-3 leading-snug">사주가 처음이라면<br/>편지처럼 술술 읽히는 풀이</p>
+            <p class="font-display text-lg text-[var(--jade2)]">9,900<span class="text-xs font-shilla">원</span></p>
+          </a>
+
+          <a href="index.html?product=deep#products" class="block p-4 rounded-xl border border-[var(--gold)] bg-[var(--paper2)] hover:border-[var(--vermil)] hover:-translate-y-0.5 transition-all group relative">
+            <span class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-shilla font-bold tracking-widest bg-gradient-to-b from-[var(--gold3)] to-[var(--gold)] text-[var(--ink)] px-2 py-0.5 rounded-full border border-[var(--gold2)]">BEST</span>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-hanja text-2xl text-[var(--vermil)]">命</span>
+              <span class="text-[10px] tracking-widest text-[var(--ink4)]">PRO</span>
+            </div>
+            <p class="font-display text-sm text-[var(--ink)] mb-1">전문가용 <span class="font-shilla text-[var(--vermil)]">Deep</span></p>
+            <p class="text-xs text-[var(--ink3)] mb-3 leading-snug">십신·신살·대운·격국까지<br/>완전판 — 더 살 필요 없음</p>
+            <p class="font-display text-lg text-[var(--vermil)]">29,900<span class="text-xs font-shilla">원</span></p>
+          </a>
+
+          <a href="index.html?product=couple#products" class="block p-4 rounded-xl border border-[var(--paper-dk)] bg-[var(--paper2)] hover:border-[var(--plum)] hover:-translate-y-0.5 transition-all group">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-hanja text-2xl text-[var(--plum)]">緣</span>
+              <span class="text-[10px] tracking-widest text-[var(--ink4)]">PAIR</span>
+            </div>
+            <p class="font-display text-sm text-[var(--ink)] mb-1">궁합 분석 <span class="font-shilla text-[var(--plum)]">Pair</span></p>
+            <p class="text-xs text-[var(--ink3)] mb-3 leading-snug">두 사람의 인연·궁합<br/>연인·친구·동료까지</p>
+            <p class="font-display text-lg" style="color:var(--plum)">14,900<span class="text-xs font-shilla">원</span></p>
+          </a>
+
+        </div>
+
+        <div class="text-center">
+          <a href="index.html#products" class="inline-block px-6 py-2.5 rounded-lg bg-[var(--ink)] text-[var(--paper2)] text-sm font-bold hover:bg-[var(--vermil)] transition font-shilla">
+            전체 상품 자세히 보기 →
+          </a>
+          <p class="text-[11px] text-[var(--ink4)] mt-3 italic">2종 묶음 10% / 3종 20% / 전상품 30% OFF</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="top-stripe mt-16"></div>
+
+  <script>
+    // ==========================================================
+    //  만세력 계산 — saju.html(전문가용 Deep) 로직 동일
+    //  24절기 정밀 적용 + JDN 기반 일주 계산
+    // ==========================================================
+
+    const STEMS    = ['갑','을','병','정','무','기','경','신','임','계'];
+    const STEMS_H  = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+    const BRANS    = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
+    const BRANS_H  = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    const STEM_E   = [0,0,1,1,2,2,3,3,4,4]; // 오행 인덱스: 0=목 1=화 2=토 3=금 4=수
+    const BRAN_E   = [4,2,0,0,2,1,1,2,3,3,2,4];
+    const ELEM_C   = ['wood','fire','earth','metal','water'];
+
+    // 일주 의미 풀 (60갑자 전부)
+    const DAY_MEANINGS = {
+      '갑자':'단단한 의지와 새 시작의 에너지를 품은 일주','을축':'온화하고 끈기 있는 성품','병인':'활달하고 진취적인 기질',
+      '정묘':'섬세하고 예술적 감성이 빛나는 일주','무진':'든든하고 포용력 있는 대지의 성격','기사':'재치 있고 표현력이 뛰어남',
+      '경오':'결단력 있고 활동적인 추진력','신미':'온화한 정의감과 안정감','임신':'유연하고 적응력이 강한 성격',
+      '계유':'세심하고 분석적인 일주','갑술':'책임감 있고 우직한 성품','을해':'부드럽고 직관력이 강함',
+      '병자':'명민하고 호기심 많은 기질','정축':'성실하고 묵묵히 쌓아가는 성격','무인':'추진력 있는 리더형',
+      '기묘':'재능 많고 다재다능한 일주','경진':'과감하고 도전적인 기질','신사':'예리한 통찰력의 소유자',
+      '임오':'자유롭고 열정적인 성격','계미':'섬세하고 사려 깊은 일주','갑신':'독립적이고 결단력 있는 성품',
+      '을유':'세련되고 우아한 기질','병술':'따뜻하고 의리 있는 성격','정해':'지혜롭고 온유한 일주',
+      '무자':'안정감 있고 폭넓은 시야를 가진 일주','기축':'성실하고 인내심이 강한 성격','경인':'추진력과 도전 정신',
+      '신묘':'섬세하면서도 단호한 의지','임진':'스케일이 크고 통찰력이 있음','계사':'명민하고 직감이 뛰어남',
+      '갑오':'밝고 적극적인 추진력','을미':'온화하고 부드러운 카리스마','병신':'재기발랄하고 사교적',
+      '정유':'완벽주의적이고 미적 감각이 뛰어남','무술':'든든하고 의리 있는 성격','기해':'온순하면서도 깊은 사고력',
+      '경자':'명석하고 직설적인 일주','신축':'끈기 있고 묵묵한 실력파','임인':'대담하고 활기찬 기질',
+      '계묘':'섬세하고 감성적인 매력','갑진':'리더십과 포부가 큰 일주','을사':'온화하면서도 명민함',
+      '병오':'정열적이고 카리스마 강함','정미':'온화하면서 예술적 감각','무신':'활동적이고 사교성이 뛰어남',
+      '기유':'세심하고 단정한 성격','경술':'우직하고 결단력 있음','신해':'부드러우면서 강단 있음',
+      '임자':'지혜롭고 직관력 강한 일주','계축':'성실하고 안정적인 성격','갑인':'명료한 의지와 실행력',
+      '을묘':'섬세하고 예술적 재능','병진':'밝고 활기찬 추진력','정사':'영민하고 창의적',
+      '무오':'든든하고 따뜻한 카리스마','기미':'온화하고 사려 깊음','경신':'결단력 있고 행동파',
+      '신유':'단호하고 정의감 강함','임술':'폭넓고 의리 있는 성격','계해':'직관적이고 깊이 있는 일주'
+    };
+
+    // ── JDN (Julian Day Number) ──
+    function getJDN(y, m, d) {
+      const a = Math.floor((14 - m) / 12);
+      const yy = y + 4800 - a;
+      const mm = m + 12 * a - 3;
+      return d + Math.floor((153*mm + 2)/5) + 365*yy + Math.floor(yy/4) - Math.floor(yy/100) + Math.floor(yy/400) - 32045;
+    }
+
+    // ── 24절기(월건 시작일) ──
+    function getSolarTerms(year) {
+      return [
+        {m:2,  d:4, name:'입춘', bi:2},  // 寅
+        {m:3,  d:6, name:'경칩', bi:3},  // 卯
+        {m:4,  d:5, name:'청명', bi:4},  // 辰
+        {m:5,  d:6, name:'입하', bi:5},  // 巳
+        {m:6,  d:6, name:'망종', bi:6},  // 午
+        {m:7,  d:7, name:'소서', bi:7},  // 未
+        {m:8,  d:7, name:'입추', bi:8},  // 申
+        {m:9,  d:8, name:'백로', bi:9},  // 酉
+        {m:10, d:8, name:'한로', bi:10}, // 戌
+        {m:11, d:7, name:'입동', bi:11}, // 亥
+        {m:12, d:7, name:'대설', bi:0},  // 子
+        {m:1,  d:6, name:'소한', bi:1},  // 丑 (next year)
+      ];
+    }
+
+    // ── 연주 ──
+    function getYearPillar(year, month, day) {
+      let ay = year;
+      if (month < 2 || (month === 2 && day < 4)) ay = year - 1;
+      const si = ((ay - 4) % 10 + 10) % 10;
+      const bi = ((ay - 4) % 12 + 12) % 12;
+      return { si, bi };
+    }
+
+    // ── 월주 ──
+    function getMonthPillar(year, month, day, yearSi) {
+      const terms = getSolarTerms(year);
+      const nextTerms = getSolarTerms(year + 1);
+      let bi = 2;
+      if (month === 1) {
+        bi = day >= nextTerms[11].d ? 1 : 0; // 축 or 자
+      } else {
+        for (let i = terms.length - 2; i >= 0; i--) {
+          const t = terms[i];
+          if (month > t.m || (month === t.m && day >= t.d)) { bi = t.bi; break; }
+          if (i === 0) bi = 1;
+        }
+      }
+      const grp = yearSi % 5;
+      const baseSi = [2, 4, 6, 8, 0][grp];
+      const off = ((bi - 2) + 12) % 12;
+      const si = (baseSi + off) % 10;
+      return { si, bi };
+    }
+
+    // ── 일주 ──
+    function getDayPillar(year, month, day) {
+      const ref = getJDN(2000, 1, 1);
+      const t = getJDN(year, month, day);
+      const idx60 = ((54 + (t - ref)) % 60 + 60) % 60;
+      return { si: idx60 % 10, bi: idx60 % 12 };
+    }
+
+    // ── 시주 ──
+    function getHourPillar(hour, daySi) {
+      if (hour < 0) return null;
+      const bi = hour === 23 ? 0 : Math.floor((hour + 1) / 2);
+      const grp = daySi % 5;
+      const base = [0, 2, 4, 6, 8][grp];
+      return { si: (base + bi) % 10, bi };
+    }
+
+    // ── 화면에 사주팔자 표시 ──
+    function setPillar(prefix, sb) {
+      const stemEl = document.getElementById(prefix + 'Stem');
+      const branchEl = document.getElementById(prefix + 'Branch');
+      if (!sb) {
+        stemEl.innerHTML = '<span style="color:var(--ink4);font-size:24px">?</span>';
+        branchEl.innerHTML = '<span style="color:var(--ink4);font-size:18px">시간 모름</span>';
+        return;
+      }
+      const stemColor = ELEM_C[STEM_E[sb.si]];
+      const branchColor = ELEM_C[BRAN_E[sb.bi]];
+      stemEl.innerHTML =
+        `<span class="${stemColor}">${STEMS_H[sb.si]}</span>` +
+        `<div style="font-size:13px;color:var(--ink3);font-family:'Pretendard',sans-serif;font-weight:500;margin-top:2px">${STEMS[sb.si]}</div>`;
+      branchEl.innerHTML =
+        `<span class="${branchColor}">${BRANS_H[sb.bi]}</span>` +
+        `<div style="font-size:13px;color:var(--ink3);font-family:'Pretendard',sans-serif;font-weight:500;margin-top:2px">${BRANS[sb.bi]}</div>`;
+    }
+
+    function calculate() {
+      const year   = parseInt(document.getElementById('bYear').value, 10);
+      const month  = parseInt(document.getElementById('bMonth').value, 10);
+      const day    = parseInt(document.getElementById('bDay').value, 10);
+      const hour   = parseInt(document.getElementById('bHour').value, 10);
+      const name   = (document.getElementById('bName').value || '').trim() || '귀하';
+      const gender = document.getElementById('bGender').value;
+
+      // 검증
+      if (!year || year < 1900 || year > 2050) { alert('출생년도를 1900~2050 사이로 입력해주세요.'); return; }
+      if (!month || month < 1 || month > 12)   { alert('출생월을 선택해주세요.'); return; }
+      if (!day   || day < 1 || day > 31)       { alert('출생일을 1~31 사이로 입력해주세요.'); return; }
+
+      // 4주 계산
+      const yP = getYearPillar(year, month, day);
+      const mP = getMonthPillar(year, month, day, yP.si);
+      const dP = getDayPillar(year, month, day);
+      const hP = getHourPillar(hour, dP.si);
+
+      setPillar('year',  yP);
+      setPillar('month', mP);
+      setPillar('day',   dP);
+      setPillar('hour',  hP);
+
+      // 일주 풀이
+      const dayKey = STEMS[dP.si] + BRANS[dP.bi];
+      const dayKeyHan = STEMS_H[dP.si] + BRANS_H[dP.bi];
+      const meaning = DAY_MEANINGS[dayKey] || '본인을 상징하는 일주입니다. 자세한 풀이는 전문가용 분석을 이용해보세요.';
+      document.getElementById('dayMeaning').textContent =
+        `${name}님의 일주는 "${dayKeyHan} (${dayKey})"입니다. ${meaning}.`;
+
+      // 결과 헤더
+      const hourLabel = hour < 0 ? '시간 미입력' : `${BRANS[hP.bi]}시 (${['23:30~01:30','01:30~03:30','03:30~05:30','05:30~07:30','07:30~09:30','09:30~11:30','11:30~13:30','13:30~15:30','15:30~17:30','17:30~19:30','19:30~21:30','21:30~23:30'][hP.bi]})`;
+      document.getElementById('resultTitle').textContent = `${name}님의 사주팔자`;
+      document.getElementById('resultDate').textContent =
+        `${year}년 ${month}월 ${day}일 · ${gender === 'male' ? '남자' : '여자'} · ${hourLabel}`;
+
+      // 결과 영역 보이기 + 스크롤
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.getElementById('btnCalc').addEventListener('click', calculate);
+
+    // Enter 키로 제출
+    ['bYear', 'bDay'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') calculate();
+      });
+    });
+  </script>
+</body>
+</html>
