@@ -116,15 +116,61 @@
           border-radius: 999px;
           margin-left: 6px;
         }
+        /* 모바일 햄버거 */
+        .sjb-mobile-toggle {
+          display: none;
+          padding: 6px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: #4a3f33;
+          margin-left: 4px;
+        }
+        .sjb-mobile-toggle:hover { color: #b13a2c; }
+        .sjb-mobile-toggle svg { width: 22px; height: 22px; }
+        /* 모바일 드롭다운 */
+        .sjb-mobile-menu {
+          display: none;
+          border-top: 1px solid rgba(184, 146, 60, 0.25);
+          background: rgba(247, 240, 223, 0.97);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+        .sjb-mobile-menu.open { display: block; }
+        .sjb-mobile-menu .sjb-mobile-inner {
+          max-width: 1200px; margin: 0 auto;
+          padding: 6px 20px 12px;
+          display: flex; flex-direction: column;
+        }
+        .sjb-mobile-menu a {
+          padding: 13px 6px;
+          font-family: 'Shilla Gothic', sans-serif;
+          font-size: 14px; font-weight: 500;
+          color: #4a3f33;
+          text-decoration: none;
+          border-bottom: 1px solid rgba(184, 146, 60, 0.18);
+          display: flex; align-items: center; gap: 10px;
+          transition: color .2s ease;
+        }
+        .sjb-mobile-menu a:last-child { border-bottom: none; }
+        .sjb-mobile-menu a:hover { color: #b13a2c; }
+        .sjb-mobile-menu a .icon {
+          font-family: 'Shilla Culture', serif;
+          font-weight: 700;
+          font-size: 16px;
+          width: 22px;
+          text-align: center;
+        }
+        @media (max-width: 768px) {
+          .sjb-nav-link { display: none !important; }
+          .sjb-mobile-toggle { display: inline-flex; align-items: center; }
+        }
         @media (max-width: 640px) {
           .sjb-logo .korean { display: none; }
           .sjb-logo .divider { display: none; }
           .sjb-logo .product-sep { display: none; }
           .sjb-logo .product-title { font-size: 13px !important; }
           .sjb-nav a { padding: 6px 10px; font-size: 12px; }
-        }
-        @media (max-width: 380px) {
-          .sjb-nav a:first-child { display: none; }
         }
       </style>
       <div class="sjb-inner">
@@ -139,9 +185,25 @@
           <span id="sjb-master" class="sjb-master-badge" style="display:none;">MASTER</span>
         </a>
         <nav class="sjb-nav">
-          <a href="../mypage.html">마이페이지</a>
+          <a href="../manse.html" class="sjb-nav-link">만세력</a>
+          <a href="../today.html" class="sjb-nav-link">오늘 운세</a>
+          <a href="../column/" class="sjb-nav-link">칼럼</a>
+          <a href="../mypage.html" class="sjb-nav-link">마이페이지</a>
           <a href="../index.html" class="primary">← 홈</a>
+          <button id="sjb-mobile-toggle" class="sjb-mobile-toggle" aria-label="메뉴">
+            <svg id="sjb-hamburger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg id="sjb-close" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </nav>
+      </div>
+      <div id="sjb-mobile-menu" class="sjb-mobile-menu">
+        <div class="sjb-mobile-inner">
+          <a href="../manse.html"><span class="icon" style="color:#5a8a98">曆</span> 무료 만세력</a>
+          <a href="../today.html"><span class="icon" style="color:#b8923c">日</span> 오늘의 운세</a>
+          <a href="../column/"><span class="icon" style="color:#b13a2c">録</span> 칼럼</a>
+          <a href="../mypage.html"><span class="icon" style="color:#6b5d4f">人</span> 마이페이지</a>
+          <a href="../index.html"><span class="icon" style="color:#2c2520">家</span> 홈으로</a>
+        </div>
       </div>
     `;
     document.body.insertBefore(bar, document.body.firstChild);
@@ -150,6 +212,27 @@
     const user = JSON.parse(localStorage.getItem('sajudiary_user') || 'null');
     if (user && user.isMaster) {
       document.getElementById('sjb-master').style.display = 'inline-block';
+    }
+
+    // 모바일 메뉴 토글
+    const toggle = document.getElementById('sjb-mobile-toggle');
+    const menu = document.getElementById('sjb-mobile-menu');
+    const hamburger = document.getElementById('sjb-hamburger');
+    const closeIcon = document.getElementById('sjb-close');
+    if (toggle && menu) {
+      toggle.addEventListener('click', () => {
+        const isOpen = menu.classList.toggle('open');
+        hamburger.style.display = isOpen ? 'none' : 'block';
+        closeIcon.style.display = isOpen ? 'block' : 'none';
+      });
+      // 메뉴 항목 클릭 시 자동 닫기
+      menu.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          menu.classList.remove('open');
+          hamburger.style.display = 'block';
+          closeIcon.style.display = 'none';
+        });
+      });
     }
   }
 

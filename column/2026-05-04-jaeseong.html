@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>오행 상생과 상극 | 사주다이어리</title>
-<meta name="description" content="명리학에서 가장 자주 등장하는 두 단어 — 상생(相生)과 상극(相剋). 다섯 기운이 도와주고 견제하는 방식을 일상의 비유로 풀어드립니다.">
-<meta name="keywords" content="오행 상생, 오행 상극, 상생 상극, 오행 관계, 명리학 오행, 사주 오행">
+<title>재성이란 무엇인가 | 사주다이어리</title>
+<meta name="description" content="명리에서 '돈'은 재성(財星)이라는 단어로 등장해요. 편재(偏財)와 정재(正財)가 무엇이고 어떻게 다른지, 재물복을 어떻게 봐야 하는지 풀어드립니다.">
+<meta name="keywords" content="재성, 편재, 정재, 사주 재물, 재물운, 사주 돈, 명리 재성, 재성 의미">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="article">
-<meta property="og:title" content="오행 상생과 상극">
-<meta property="og:description" content="다섯 기운이 도와주고 견제하는 방식을 일상의 비유로 풀어드립니다.">
+<meta property="og:title" content="재성이란 무엇인가">
+<meta property="og:description" content="명리에서 돈을 다루는 단어, 재성(財星) — 편재와 정재의 차이부터 재물복 보는 법까지.">
 <meta property="og:image" content="../assets/og-image.svg">
-<meta property="og:url" content="https://sajudiary.com/column/2026-05-02-ohaeng.html">
+<meta property="og:url" content="https://sajudiary.com/column/2026-05-04-jaeseong.html">
 <meta property="og:site_name" content="사주다이어리">
 <meta property="og:locale" content="ko_KR">
-<meta property="article:published_time" content="2026-05-02">
-<meta property="article:section" content="명리 입문">
-<link rel="canonical" href="https://sajudiary.com/column/2026-05-02-ohaeng.html">
+<meta property="article:published_time" content="2026-05-04">
+<meta property="article:section" content="재물 운">
+<link rel="canonical" href="https://sajudiary.com/column/2026-05-04-jaeseong.html">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -36,6 +36,10 @@
     --plum:#b8607a; --wine:#8a3a4d;
     --wood:#5a9a5a; --fire:#c85040; --earth:#b88030;
     --metal:#9098b0; --water:#4878a8;
+    /* 재물 테마 — 황토·동전 톤 */
+    --wealth:  #c89a55;
+    --wealth2: #6e4818;
+    --wealth3: #d4a575;
   }
 
   html, body {
@@ -78,7 +82,7 @@
   }
   .article-prose h2::before {
     content: "✦ ";
-    color: var(--vermil);
+    color: var(--wealth2);
     font-size: 18px;
     margin-right: 4px;
   }
@@ -97,7 +101,7 @@
   }
   .article-prose li { margin-bottom: 8px; }
   .article-prose strong { color: var(--ink); font-weight: 700; }
-  .article-prose em { color: var(--vermil); font-style: normal; font-weight: 600; }
+  .article-prose em { color: var(--wealth2); font-style: normal; font-weight: 600; }
   .article-prose a {
     color: var(--jade2);
     border-bottom: 1px solid var(--jade3);
@@ -106,7 +110,7 @@
   .article-prose a:hover { color: var(--vermil); border-bottom-color: var(--vermil); }
 
   .article-prose blockquote {
-    border-left: 3px solid var(--gold);
+    border-left: 3px solid var(--wealth);
     background: linear-gradient(180deg, var(--paper2), var(--paper));
     padding: 18px 22px;
     margin: 24px 0;
@@ -116,9 +120,9 @@
   }
 
   .info-box {
-    background: linear-gradient(135deg, rgba(90,138,152,0.08), rgba(64,104,120,0.04));
-    border: 1px solid var(--jade3);
-    border-left: 3px solid var(--jade);
+    background: linear-gradient(135deg, rgba(200,154,85,0.12), rgba(110,72,24,0.04));
+    border: 1px solid var(--wealth3);
+    border-left: 3px solid var(--wealth);
     border-radius: 10px;
     padding: 18px 22px;
     margin: 24px 0;
@@ -130,68 +134,94 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.15em;
-    color: var(--jade2);
+    color: var(--wealth2);
     margin-bottom: 8px;
   }
 
-  /* 상생·상극 다이어그램 */
-  .cycle-diagram {
+  /* 재성 비교 박스 */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 24px 0;
+  }
+  @media (max-width: 540px) {
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+  .compare-card {
     background: linear-gradient(180deg, var(--paper2), var(--paper));
     border: 1px solid var(--paper-dk);
-    border-radius: 14px;
-    padding: 22px 18px;
-    margin: 24px 0;
-    text-align: center;
+    border-radius: 12px;
+    padding: 20px;
   }
-  .cycle-flow {
+  .compare-card.left {
+    border-left: 3px solid var(--wealth);
+    background: linear-gradient(180deg, rgba(200,154,85,0.08), var(--paper));
+  }
+  .compare-card.right {
+    border-left: 3px solid var(--gold);
+    background: linear-gradient(180deg, rgba(184,146,60,0.08), var(--paper));
+  }
+  .compare-title {
     font-family: 'Shilla Culture', serif;
-    font-size: 18px;
     font-weight: 700;
-    line-height: 1.9;
-    margin: 12px 0;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .compare-title .han {
+    font-size: 14px;
+    color: var(--ink3);
+    margin-left: 4px;
+  }
+  .compare-card.left .compare-title .accent { color: var(--wealth2); }
+  .compare-card.right .compare-title .accent { color: var(--gold2); }
+  .compare-sub {
+    font-size: 12px;
+    color: var(--ink3);
+    margin-bottom: 14px;
+    font-family: 'Shilla Gothic', sans-serif;
     letter-spacing: 0.04em;
   }
-  .cycle-flow .arrow {
+  .compare-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink2);
+  }
+  .compare-list li {
+    padding: 4px 0;
+    margin-bottom: 0 !important;
+  }
+  .compare-list li::before {
+    content: "·";
     color: var(--ink4);
-    margin: 0 6px;
-    font-weight: 400;
-  }
-  .cycle-label {
-    display: inline-block;
-    font-family: 'Shilla Gothic', sans-serif;
-    font-size: 11px;
+    margin-right: 6px;
     font-weight: 700;
-    letter-spacing: 0.15em;
-    padding: 4px 12px;
-    border-radius: 999px;
-    margin-bottom: 12px;
   }
-  .cycle-label.sangsaeng { color: var(--wood); background: rgba(90, 154, 90, 0.12); border: 1px solid var(--wood); }
-  .cycle-label.sanggeuk  { color: var(--vermil); background: rgba(177, 58, 44, 0.10); border: 1px solid var(--vermil); }
 
-  .relation-table {
+  .ohaeng-table {
     width: 100%;
     border-collapse: collapse;
     margin: 18px 0;
     font-size: 14px;
   }
-  .relation-table th, .relation-table td {
+  .ohaeng-table th, .ohaeng-table td {
     border: 1px solid var(--paper-dk);
     padding: 10px 12px;
     text-align: left;
-    vertical-align: top;
   }
-  .relation-table th {
+  .ohaeng-table th {
     background: var(--paper3);
     font-family: 'Shilla Culture', serif;
     font-weight: 700;
     color: var(--ink);
   }
-  .relation-table .pair {
+  .ohaeng-table .pair {
     font-family: 'Shilla Culture', serif;
     font-weight: 700;
-    font-size: 15px;
-    color: var(--ink);
   }
   .wood  { color: var(--wood);  font-weight: 700; }
   .fire  { color: var(--fire);  font-weight: 700; }
@@ -202,7 +232,7 @@
   /* ━━━━━━━━━━━━ 헤더 영역 ━━━━━━━━━━━━ */
   .article-hero {
     background:
-      radial-gradient(circle at 80% 20%, rgba(90,138,152,0.10), transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(200,154,85,0.14), transparent 50%),
       linear-gradient(180deg, var(--paper2), var(--paper));
     border-bottom: 1px solid var(--paper-dk);
     padding: 60px 0 50px;
@@ -215,8 +245,8 @@
     transform: translateY(-50%);
     font-family: 'Shilla Culture', serif;
     font-size: 280px;
-    color: var(--jade);
-    opacity: 0.06;
+    color: var(--wealth);
+    opacity: 0.08;
     line-height: 1;
     pointer-events: none;
   }
@@ -226,9 +256,9 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.18em;
-    color: var(--jade2);
-    background: linear-gradient(180deg, rgba(90,138,152,0.14), rgba(64,104,120,0.08));
-    border: 1px solid var(--jade3);
+    color: var(--wealth2);
+    background: linear-gradient(180deg, rgba(200,154,85,0.18), rgba(110,72,24,0.08));
+    border: 1px solid var(--wealth3);
     padding: 5px 14px;
     border-radius: 999px;
     margin-bottom: 16px;
@@ -237,7 +267,7 @@
   /* 하단 CTA */
   .article-cta {
     background:
-      radial-gradient(circle at 0% 100%, rgba(184,146,60,0.08), transparent 60%),
+      radial-gradient(circle at 0% 100%, rgba(200,154,85,0.10), transparent 60%),
       radial-gradient(circle at 100% 0%, rgba(177,58,44,0.06), transparent 50%),
       linear-gradient(180deg, var(--paper2), var(--paper));
     border: 1px solid var(--paper-dk);
@@ -264,10 +294,9 @@
     color: var(--ink2);
     transition: all .2s;
     text-decoration: none;
-    border-bottom: 1px solid var(--paper-dk);
   }
   .article-nav a:hover {
-    border-color: var(--gold);
+    border-color: var(--wealth);
     color: var(--ink);
   }
   .article-nav .nav-label {
@@ -356,21 +385,21 @@
 
   <!-- Article Hero -->
   <section class="article-hero">
-    <span class="hero-hanja-deco">行</span>
+    <span class="hero-hanja-deco">財</span>
     <div class="max-w-3xl mx-auto px-6 relative">
       <a href="./" class="inline-block text-sm font-shilla text-[var(--ink3)] hover:text-[var(--vermil)] mb-4">← 칼럼 목록</a>
-      <span class="cat-badge">命理 · 명리 입문</span>
+      <span class="cat-badge">財 · 재물 운</span>
       <h1 class="font-display text-3xl md:text-4xl text-[var(--ink)] leading-tight mb-4">
-        오행 상생과 상극
+        재성이란 무엇인가
       </h1>
       <p class="text-[var(--ink3)] text-base leading-relaxed mb-5">
-        명리학에서 가장 자주 등장하는 두 단어 — 상생(相生)과 상극(相剋).<br/>
-        다섯 기운이 도와주고 견제하는 방식을 일상의 비유로 풀어드려요.
+        명리에서 '돈'은 <strong>재성(財星)</strong>이라는 단어로 등장해요.<br/>
+        편재(偏財)와 정재(正財)가 무엇이고 어떻게 다른지, 재물복을 어떻게 봐야 하는지 풀어드립니다.
       </p>
       <div class="flex items-center gap-4 text-xs font-shilla text-[var(--ink4)] tracking-wider">
-        <span>2026.05.02</span>
+        <span>2026.05.04</span>
         <span>·</span>
-        <span>8분 읽기</span>
+        <span>10분 읽기</span>
         <span>·</span>
         <span>사주다이어리 편집팀</span>
       </div>
@@ -382,175 +411,230 @@
     <article class="article-prose">
 
       <p>
-        지난 글 <a href="2026-05-01-saju-intro.html">사주가 무엇인가</a>에서 오행을 다섯 기운(목·화·토·금·수)으로 소개했어요. 그런데 이 다섯이 그냥 따로 있는 게 아닙니다. <strong>서로 도와주고, 또 서로 견제</strong>하면서 균형을 만들어가요.
+        사주를 보러 갔을 때 가장 자주 듣는 질문 중 하나.
+      </p>
+      <blockquote>
+        "<strong>제 사주는 돈을 잘 벌까요?</strong>"
+      </blockquote>
+      <p>
+        솔직히 가장 궁금한 거잖아요. 그런데 명리에서는 <em>"돈"</em>이라는 단어를 직접 쓰지 않아요. 대신 <strong>재성(財星)</strong>이라는 한 단어로 표현합니다.
       </p>
       <p>
-        이걸 명리학에서 <em>상생(相生)</em>과 <em>상극(相剋)</em>이라고 부릅니다. 사주 분석에서 가장 자주 등장하는 두 단어인데, 알고 보면 어렵지 않아요.
+        오늘은 재성이 정확히 무엇이고, 편재(偏財)와 정재(正財)는 어떻게 다른지, 그리고 재성을 어떻게 봐야 진짜 재물복이 보이는지 풀어드릴게요.
       </p>
 
-      <h2>상생(相生) — 도와주는 관계</h2>
+      <h2>재성 — 일간이 다스리는 자원</h2>
 
       <p>
-        한자 그대로 <strong>"서로(相) 키운다(生)"</strong>는 뜻이에요. 한 기운이 다른 기운을 만들어내는 흐름. 자연을 떠올리면 바로 이해됩니다.
+        지난 글 <a href="2026-05-03-ilju.html">일주란 무엇인가</a>에서 사주 분석은 <strong>일간 기준</strong>으로 돌아간다고 했어요. 십신(十神)이라고 부르는 10가지 분류가 모두 일간을 중심으로 정해집니다.
+      </p>
+      <p>
+        그 10가지 중 <strong>재성</strong>은 — <em>일간이 극(剋)하는 오행</em>에 해당하는 글자들이에요.
       </p>
 
-      <div class="cycle-diagram">
-        <span class="cycle-label sangsaeng">相生 · 상생의 순환</span>
-        <div class="cycle-flow">
-          <span class="wood">木</span><span class="arrow">→</span><span class="fire">火</span><span class="arrow">→</span><span class="earth">土</span><span class="arrow">→</span><span class="metal">金</span><span class="arrow">→</span><span class="water">水</span><span class="arrow">→</span><span class="wood">木</span>
-        </div>
-        <p class="text-xs text-[var(--ink4)] mt-2">목 → 화 → 토 → 금 → 수 → 다시 목 (무한 순환)</p>
-      </div>
-
-      <h3>다섯 단계의 도움 — 자연의 비유</h3>
-
-      <ul>
-        <li><strong><span class="wood">木生火</span> (목생화)</strong> — 나무가 불을 키운다. 장작이 있어야 불이 타죠.</li>
-        <li><strong><span class="fire">火生土</span> (화생토)</strong> — 불이 흙을 만든다. 타고 남은 재가 거름이 됩니다.</li>
-        <li><strong><span class="earth">土生金</span> (토생금)</strong> — 흙이 쇠를 품는다. 광석이 땅 속에서 나와요.</li>
-        <li><strong><span class="metal">金生水</span> (금생수)</strong> — 쇠가 물을 만든다. 광물에서 미네랄 수, 차가운 바위에서 물방울이 맺힙니다.</li>
-        <li><strong><span class="water">水生木</span> (수생목)</strong> — 물이 나무를 키운다. 가장 직관적이죠.</li>
-      </ul>
-
       <p>
-        명리에서는 이 관계를 <strong>"어머니-자식 관계"</strong>라고도 불러요. 앞의 것이 어머니고, 뒤의 것이 자식. 어머니가 자식을 낳듯 다음 기운을 만들어주는 거예요.
-      </p>
-
-      <div class="info-box">
-        <span class="label">한 줄 정리</span>
-        <p>상생은 <strong>"내 힘을 다음에게 물려준다"</strong>는 흐름. 사주에 이 관계가 잘 짜여있으면 <em>일이 막힘없이 흘러가는 사람</em>이 됩니다.</p>
-      </div>
-
-      <h2>상극(相剋) — 견제하는 관계</h2>
-
-      <p>
-        반대로 <strong>"서로(相) 누른다(剋)"</strong>는 관계도 있어요. 한 기운이 다른 기운을 제어하는 흐름. 이것도 자연에 그대로 있어요.
-      </p>
-
-      <div class="cycle-diagram">
-        <span class="cycle-label sanggeuk">相剋 · 상극의 순환</span>
-        <div class="cycle-flow">
-          <span class="wood">木</span><span class="arrow">→</span><span class="earth">土</span><span class="arrow">→</span><span class="water">水</span><span class="arrow">→</span><span class="fire">火</span><span class="arrow">→</span><span class="metal">金</span><span class="arrow">→</span><span class="wood">木</span>
-        </div>
-        <p class="text-xs text-[var(--ink4)] mt-2">목 → 토 → 수 → 화 → 금 → 다시 목 (무한 순환)</p>
-      </div>
-
-      <h3>다섯 단계의 견제 — 자연의 균형</h3>
-
-      <ul>
-        <li><strong><span class="wood">木剋土</span> (목극토)</strong> — 나무가 흙을 뚫는다. 뿌리가 땅을 갈라요.</li>
-        <li><strong><span class="earth">土剋水</span> (토극수)</strong> — 흙이 물을 막는다. 댐과 둑이 그 예입니다.</li>
-        <li><strong><span class="water">水剋火</span> (수극화)</strong> — 물이 불을 끈다. 가장 직관적인 관계.</li>
-        <li><strong><span class="fire">火剋金</span> (화극금)</strong> — 불이 쇠를 녹인다. 용광로의 원리예요.</li>
-        <li><strong><span class="metal">金剋木</span> (금극목)</strong> — 쇠가 나무를 자른다. 도끼·톱이 그것이죠.</li>
-      </ul>
-
-      <p>
-        흔히 <strong>"상극 = 나쁘다"</strong>고 오해하는데, 명리에서는 그렇지 않아요. <em>견제는 균형을 위한 필수 장치</em>입니다. 나무만 무한정 자라면 산이 무너지고, 불만 계속 타면 모든 게 재가 돼요.
+        지난 글 <a href="2026-05-02-ohaeng.html">오행 상생과 상극</a>에서 상극을 다뤘죠. <em>"내가 다스리는 것"</em>이 바로 재성입니다. 옛 명리 책에서는 이렇게 비유했어요.
       </p>
 
       <blockquote>
-        상극이 없으면 한 기운이 폭주합니다. 상극은 <em>제어 장치</em>예요. 좋은 사주는 상생만 있는 게 아니라, <strong>적절한 상극으로 제어된 균형</strong>을 가진 사주입니다.
+        나무는 흙을 뚫고 자란다. 흙은 나무에게 <strong>"내가 손에 쥐고 다스릴 자원"</strong>이다. 그래서 갑목(甲木) 일간한테 토(土) 글자가 재성이 된다.
       </blockquote>
 
-      <h2>한눈에 정리하는 관계표</h2>
+      <p>
+        즉 재성은 <strong>"내가 컨트롤할 수 있는 자원"</strong>이에요. 돈, 재산, 실리적 결과물 — 모두 이 카테고리에 들어갑니다.
+      </p>
 
-      <table class="relation-table">
+      <h2>일간별 재성 — 한눈에 보기</h2>
+
+      <p>
+        본인 일간이 어떤 오행이냐에 따라 재성이 되는 글자가 달라요.
+      </p>
+
+      <table class="ohaeng-table">
         <thead>
           <tr>
-            <th width="30%">오행</th>
-            <th width="35%">상생 (도와주는 대상)</th>
-            <th width="35%">상극 (견제하는 대상)</th>
+            <th width="25%">내 일간</th>
+            <th width="20%">일간 오행</th>
+            <th>재성이 되는 글자</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="pair"><span class="wood">목 (木)</span></td>
-            <td>화(火)를 키움</td>
-            <td>토(土)를 누름</td>
+            <td class="pair"><span class="wood">갑·을</span></td>
+            <td><span class="wood">목 (木)</span></td>
+            <td><span class="earth">무·기·진·술·축·미 (土)</span></td>
           </tr>
           <tr>
-            <td class="pair"><span class="fire">화 (火)</span></td>
-            <td>토(土)를 만듦</td>
-            <td>금(金)을 녹임</td>
+            <td class="pair"><span class="fire">병·정</span></td>
+            <td><span class="fire">화 (火)</span></td>
+            <td><span class="metal">경·신·신·유 (金)</span></td>
           </tr>
           <tr>
-            <td class="pair"><span class="earth">토 (土)</span></td>
-            <td>금(金)을 품음</td>
-            <td>수(水)를 막음</td>
+            <td class="pair"><span class="earth">무·기</span></td>
+            <td><span class="earth">토 (土)</span></td>
+            <td><span class="water">임·계·해·자 (水)</span></td>
           </tr>
           <tr>
-            <td class="pair"><span class="metal">금 (金)</span></td>
-            <td>수(水)를 만듦</td>
-            <td>목(木)을 자름</td>
+            <td class="pair"><span class="metal">경·신</span></td>
+            <td><span class="metal">금 (金)</span></td>
+            <td><span class="wood">갑·을·인·묘 (木)</span></td>
           </tr>
           <tr>
-            <td class="pair"><span class="water">수 (水)</span></td>
-            <td>목(木)을 키움</td>
-            <td>화(火)를 끔</td>
+            <td class="pair"><span class="water">임·계</span></td>
+            <td><span class="water">수 (水)</span></td>
+            <td><span class="fire">병·정·사·오 (火)</span></td>
           </tr>
         </tbody>
       </table>
 
-      <h2>일상에서 쓰는 법</h2>
-
-      <p>
-        이 원리를 알면 <strong>일상에서 오행을 활용</strong>할 수 있어요. 사주에 부족한 오행이 있다면, 상생 관계를 통해 그 기운을 보충해줄 수 있습니다.
+      <p style="font-size: 13px; color: var(--ink3);">
+        ※ 사주 8글자 중 위 글자가 보이면 그게 본인의 재성. 본인 일간을 모르면 <a href="../manse.html">무료 만세력</a>에서 확인하세요.
       </p>
 
-      <h3>색깔로 보충하기</h3>
+      <h2>편재 vs 정재 — 같은 재성, 다른 결</h2>
+
+      <p>
+        재성은 다 같은 게 아니에요. <strong>음양</strong>에 따라 두 종류로 나뉩니다.
+      </p>
 
       <ul>
-        <li><span class="wood">목</span> 부족 → <strong>초록·청색</strong> 옷·소품 (또는 수를 보충: 검정·남색)</li>
-        <li><span class="fire">화</span> 부족 → <strong>빨강·분홍</strong> (또는 목을 보충: 초록)</li>
-        <li><span class="earth">토</span> 부족 → <strong>노랑·황금색</strong> (또는 화를 보충: 빨강)</li>
-        <li><span class="metal">금</span> 부족 → <strong>흰색·은색</strong> (또는 토를 보충: 노랑)</li>
-        <li><span class="water">수</span> 부족 → <strong>검정·남색</strong> (또는 금을 보충: 흰색)</li>
+        <li><strong>편재(偏財)</strong>: 일간과 <em>같은 음양</em>의 재성</li>
+        <li><strong>정재(正財)</strong>: 일간과 <em>다른 음양</em>의 재성</li>
       </ul>
 
-      <h3>방향과 공간으로</h3>
+      <p>
+        예를 들어 <strong>갑(甲, 양목)</strong> 일간이라면:
+      </p>
+      <ul>
+        <li><strong>무(戊, 양토)</strong> = 양양 같음 → <em>편재</em></li>
+        <li><strong>기(己, 음토)</strong> = 양음 다름 → <em>정재</em></li>
+      </ul>
 
       <p>
-        목은 동쪽, 화는 남쪽, 토는 중앙, 금은 서쪽, 수는 북쪽이에요. 부족한 오행 방향에 책상을 두거나, 그 방향에서 시간을 보내면 기운을 받습니다. <em>풍수의 기본 원리</em>가 바로 이거예요.
+        "음양이 같으면 끌림이 약하다 → 거리감 있고 변동적", "음양이 다르면 보완하며 끌린다 → 안정적"이라는 명리의 기본 원리가 그대로 적용돼요.
       </p>
 
-      <h3>인간관계에서</h3>
+      <div class="compare-grid">
+        <div class="compare-card left">
+          <p class="compare-title"><span class="accent">편재</span> <span class="han">偏財</span></p>
+          <p class="compare-sub">치우친 재물 · 큰 흐름</p>
+          <ul class="compare-list">
+            <li>활동적이고 변동성 큰 자금</li>
+            <li>사업 자금, 투자, 큰 거래</li>
+            <li>크게 벌고 크게 쓴다</li>
+            <li>영업·사업가·투자자 성향</li>
+            <li>"돈을 놀려서 키우는" 결</li>
+            <li>흔히 친구·동료·외부인을 통한 재물</li>
+          </ul>
+        </div>
+        <div class="compare-card right">
+          <p class="compare-title"><span class="accent">정재</span> <span class="han">正財</span></p>
+          <p class="compare-sub">정직한 재물 · 꾸준함</p>
+          <ul class="compare-list">
+            <li>안정적이고 꾸준한 수입</li>
+            <li>월급, 임대료, 정기 수입</li>
+            <li>모으고 지킨다</li>
+            <li>회사원·공무원·전문직 성향</li>
+            <li>"내 손에 쥐는" 결</li>
+            <li>흔히 가족·배우자를 통한 재물 (※ 남자 사주에선 정재가 아내)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <span class="label">한 줄 정리</span>
+        <p><strong>편재는 큰 흐름의 돈</strong>, <strong>정재는 손에 쥐는 돈</strong>. 둘 다 있으면 다양한 자금원, 한쪽만 강하면 그쪽 결의 사주가 됩니다.</p>
+      </div>
+
+      <h2>재성이 많으면 부자일까</h2>
 
       <p>
-        <strong>나에게 부족한 오행을 가진 사람</strong>이 자꾸 끌리거나, 같이 있으면 채워지는 느낌이 드는 건 우연이 아닙니다. 반대로 같은 오행이 너무 강한 사람끼리는 오히려 부담스럽거나 부딪치기 쉬워요.
+        명리 입문자들이 가장 많이 오해하는 부분이에요. <strong>"내 사주에 재성 많아 → 부자네!"</strong> 같은 생각.
+      </p>
+      <p>
+        결론부터 말하면 <em>아니에요</em>. 재성이 많은 게 무조건 좋은 게 아닙니다. 핵심은 <strong>"일간의 강약과 재성의 균형"</strong>이에요.
+      </p>
+
+      <h3>① 일간이 강하고 재성이 적당함</h3>
+      <p>
+        <strong>재물복이 진짜로 좋은 사주</strong>. 일간이 든든하니까 재성을 다스릴 힘이 있어요. 큰 돈을 굴려도 휘둘리지 않고 자기 것으로 만듭니다.
+      </p>
+
+      <h3>② 일간이 강하고 재성이 너무 적음</h3>
+      <p>
+        <strong>재물보다 다른 영역에서 빛나는 사주</strong>. 명예·기술·학문 같은 비물질 영역에서 성취가 크고, 재물은 부수적으로 따라옵니다. 큰 부자는 어렵지만 충분히 풍족할 수 있어요.
+      </p>
+
+      <h3>③ 일간이 약하고 재성이 많음 (재다신약 · 財多身弱)</h3>
+      <p>
+        <strong>가장 피곤한 사주</strong>. 명리 책에 자주 등장하는 표현인데, 재물 욕심에 본인이 끌려가는 패턴이에요. 돈이 들어와도 새는 일이 많고, 정신적으로 지치기 쉽습니다.
+      </p>
+      <p>
+        이 경우 명리에서는 "<em>일간을 키우는 운(인성·비겁 운)</em>이 와야 재성을 잘 다룰 수 있다"고 봐요.
+      </p>
+
+      <h3>④ 일간이 약하고 재성도 적음</h3>
+      <p>
+        <strong>재물 큰 욕심 없이 사는 사주</strong>. 본인 페이스대로 살면 평온. 재물 추구보다 본인 가치 추구가 더 잘 맞아요.
+      </p>
+
+      <blockquote>
+        결국 "재물복"은 <strong>재성의 양</strong>이 아니라 <strong>일간과 재성의 균형</strong>이에요. 같은 양의 돈이 들어와도, 일간이 강하면 내 것이 되고 약하면 빠져나갑니다.
+      </blockquote>
+
+      <h2>재성이 약한 사람도 돈 잘 벌 수 있다</h2>
+
+      <p>
+        "<em>제 사주에 재성이 거의 없어요. 평생 가난한가요?</em>" — 자주 듣는 질문인데, 답은 단호하게 <strong>아니에요</strong>.
+      </p>
+      <p>
+        명리에서는 재성이 없을 때 <strong>식상(食傷)</strong>이라는 다른 십신을 통해 재물을 만들 수 있다고 봐요. 식상이란 <em>"내가 만들어내는 것"</em> — 표현·창작·기술·아이디어를 의미합니다.
+      </p>
+      <p>
+        이걸 <strong>"식상생재(食傷生財)"</strong>라고 불러요. 콘텐츠 창작자, 기술자, 작가, 디자이너, 예술가 — 재성이 약해도 식상이 강하면 본인이 만든 것이 돈이 되는 흐름입니다.
       </p>
 
       <div class="info-box">
-        <span class="label">실용 팁</span>
-        <p>내 사주에서 어떤 오행이 부족한지 알려면 <strong>사주팔자 8글자의 오행 분포</strong>를 봐야 해요. <a href="../manse.html">무료 만세력</a>에서 8글자를 확인하고, 어떤 색깔(오행 컬러)이 적은지 세어보세요. 그게 보충해야 할 기운입니다.</p>
+        <span class="label">현대적 해석</span>
+        <p>예전엔 재성이 강한 사람이 부자가 되기 쉬웠어요(농경·상업 시대). 지금은 식상→재성 흐름이 강한 사람도 큰 부를 만듭니다(콘텐츠·창작 시대). <strong>재성 없다고 절망하지 마시고, 본인의 식상이 어디 있는지 보세요.</strong></p>
       </div>
 
-      <h2>중요 — 강하다고 좋고, 약하다고 나쁜 게 아니다</h2>
+      <h2>일상 적용 — 내 재성 활용법</h2>
 
-      <p>
-        명리 입문자들이 가장 많이 오해하는 부분이에요. <strong>"내 사주에 화(火)가 강해 → 좋은 거 아냐?"</strong> 같은 생각.
-      </p>
-      <p>
-        정답은 <em>"균형이 좋은 게 좋은 사주"</em>입니다. 한 오행이 압도적으로 많으면:
-      </p>
-
+      <h3>편재가 강한 사람</h3>
       <ul>
-        <li>그 기운의 단점이 극대화됨 (예: 화 과다 → 충동, 욱함, 번아웃)</li>
-        <li>다른 기운으로 가야 할 에너지가 막힘</li>
-        <li>상극 관계의 오행이 짓눌려서 약점이 됨</li>
+        <li>사업·영업·투자·중개 적합</li>
+        <li>여러 수입원 만드는 게 본인 결에 맞음</li>
+        <li>큰 돈 굴릴 수 있되, 일간이 약하면 무리하지 말 것</li>
       </ul>
 
-      <p>
-        그래서 좋은 사주는 <strong>오행이 골고루 있되, 적절한 상생·상극으로 흐름이 만들어진 사주</strong>예요. 명리에서 <em>"중화(中和)"</em>를 강조하는 이유가 여기 있습니다.
-      </p>
+      <h3>정재가 강한 사람</h3>
+      <ul>
+        <li>안정 직업·전문직·임대사업 적합</li>
+        <li>꾸준히 모으는 게 본인 결</li>
+        <li>큰 위험 투자보다 보수적 자산 관리가 유리</li>
+      </ul>
+
+      <h3>편재·정재 둘 다 있는 사람</h3>
+      <ul>
+        <li>다양한 수입원 가능 (본업 + 부업, 월급 + 투자)</li>
+        <li>현대 사회에 가장 적합한 구조</li>
+      </ul>
+
+      <h3>재성이 거의 없는 사람</h3>
+      <ul>
+        <li>식상(食傷) 강약 확인 → 식상이 강하면 콘텐츠·창작·기술로 승부</li>
+        <li>일간이 강하면 명예·전문성으로 승부</li>
+        <li>일간이 약하면 안정 추구가 본인한테 맞음</li>
+      </ul>
 
       <!-- CTA -->
       <div class="article-cta">
-        <p class="font-shilla text-xs text-[var(--vermil)] tracking-widest mb-3">YOUR TURN</p>
-        <h3 class="font-display text-2xl mb-3 text-[var(--ink)]">내 사주의 오행 분포는 어떨까?</h3>
+        <p class="font-shilla text-xs text-[var(--wealth2)] tracking-widest mb-3">YOUR TURN</p>
+        <h3 class="font-display text-2xl mb-3 text-[var(--ink)]">내 사주에 재성이 얼마나 있을까?</h3>
         <p class="text-sm text-[var(--ink3)] mb-6 leading-relaxed">
-          무료 만세력에서 사주 8글자와 오행 색깔을 확인할 수 있어요.<br/>
-          어떤 기운이 강하고, 어떤 게 부족한지 직접 보세요.
+          무료 만세력에서 일간을 확인하고, 위 표와 비교해 재성 글자가 몇 개인지 세어보세요.<br/>
+          전문가용 분석에서는 <strong>재성 강약·합충·일간 균형</strong>까지 깊이 풀어드립니다.
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <a href="../manse.html" class="inline-block px-6 py-3 rounded-lg border border-[var(--jade3)] text-[var(--jade2)] font-shilla font-bold hover:bg-[var(--jade)] hover:text-white transition">
@@ -566,13 +650,13 @@
 
     <!-- 이전·다음 글 네비 -->
     <div class="article-nav">
-      <a href="2026-05-01-saju-intro.html">
+      <a href="2026-05-03-ilju.html">
         <p class="nav-label">← 이전 글</p>
-        <p class="nav-title">사주가 무엇인가</p>
-      </a>
-      <a href="2026-05-03-ilju.html" class="next">
-        <p class="nav-label">다음 글 →</p>
         <p class="nav-title">일주란 무엇인가</p>
+      </a>
+      <a href="2026-05-05-gwanseong.html" class="next">
+        <p class="nav-label">다음 글 →</p>
+        <p class="nav-title">관성이 많으면 남자가 많을까</p>
       </a>
     </div>
 

@@ -235,13 +235,59 @@
         <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
       </a>
       <nav class="flex items-center gap-1 text-sm font-shilla">
-        <a href="../manse.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
-        <a href="../today.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
-        <a href="./" class="px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
-        <a href="../index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+        <a href="../manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
+        <a href="../today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="./" class="hidden md:inline px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
+        <a href="../index.html#products" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="../index.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+
+        <!-- 모바일 햄버거 -->
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden ml-1 p-2 text-[var(--ink2)] hover:text-[var(--vermil)]" aria-label="메뉴">
+          <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ━━━━ 모바일 드롭다운 메뉴 ━━━━ -->
+    <div id="mobile-menu" class="md:hidden hidden border-t border-[var(--paper-dk)]/60 bg-[var(--paper)]/95 backdrop-blur-md">
+      <nav class="font-shilla max-w-6xl mx-auto px-6 py-2 flex flex-col text-sm">
+        <a href="../manse.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--jade)]">曆</span> 무료 만세력
+        </a>
+        <a href="../today.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--gold)]">日</span> 오늘의 운세
+        </a>
+        <span class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--vermil)] font-bold flex items-center gap-2">
+          <span>録</span> 칼럼 <span class="text-[10px] text-[var(--ink4)] ml-auto">현재 페이지</span>
+        </span>
+        <a href="../index.html#products" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--ink3)]">命</span> 분석 상품
+        </a>
+        <a href="../index.html" class="py-3 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈으로</a>
       </nav>
     </div>
   </header>
+
+  <!-- ━━━━ 모바일 메뉴 토글 스크립트 ━━━━ -->
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const hamburger = document.getElementById('hamburger-icon');
+      const closeIc = document.getElementById('close-icon');
+      menu.classList.toggle('hidden');
+      const isOpen = !menu.classList.contains('hidden');
+      hamburger.classList.toggle('hidden', isOpen);
+      closeIc.classList.toggle('hidden', !isOpen);
+    }
+    document.querySelectorAll('#mobile-menu a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.add('hidden');
+        document.getElementById('hamburger-icon').classList.remove('hidden');
+        document.getElementById('close-icon').classList.add('hidden');
+      });
+    });
+  </script>
 
   <main class="max-w-6xl mx-auto px-6 py-12">
 
@@ -353,6 +399,54 @@
         thumbClass: 'thumb-ilju',
         date: '2026-05-03',
         readMin: 9,
+        views: 0
+      },
+      {
+        slug: '2026-05-04-jaeseong',
+        title: '재성이란 무엇인가',
+        summary: '명리에서 돈은 재성(財星)이라는 단어로 등장해요. 편재(偏財)와 정재(正財)의 차이부터 재물복을 어떻게 봐야 하는지까지 풀어드립니다.',
+        category: 'wealth',
+        categoryLabel: '재물 운',
+        hanja: '財',
+        thumbClass: 'thumb-wealth',
+        date: '2026-05-04',
+        readMin: 10,
+        views: 0
+      },
+      {
+        slug: '2026-05-05-gwanseong',
+        title: '관성이 많으면 남자가 많을까',
+        summary: '여자 사주에서 관성(官星)은 남편·이성·자녀를 한꺼번에 의미해요. 관성이 많으면 정말 남자가 많은지, 정관과 편관은 어떻게 다른지, 관살혼잡까지 풀어드립니다.',
+        category: 'couple',
+        categoryLabel: '궁합 이야기',
+        hanja: '官',
+        thumbClass: 'thumb-couple',
+        date: '2026-05-05',
+        readMin: 10,
+        views: 0
+      },
+      {
+        slug: '2026-05-06-byeongo',
+        title: '나는 올해 왜 유난히 힘들까',
+        summary: '2026년 병오년(丙午年)은 강한 화 기운의 해. 같은 해라도 누군가는 풀리고 누군가는 유난히 힘든 이유 — 합·충·형(合冲刑)의 원리로 풀어드립니다.',
+        category: 'season',
+        categoryLabel: '운세 시즌',
+        hanja: '運',
+        thumbClass: 'thumb-season',
+        date: '2026-05-06',
+        readMin: 9,
+        views: 0
+      },
+      {
+        slug: '2026-05-07-dohwasal',
+        title: '도화살은 정말 바람기인가',
+        summary: '도화살(桃花殺)은 명리에서 가장 자주 오해받는 키워드. 자·오·묘·유 네 글자에 발생하는 매력의 자석 — 진도화·가도화의 차이부터 도화살을 자산으로 쓰는 법까지 풀어드립니다.',
+        category: 'couple',
+        categoryLabel: '궁합 이야기',
+        hanja: '桃',
+        thumbClass: 'thumb-couple',
+        date: '2026-05-07',
+        readMin: 10,
         views: 0
       }
       // ↓ 새 글 추가는 여기에 객체 추가

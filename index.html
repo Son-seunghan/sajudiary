@@ -568,7 +568,7 @@
         <a href="manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">무료 만세력</a>
         <a href="today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
         <a href="column/" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">칼럼</a>
-        <a href="#products" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="#products" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
         <a href="#reviews"  class="hidden lg:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">후기</a>
         <a href="#faq"      class="hidden lg:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">FAQ</a>
 
@@ -579,16 +579,63 @@
         </a>
 
         <!-- 로그인 안 된 상태 -->
-        <a id="nav-login" href="login.html" class="ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)]">로그인</a>
+        <a id="nav-login" href="login.html" class="ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)] text-xs sm:text-sm">로그인</a>
 
         <!-- 로그인 된 상태 (JS로 표시 토글) -->
-        <a id="nav-mypage" href="mypage.html" class="hidden ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)] items-center gap-2">
+        <a id="nav-mypage" href="mypage.html" class="hidden ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)] items-center gap-2 text-xs sm:text-sm">
           <span id="nav-nickname" class="hidden sm:inline truncate max-w-[100px]"></span>
           <span class="text-[10px] opacity-70">마이</span>
         </a>
+
+        <!-- 모바일 햄버거 -->
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden ml-1 p-2 text-[var(--ink2)] hover:text-[var(--vermil)]" aria-label="메뉴">
+          <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ━━━━ 모바일 드롭다운 메뉴 ━━━━ -->
+    <div id="mobile-menu" class="md:hidden hidden border-t border-[var(--paper-dk)]/60 bg-[var(--paper)]/95 backdrop-blur-md">
+      <nav class="font-shilla max-w-6xl mx-auto px-6 py-2 flex flex-col text-sm">
+        <a href="manse.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--jade)]">曆</span> 무료 만세력
+        </a>
+        <a href="today.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--gold)]">日</span> 오늘의 운세
+        </a>
+        <a href="column/" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--vermil)]">録</span> 칼럼
+        </a>
+        <a href="#products" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--ink3)]">命</span> 분석 상품
+        </a>
+        <a href="#reviews" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)]">후기</a>
+        <a href="#faq" class="py-3 text-[var(--ink2)] hover:text-[var(--vermil)]">자주 묻는 질문</a>
       </nav>
     </div>
   </header>
+
+  <!-- ━━━━ 모바일 메뉴 토글 스크립트 ━━━━ -->
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const hamburger = document.getElementById('hamburger-icon');
+      const closeIc = document.getElementById('close-icon');
+      menu.classList.toggle('hidden');
+      const isOpen = !menu.classList.contains('hidden');
+      hamburger.classList.toggle('hidden', isOpen);
+      closeIc.classList.toggle('hidden', !isOpen);
+    }
+    // 메뉴 항목 클릭 시 자동 닫기
+    document.querySelectorAll('#mobile-menu a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.add('hidden');
+        document.getElementById('hamburger-icon').classList.remove('hidden');
+        document.getElementById('close-icon').classList.add('hidden');
+      });
+    });
+  </script>
 
   <!-- ━━━━━━━━━━━ Hero ━━━━━━━━━━━ -->
   <section class="relative max-w-6xl mx-auto px-6 pt-24 pb-20 text-center overflow-hidden">
@@ -737,8 +784,11 @@
         <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
           입문용 <span class="font-shilla text-[var(--jade)] text-base font-medium">Light</span>
         </h3>
-        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+        <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           사주가 처음이라면 — 나는 어떤 사람일까?
+        </p>
+        <p class="text-[11px] text-[var(--jade2)] font-shilla mb-7 flex items-center gap-1.5">
+          <span class="opacity-60">✦</span> 편지처럼 따뜻하게 — 한 통의 사주 편지로
         </p>
 
         <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
@@ -768,8 +818,11 @@
         <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
           전문가용 <span class="font-shilla text-[var(--vermil)] text-base font-medium">Deep</span>
         </h3>
-        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+        <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           더 이상 사주에 돈을 쓰지 않아도 되는 완전판
+        </p>
+        <p class="text-[11px] text-[var(--vermil)] font-shilla mb-7 flex items-center gap-1.5">
+          <span class="opacity-60">✦</span> 분석 노트처럼 깊게 — 명리 용어 그대로
         </p>
 
         <ul class="space-y-3 text-sm text-[var(--ink2)] mb-5">
@@ -803,8 +856,11 @@
         <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
           궁합 분석 <span class="font-shilla text-[var(--plum)] text-base font-medium">Couple</span>
         </h3>
-        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+        <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           연인·친구·직장 — 두 사람의 깊은 인연
+        </p>
+        <p class="text-[11px] text-[var(--plum2)] font-shilla mb-7 flex items-center gap-1.5">
+          <span class="opacity-60">✦</span> 매화 도장처럼 — 두 사주의 인연 풀이
         </p>
 
         <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
@@ -833,8 +889,11 @@
         <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
           궁합 분석 성인용 <span class="font-shilla text-[var(--wine)] text-base font-medium">Couple+</span>
         </h3>
-        <p class="text-sm text-[var(--ink3)] mb-7 leading-relaxed">
+        <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           연인·부부 — 솜사탕 말고 매운탕 🌶
+        </p>
+        <p class="text-[11px] text-[var(--wine)] font-shilla mb-7 flex items-center gap-1.5">
+          <span class="opacity-60">✦</span> 와인색 桃花 — 어른의 인연 코드
         </p>
 
         <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">

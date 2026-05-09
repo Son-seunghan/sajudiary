@@ -220,11 +220,58 @@
         <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
       </a>
       <div class="flex items-center gap-1">
-        <a href="today.html" class="hidden sm:inline font-shilla text-sm px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
-        <a href="index.html" class="font-shilla text-sm px-4 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">← 홈</a>
+        <a href="today.html" class="hidden md:inline font-shilla text-sm px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="column/" class="hidden md:inline font-shilla text-sm px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">칼럼</a>
+        <a href="index.html#products" class="hidden md:inline font-shilla text-sm px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="index.html" class="hidden sm:inline font-shilla text-sm px-4 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">← 홈</a>
+
+        <!-- 모바일 햄버거 -->
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden ml-1 p-2 text-[var(--ink2)] hover:text-[var(--vermil)]" aria-label="메뉴">
+          <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
     </div>
+
+    <!-- ━━━━ 모바일 드롭다운 메뉴 ━━━━ -->
+    <div id="mobile-menu" class="md:hidden hidden border-t border-[var(--paper-dk)]/60 bg-[var(--paper)]/95 backdrop-blur-md">
+      <nav class="font-shilla max-w-4xl mx-auto px-6 py-2 flex flex-col text-sm">
+        <span class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--jade2)] font-bold flex items-center gap-2">
+          <span class="text-[var(--jade)]">曆</span> 무료 만세력 <span class="text-[10px] text-[var(--ink4)] ml-auto">현재 페이지</span>
+        </span>
+        <a href="today.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--gold)]">日</span> 오늘의 운세
+        </a>
+        <a href="column/" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--vermil)]">録</span> 칼럼
+        </a>
+        <a href="index.html#products" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--ink3)]">命</span> 분석 상품
+        </a>
+        <a href="index.html" class="py-3 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈으로</a>
+      </nav>
+    </div>
   </header>
+
+  <!-- ━━━━ 모바일 메뉴 토글 스크립트 ━━━━ -->
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const hamburger = document.getElementById('hamburger-icon');
+      const closeIc = document.getElementById('close-icon');
+      menu.classList.toggle('hidden');
+      const isOpen = !menu.classList.contains('hidden');
+      hamburger.classList.toggle('hidden', isOpen);
+      closeIc.classList.toggle('hidden', !isOpen);
+    }
+    document.querySelectorAll('#mobile-menu a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.add('hidden');
+        document.getElementById('hamburger-icon').classList.remove('hidden');
+        document.getElementById('close-icon').classList.add('hidden');
+      });
+    });
+  </script>
 
   <main class="max-w-3xl mx-auto px-6 py-12 relative">
 

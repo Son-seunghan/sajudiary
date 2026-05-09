@@ -309,13 +309,58 @@
         <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
       </a>
       <nav class="flex items-center gap-1 text-sm font-shilla">
-        <a href="../manse.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
-        <a href="../today.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
-        <a href="./" class="px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
-        <a href="../index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+        <a href="../manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
+        <a href="../today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="./" class="hidden md:inline px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
+        <a href="../index.html#products" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="../index.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+
+        <!-- 모바일 햄버거 -->
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden ml-1 p-2 text-[var(--ink2)] hover:text-[var(--vermil)]" aria-label="메뉴">
+          <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </nav>
+    </div>
+
+    <!-- 모바일 드롭다운 메뉴 -->
+    <div id="mobile-menu" class="md:hidden hidden border-t border-[var(--paper-dk)]/60 bg-[var(--paper)]/95 backdrop-blur-md">
+      <nav class="font-shilla max-w-6xl mx-auto px-6 py-2 flex flex-col text-sm">
+        <a href="../manse.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--jade)]">曆</span> 무료 만세력
+        </a>
+        <a href="../today.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--gold)]">日</span> 오늘의 운세
+        </a>
+        <a href="./" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--vermil)]">録</span> 칼럼
+        </a>
+        <a href="../index.html#products" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--ink3)]">命</span> 분석 상품
+        </a>
+        <a href="../index.html" class="py-3 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈으로</a>
       </nav>
     </div>
   </header>
+
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const hamburger = document.getElementById('hamburger-icon');
+      const closeIc = document.getElementById('close-icon');
+      menu.classList.toggle('hidden');
+      const isOpen = !menu.classList.contains('hidden');
+      hamburger.classList.toggle('hidden', isOpen);
+      closeIc.classList.toggle('hidden', !isOpen);
+    }
+    document.querySelectorAll('#mobile-menu a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.add('hidden');
+        document.getElementById('hamburger-icon').classList.remove('hidden');
+        document.getElementById('close-icon').classList.add('hidden');
+      });
+    });
+  </script>
 
   <!-- Article Hero -->
   <section class="article-hero">
@@ -580,9 +625,9 @@
         <p class="nav-label">← 이전 글</p>
         <p class="nav-title">오행 상생과 상극</p>
       </a>
-      <a href="./" class="next">
-        <p class="nav-label">목록으로 →</p>
-        <p class="nav-title">전체 칼럼 보기</p>
+      <a href="2026-05-04-jaeseong.html" class="next">
+        <p class="nav-label">다음 글 →</p>
+        <p class="nav-title">재성이란 무엇인가</p>
       </a>
     </div>
 
