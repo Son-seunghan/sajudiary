@@ -11,12 +11,12 @@
 <meta property="og:title" content="사주가 무엇인가">
 <meta property="og:description" content="명리학 처음 들어보는 분도 10분이면 따라잡는 입문 가이드.">
 <meta property="og:image" content="../assets/og-image.svg">
-<meta property="og:url" content="https://sajudiary.com/column/2026-05-10-saju-intro.html">
+<meta property="og:url" content="https://sajudiary.com/column/2026-05-01-saju-intro.html">
 <meta property="og:site_name" content="사주다이어리">
 <meta property="og:locale" content="ko_KR">
-<meta property="article:published_time" content="2026-05-10">
+<meta property="article:published_time" content="2026-05-01">
 <meta property="article:section" content="명리 입문">
-<link rel="canonical" href="https://sajudiary.com/column/2026-05-10-saju-intro.html">
+<link rel="canonical" href="https://sajudiary.com/column/2026-05-01-saju-intro.html">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -204,6 +204,45 @@
     margin-top: 60px;
     text-align: center;
   }
+
+  /* 이전·다음 글 */
+  .article-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--paper-dk);
+  }
+  .article-nav a {
+    padding: 14px 16px;
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 10px;
+    color: var(--ink2);
+    transition: all .2s;
+    text-decoration: none;
+  }
+  .article-nav a:hover {
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .article-nav .nav-label {
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 10px;
+    color: var(--ink4);
+    letter-spacing: 0.15em;
+    margin-bottom: 4px;
+  }
+  .article-nav .nav-title {
+    font-family: 'Shilla Culture', serif;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .article-nav .next { text-align: right; }
+  @media (max-width: 480px) {
+    .article-nav { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 
@@ -241,7 +280,7 @@
         어려운 용어 없이 술술 읽히는 톤으로 풀어드려요.
       </p>
       <div class="flex items-center gap-4 text-xs font-shilla text-[var(--ink4)] tracking-wider">
-        <span>2026.05.10</span>
+        <span>2026.05.01</span>
         <span>·</span>
         <span>10분 읽기</span>
         <span>·</span>
@@ -436,13 +475,6 @@
         오늘은 여기까지. <strong>사주는 8글자 코드 + 오행 분포</strong>라는 핵심만 잡고 가시면 됩니다.
       </p>
 
-      <h2>다음 글 예고</h2>
-      <ul>
-        <li>오행 상생·상극이 실생활에서 어떻게 작동하는가</li>
-        <li>일주(日柱)란 무엇이고 왜 가장 중요한가</li>
-        <li>십신(十神) 한 줄 정리 — 사주 분석의 핵심 도구</li>
-      </ul>
-
       <!-- CTA -->
       <div class="article-cta">
         <p class="font-shilla text-xs text-[var(--vermil)] tracking-widest mb-3">YOUR TURN</p>
@@ -463,10 +495,15 @@
 
     </article>
 
-    <!-- 글 끝 보조 -->
-    <div class="mt-12 pt-8 border-t border-[var(--paper-dk)] text-center">
-      <a href="./" class="inline-flex items-center gap-2 font-shilla text-sm text-[var(--ink3)] hover:text-[var(--vermil)] transition">
-        ← 다른 칼럼 더 보기
+    <!-- 이전·다음 글 네비 -->
+    <div class="article-nav">
+      <a href="./">
+        <p class="nav-label">← 목록으로</p>
+        <p class="nav-title">전체 칼럼 보기</p>
+      </a>
+      <a href="2026-05-02-ohaeng.html" class="next">
+        <p class="nav-label">다음 글 →</p>
+        <p class="nav-title">오행 상생과 상극</p>
       </a>
     </div>
 
