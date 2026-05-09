@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>사주가 무엇인가 — 데이터 분석가의 10분 입문 | 사주다이어리</title>
+<meta name="description" content="음양·오행·천간지지·사주팔자 — 명리학을 처음 듣는 분도 10분이면 따라잡는 입문 가이드. 어려운 용어 없이 데이터 분석가의 시선으로 풀어드려요.">
+<meta name="keywords" content="사주 입문, 명리학 입문, 사주팔자 뜻, 음양오행, 천간지지, 사주 무료, 사주 기초">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="사주가 무엇인가 — 데이터 분석가의 10분 입문">
+<meta property="og:description" content="명리학 처음 들어보는 분도 10분이면 따라잡는 입문 가이드.">
+<meta property="og:image" content="../assets/og-image.svg">
+<meta property="og:url" content="https://sajudiary.com/column/2026-05-10-saju-intro.html">
+<meta property="og:site_name" content="사주다이어리">
+<meta property="og:locale" content="ko_KR">
+<meta property="article:published_time" content="2026-05-10">
+<meta property="article:section" content="명리 입문">
+<link rel="canonical" href="https://sajudiary.com/column/2026-05-10-saju-intro.html">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("../assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("../assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("../assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728; --gold3:#d6b660;
+    --jade:#5a8a98; --jade2:#406878; --jade3:#7aa8b5;
+    --plum:#b8607a; --wine:#8a3a4d;
+    --wood:#5a9a5a; --fire:#c85040; --earth:#b88030;
+    --metal:#9098b0; --water:#4878a8;
+  }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--jade) 0%, var(--jade) 20%, var(--vermil) 20%, var(--vermil) 40%, var(--gold) 40%, var(--gold) 60%, var(--plum) 60%, var(--plum) 80%, var(--ink) 80%, var(--ink) 100%);
+  }
+
+  /* ━━━━━━━━━━━━ 글 본문 타이포 ━━━━━━━━━━━━ */
+  .article-prose {
+    color: var(--ink2);
+    font-size: 16px;
+    line-height: 1.85;
+    letter-spacing: -0.005em;
+  }
+  .article-prose h2 {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    margin-top: 56px;
+    margin-bottom: 18px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--paper-dk);
+  }
+  .article-prose h2::before {
+    content: "✦ ";
+    color: var(--vermil);
+    font-size: 18px;
+    margin-right: 4px;
+  }
+  .article-prose h3 {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--ink);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+  .article-prose p { margin-bottom: 18px; }
+  .article-prose ul, .article-prose ol {
+    margin: 14px 0 22px 8px;
+    padding-left: 16px;
+  }
+  .article-prose li { margin-bottom: 8px; }
+  .article-prose strong { color: var(--ink); font-weight: 700; }
+  .article-prose em { color: var(--vermil); font-style: normal; font-weight: 600; }
+  .article-prose a {
+    color: var(--jade2);
+    border-bottom: 1px solid var(--jade3);
+    text-decoration: none;
+  }
+  .article-prose a:hover { color: var(--vermil); border-bottom-color: var(--vermil); }
+
+  .article-prose blockquote {
+    border-left: 3px solid var(--gold);
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    padding: 18px 22px;
+    margin: 24px 0;
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+    color: var(--ink2);
+  }
+
+  .info-box {
+    background: linear-gradient(135deg, rgba(90,138,152,0.08), rgba(64,104,120,0.04));
+    border: 1px solid var(--jade3);
+    border-left: 3px solid var(--jade);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 24px 0;
+  }
+  .info-box p:last-child { margin-bottom: 0; }
+  .info-box .label {
+    display: inline-block;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--jade2);
+    margin-bottom: 8px;
+  }
+
+  .ohaeng-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 14px;
+  }
+  .ohaeng-table th, .ohaeng-table td {
+    border: 1px solid var(--paper-dk);
+    padding: 10px 12px;
+    text-align: left;
+  }
+  .ohaeng-table th {
+    background: var(--paper3);
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .ohaeng-table .wood  { color: var(--wood);  font-weight: 700; }
+  .ohaeng-table .fire  { color: var(--fire);  font-weight: 700; }
+  .ohaeng-table .earth { color: var(--earth); font-weight: 700; }
+  .ohaeng-table .metal { color: var(--metal); font-weight: 700; }
+  .ohaeng-table .water { color: var(--water); font-weight: 700; }
+
+  /* ━━━━━━━━━━━━ 헤더 영역 ━━━━━━━━━━━━ */
+  .article-hero {
+    background:
+      radial-gradient(circle at 80% 20%, rgba(90,138,152,0.10), transparent 50%),
+      linear-gradient(180deg, var(--paper2), var(--paper));
+    border-bottom: 1px solid var(--paper-dk);
+    padding: 60px 0 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-hanja-deco {
+    position: absolute;
+    right: -40px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Shilla Culture', serif;
+    font-size: 280px;
+    color: var(--jade);
+    opacity: 0.06;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .cat-badge {
+    display: inline-block;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--jade2);
+    background: linear-gradient(180deg, rgba(90,138,152,0.14), rgba(64,104,120,0.08));
+    border: 1px solid var(--jade3);
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+
+  /* 하단 CTA */
+  .article-cta {
+    background:
+      radial-gradient(circle at 0% 100%, rgba(184,146,60,0.08), transparent 60%),
+      radial-gradient(circle at 100% 0%, rgba(177,58,44,0.06), transparent 50%),
+      linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--paper-dk);
+    border-radius: 16px;
+    padding: 40px 30px;
+    margin-top: 60px;
+    text-align: center;
+  }
+</style>
+</head>
+
+<body>
+  <div class="top-stripe"></div>
+
+  <!-- Header -->
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="../index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱日記</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
+      </a>
+      <nav class="flex items-center gap-1 text-sm font-shilla">
+        <a href="../manse.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
+        <a href="../today.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="./" class="px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
+        <a href="../index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Article Hero -->
+  <section class="article-hero">
+    <span class="hero-hanja-deco">理</span>
+    <div class="max-w-3xl mx-auto px-6 relative">
+      <a href="./" class="inline-block text-sm font-shilla text-[var(--ink3)] hover:text-[var(--vermil)] mb-4">← 칼럼 목록</a>
+      <span class="cat-badge">命理 · 명리 입문</span>
+      <h1 class="font-display text-3xl md:text-4xl text-[var(--ink)] leading-tight mb-4">
+        사주가 무엇인가 — 데이터 분석가의 10분 입문
+      </h1>
+      <p class="text-[var(--ink3)] text-base leading-relaxed mb-5">
+        음양·오행·천간지지·사주팔자. 명리학 처음 듣는 분도 10분이면 따라잡는 입문 가이드.<br/>
+        어려운 용어 없이 술술 읽히는 톤으로 풀어드려요.
+      </p>
+      <div class="flex items-center gap-4 text-xs font-shilla text-[var(--ink4)] tracking-wider">
+        <span>2026.05.10</span>
+        <span>·</span>
+        <span>10분 읽기</span>
+        <span>·</span>
+        <span>사주다이어리 편집팀</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Article Body -->
+  <main class="max-w-3xl mx-auto px-6 py-14">
+    <article class="article-prose">
+
+      <p>
+        "<strong>사주 좀 봐줄까?</strong>"
+      </p>
+      <p>
+        살면서 한 번쯤은 들어본 말일 거예요. 친구 어머니가 봐주셨다는 소문, 점집 갔다 온 친구가 들려주는 이야기, 또는 카톡으로 받은 신년운세 링크. <em>사주(四柱)</em>는 한국인의 일상에 깊이 박혀있는 단어인데, 정작 "사주가 정확히 무엇이냐"고 물으면 답하기 어렵습니다.
+      </p>
+      <p>
+        오늘은 그 질문에 답해드릴게요. <strong>사주를 단 10분 안에 정리</strong>해드리되, 어려운 한자 용어로 도배하지 않고, 데이터 분석가의 시선으로 풀어드립니다.
+      </p>
+
+      <h2>사주(四柱) — 네 개의 기둥</h2>
+
+      <p>
+        한자 그대로 풀면 <strong>"네 개(四)의 기둥(柱)"</strong>이에요. 그럼 무엇의 기둥이냐? <strong>당신이 태어난 시각의 기둥</strong>입니다.
+      </p>
+      <p>
+        사람이 태어날 때 그 순간의 우주는 특정한 상태를 갖고 있어요. 명리학은 그 순간을 <strong>네 가지 시간 단위</strong>로 쪼갭니다:
+      </p>
+
+      <ul>
+        <li><strong>연주(年柱)</strong> — 태어난 <em>해(年)</em>의 기운</li>
+        <li><strong>월주(月柱)</strong> — 태어난 <em>달(月)</em>의 기운</li>
+        <li><strong>일주(日柱)</strong> — 태어난 <em>날(日)</em>의 기운 ← <strong>나 자신</strong></li>
+        <li><strong>시주(時柱)</strong> — 태어난 <em>시각(時)</em>의 기운</li>
+      </ul>
+
+      <p>
+        이 네 기둥이 곧 <strong>사주(四柱)</strong>입니다. 그리고 각 기둥은 <strong>두 글자</strong>로 표현돼요(천간 1글자 + 지지 1글자). 그래서 사주는 총 <strong>여덟 글자(八字)</strong> — <em>"사주팔자(四柱八字)"</em>가 합쳐져서 부르는 이유예요.
+      </p>
+
+      <div class="info-box">
+        <span class="label">한 줄 정리</span>
+        <p><strong>사주팔자</strong> = 태어난 시각을 4개 시간 단위로 나눈 8글자 코드. 이 8글자가 그 사람의 인생 설계도라고 봅니다.</p>
+      </div>
+
+      <h2>음양 — 모든 것은 두 얼굴을 가진다</h2>
+
+      <p>
+        명리의 가장 기본 원리는 <strong>음양(陰陽)</strong>이에요. 우주의 모든 것은 <em>대립하면서 보완하는 두 가지</em>로 나뉜다는 생각입니다.
+      </p>
+
+      <ul>
+        <li><strong>양(陽)</strong> — 밝음, 능동, 발산, 빠름, 남성, 낮</li>
+        <li><strong>음(陰)</strong> — 어둠, 수동, 수렴, 느림, 여성, 밤</li>
+      </ul>
+
+      <p>
+        사람도 마찬가지예요. <strong>활발하고 밖으로 뻗는 양의 사람</strong>이 있고, <strong>차분하고 안으로 모으는 음의 사람</strong>이 있습니다. 어느 쪽이 좋다 나쁘다가 아니라, <em>둘 다 필요한 균형</em>이라는 게 음양의 핵심이에요.
+      </p>
+
+      <h2>오행 — 다섯 가지 기운</h2>
+
+      <p>
+        음양에서 한 단계 더 들어가면 <strong>오행(五行)</strong>이 나옵니다. 우주의 기운을 다섯 가지로 분류한 거예요:
+      </p>
+
+      <table class="ohaeng-table">
+        <thead>
+          <tr>
+            <th>오행</th>
+            <th>이미지</th>
+            <th>성격 키워드</th>
+            <th>계절</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="wood">목(木)</span></td>
+            <td>나무·숲</td>
+            <td>성장·확장·시작·창의</td>
+            <td>봄</td>
+          </tr>
+          <tr>
+            <td><span class="fire">화(火)</span></td>
+            <td>불·태양</td>
+            <td>열정·표현·확산·활발</td>
+            <td>여름</td>
+          </tr>
+          <tr>
+            <td><span class="earth">토(土)</span></td>
+            <td>흙·대지</td>
+            <td>안정·중재·신뢰·끈기</td>
+            <td>환절기</td>
+          </tr>
+          <tr>
+            <td><span class="metal">금(金)</span></td>
+            <td>쇠·바위</td>
+            <td>결단·정리·논리·완성</td>
+            <td>가을</td>
+          </tr>
+          <tr>
+            <td><span class="water">수(水)</span></td>
+            <td>물·바다</td>
+            <td>지혜·통찰·유연·흐름</td>
+            <td>겨울</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        이 다섯이 서로 <em>도와주기도(상생)</em>, <em>견제하기도(상극)</em> 합니다. 예를 들어 나무(목)는 불(화)을 키우고, 불(화)은 흙(토)을 만들고, 흙(토)은 쇠(금)를 품고, 쇠(금)는 물(수)을 만들고, 물(수)은 다시 나무(목)를 키워요. 이게 <strong>상생(相生)</strong>의 순환입니다.
+      </p>
+
+      <p>
+        반대로 나무(목)는 흙(토)을 뚫고 자라며 흙의 힘을 빼앗고, 흙(토)은 물(수)을 막고, 물(수)은 불(화)을 끄고, 불(화)은 쇠(금)를 녹이고, 쇠(금)는 나무(목)를 자릅니다. 이게 <strong>상극(相剋)</strong>이에요.
+      </p>
+
+      <blockquote>
+        명리에서 가장 중요한 건 "내 사주에 어떤 오행이 많고 적은가, 그 균형은 어떤가"입니다. 한 가지 오행이 너무 많으면 답답하고, 너무 적으면 부족함이 됩니다.
+      </blockquote>
+
+      <h2>천간과 지지 — 사주의 알파벳</h2>
+
+      <p>
+        사주의 8글자는 사실 <strong>10개의 천간</strong>과 <strong>12개의 지지</strong>로 구성됩니다.
+      </p>
+
+      <h3>천간(天干) — 10개</h3>
+      <p>
+        하늘의 기운을 10단계로 나눈 것:
+      </p>
+      <p style="font-family: 'Shilla Culture', serif; font-size: 18px; letter-spacing: 0.1em; text-align: center; padding: 10px 0; color: var(--ink);">
+        <span class="wood">甲 乙</span> · <span class="fire">丙 丁</span> · <span class="earth">戊 己</span> · <span class="metal">庚 辛</span> · <span class="water">壬 癸</span>
+      </p>
+      <p>
+        2개씩 한 쌍으로 묶이고 각 쌍이 오행(목·화·토·금·수)을 나타내요. 10개 천간이 그 사람의 <em>"본질적 기운"</em>을 보여줍니다.
+      </p>
+
+      <h3>지지(地支) — 12개</h3>
+      <p>
+        땅의 기운을 12단계로 나눈 것 — 우리가 잘 아는 <strong>띠(子鼠 쥐, 丑牛 소, 寅虎 호랑이...)</strong>입니다:
+      </p>
+      <p style="font-family: 'Shilla Culture', serif; font-size: 17px; letter-spacing: 0.08em; text-align: center; padding: 10px 0; color: var(--ink);">
+        子 丑 寅 卯 辰 巳 午 未 申 酉 戌 亥
+      </p>
+      <p>
+        쥐·소·호랑이·토끼·용·뱀·말·양·원숭이·닭·개·돼지. 12지지가 그 사람의 <em>"환경과 관계의 결"</em>을 보여줍니다.
+      </p>
+
+      <div class="info-box">
+        <span class="label">정리하면</span>
+        <p>사주 8글자 = 천간 4 + 지지 4. 각 글자는 오행 중 하나이고, 그 8개의 조합이 사람마다 다 달라서 각자의 <strong>고유한 사주 코드</strong>가 됩니다.</p>
+      </div>
+
+      <h2>그래서 사주가 왜 의미 있는가</h2>
+
+      <p>
+        여기까지 들으면 의문이 들 거예요. "<em>태어난 시각이 인생을 결정한다고? 그게 말이 돼?</em>" 합리적인 의심이고, 그 질문에 답하는 게 명리학의 가장 큰 도전이에요.
+      </p>
+
+      <p>
+        명리는 <strong>결정론이 아닙니다</strong>. "이렇게 정해져있다"가 아니라 <strong>"이런 경향과 패턴이 있다"</strong>를 말해요. 데이터로 비유하면 이렇습니다:
+      </p>
+
+      <ul>
+        <li>키 175cm 남성이라고 다 같은 인생을 살지 않지만, <em>키가 평균 매출에 영향을 준다</em>는 통계는 있습니다.</li>
+        <li>MBTI INFP라고 다 같은 사람이 아니지만, <em>INFP들이 공통으로 보이는 성향</em>은 있습니다.</li>
+        <li>같은 일주(日柱)라고 다 같은 사람이 아니지만, <em>그 일주가 가지는 기본 기질</em>은 있어요.</li>
+      </ul>
+
+      <p>
+        명리학은 <strong>3,000년 가까이 누적된 임상 데이터</strong>예요. 같은 사주 8글자를 가진 사람들이 실제로 어떻게 살았는지 관찰하고 정리한 거대한 기록이죠. 데이터 분석가의 시선으로 보면 <em>거대한 유사 사례 검색 시스템</em>입니다.
+      </p>
+
+      <p>
+        그래서 명리는 <strong>"맞춰주는 점술"이 아니라 "참고하는 데이터"</strong>예요. 내 기본 기질, 잘 어울리는 환경, 조심해야 할 시기 — 이런 것들의 <em>경향성</em>을 알려주는 도구입니다.
+      </p>
+
+      <h2>그럼 내 사주는 어떻게 보나</h2>
+
+      <p>
+        가장 먼저 할 일은 <strong>내 사주 8글자를 확인</strong>하는 거예요. 양력 생년월일·시간만 알면 누구나 만세력으로 자동 계산됩니다.
+      </p>
+
+      <p>
+        그 다음은 8글자 안에서 <strong>오행이 어떻게 분포</strong>되어 있는지, 어떤 글자가 <strong>충돌하거나 조화</strong>되는지를 분석하는 단계예요. 이 분석을 깊이 들어가면 <em>십신·신살·대운·격국</em> 같은 개념이 나오는데, 그건 다음 글에서 차차 풀어드릴게요.
+      </p>
+
+      <p>
+        오늘은 여기까지. <strong>사주는 8글자 코드 + 오행 분포</strong>라는 핵심만 잡고 가시면 됩니다.
+      </p>
+
+      <h2>다음 글 예고</h2>
+      <ul>
+        <li>오행 상생·상극이 실생활에서 어떻게 작동하는가</li>
+        <li>일주(日柱)란 무엇이고 왜 가장 중요한가</li>
+        <li>십신(十神) 한 줄 정리 — 사주 분석의 핵심 도구</li>
+      </ul>
+
+      <!-- CTA -->
+      <div class="article-cta">
+        <p class="font-shilla text-xs text-[var(--vermil)] tracking-widest mb-3">YOUR TURN</p>
+        <h3 class="font-display text-2xl mb-3 text-[var(--ink)]">내 사주 8글자, 직접 확인해볼까요?</h3>
+        <p class="text-sm text-[var(--ink3)] mb-6 leading-relaxed">
+          생년월일·시 입력하면 1초만에 내 사주팔자 확인 가능해요.<br/>
+          가입·로그인 없이 즉시 사용.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <a href="../manse.html" class="inline-block px-6 py-3 rounded-lg border border-[var(--jade3)] text-[var(--jade2)] font-shilla font-bold hover:bg-[var(--jade)] hover:text-white transition">
+            曆 무료 만세력 바로 가기
+          </a>
+          <a href="../index.html#products" class="inline-block px-6 py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-shilla font-bold hover:bg-[var(--vermil)] transition">
+            전문 분석 받아보기 →
+          </a>
+        </div>
+      </div>
+
+    </article>
+
+    <!-- 글 끝 보조 -->
+    <div class="mt-12 pt-8 border-t border-[var(--paper-dk)] text-center">
+      <a href="./" class="inline-flex items-center gap-2 font-shilla text-sm text-[var(--ink3)] hover:text-[var(--vermil)] transition">
+        ← 다른 칼럼 더 보기
+      </a>
+    </div>
+
+  </main>
+
+  <div class="top-stripe mt-16"></div>
+
+  <!-- Footer -->
+  <footer class="bg-[var(--paper2)] border-t border-[var(--paper-dk)] py-10">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <p class="font-hanja text-sm text-[var(--vermil)] tracking-widest mb-2">四柱日記</p>
+      <p class="font-display text-base mb-2">사주다이어리</p>
+      <p class="text-xs text-[var(--ink4)] font-shilla space-y-1 leading-relaxed">
+        <span class="block">상호: 마일 · 대표: 손승한 · 이메일: cleanblue99@gmail.com</span>
+        <span class="block">사업자등록번호: 254-32-01626 · 통신판매업: 제2025-경기남부-5033호</span>
+        <span class="block">© 2026 사주다이어리. All rights reserved.</span>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

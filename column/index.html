@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>칼럼 — 사주다이어리 四柱日記</title>
+<meta name="description" content="10년 데이터 분석가가 쓰는 사주 칼럼 — 명리 입문, 일주별 풀이, 시즌 운세, 궁합 이야기, 데이터로 본 사주.">
+<meta name="keywords" content="사주 칼럼, 명리 칼럼, 일주별 풀이, 사주 블로그, 사주 정보, 사주 입문">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="칼럼 — 사주다이어리">
+<meta property="og:description" content="10년 데이터 분석가가 쓰는 사주 칼럼 — 정통 명리학을 데이터의 시선으로.">
+<meta property="og:image" content="../assets/og-image.svg">
+<meta property="og:url" content="https://sajudiary.com/column/">
+<meta property="og:site_name" content="사주다이어리">
+<meta property="og:locale" content="ko_KR">
+<link rel="canonical" href="https://sajudiary.com/column/">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("../assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("../assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("../assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728; --gold3:#d6b660;
+    --jade:#5a8a98; --jade2:#406878; --jade3:#7aa8b5;
+    --plum:#b8607a; --plum2:#944860; --plum3:#d0809a;
+    --wine:#8a3a4d;
+  }
+
+  html, body {
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(177, 58, 44, 0.04) 0%, transparent 22%),
+      radial-gradient(circle at 88% 30%, rgba(184, 146, 60, 0.05) 0%, transparent 25%),
+      radial-gradient(circle at 50% 70%, rgba(90, 138, 152, 0.03) 0%, transparent 30%);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--jade) 0%, var(--jade) 20%, var(--vermil) 20%, var(--vermil) 40%, var(--gold) 40%, var(--gold) 60%, var(--plum) 60%, var(--plum) 80%, var(--ink) 80%, var(--ink) 100%);
+  }
+
+  /* ━━━━━━━━━━━━ 칼럼 카드 ━━━━━━━━━━━━ */
+  .article-card {
+    display: block;
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all .3s ease;
+    position: relative;
+  }
+  .article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(60, 45, 30, 0.12);
+    border-color: var(--gold);
+  }
+
+  /* 자동 썸네일 — 한자 + 그라디언트 */
+  .thumb {
+    aspect-ratio: 16 / 9;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .thumb::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    pointer-events: none;
+  }
+  .thumb-hanja {
+    font-family: 'Shilla Culture', 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: clamp(72px, 18vw, 130px);
+    color: rgba(255,255,255,0.32);
+    line-height: 1;
+    letter-spacing: 0;
+    user-select: none;
+  }
+  .thumb-cat {
+    position: absolute; bottom: 14px; left: 14px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.95);
+    background: rgba(0,0,0,0.18);
+    padding: 5px 11px;
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* 카테고리별 그라디언트 */
+  .thumb-myeongri  { background: linear-gradient(135deg, #7aa8b5 0%, #406878 100%); }
+  .thumb-ilju      { background: linear-gradient(135deg, #d05848 0%, #8a2418 100%); }
+  .thumb-season    { background: linear-gradient(135deg, #d6b660 0%, #9b7728 100%); }
+  .thumb-couple    { background: linear-gradient(135deg, #d0809a 0%, #944860 100%); }
+  .thumb-data      { background: linear-gradient(135deg, #6b5d4f 0%, #2c2520 100%); }
+
+  /* 카드 본문 */
+  .article-body {
+    padding: 22px 22px 20px;
+  }
+  .article-title {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--ink);
+    line-height: 1.4;
+    margin-bottom: 8px;
+    /* 2줄 클램프 */
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .article-summary {
+    font-size: 13px;
+    color: var(--ink3);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .article-meta {
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    color: var(--ink4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* ━━━━━━━━━━━━ 카테고리 탭 ━━━━━━━━━━━━ */
+  .category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 32px;
+    justify-content: center;
+  }
+  .cat-tab {
+    padding: 9px 18px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink3);
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all .25s ease;
+  }
+  .cat-tab:hover {
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .cat-tab.active {
+    background: var(--ink);
+    color: var(--paper2);
+    border-color: var(--ink);
+  }
+  .cat-count {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-left: 4px;
+    font-weight: 500;
+  }
+
+  /* 빈 상태 */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--ink3);
+    font-family: 'Shilla Gothic', sans-serif;
+  }
+
+  /* 페이지네이션 */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 40px;
+  }
+  .page-btn {
+    min-width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 13px;
+    color: var(--ink3);
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .page-btn:hover { border-color: var(--gold); color: var(--ink); }
+  .page-btn.active {
+    background: var(--ink); color: var(--paper2); border-color: var(--ink);
+  }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+</style>
+</head>
+
+<body>
+  <div class="top-stripe"></div>
+
+  <!-- Header -->
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="../index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱日記</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
+      </a>
+      <nav class="flex items-center gap-1 text-sm font-shilla">
+        <a href="../manse.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
+        <a href="../today.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="./" class="px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
+        <a href="../index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-12">
+
+    <!-- Hero -->
+    <div class="text-center mb-12 relative">
+      <p class="font-shilla text-sm text-[var(--gold2)] tracking-[0.3em] mb-3">COLUMN ✦ 칼럼</p>
+      <h1 class="font-display text-3xl md:text-4xl text-[var(--ink)] mb-4">사주다이어리 칼럼</h1>
+      <p class="text-[var(--ink3)] max-w-2xl mx-auto leading-relaxed">
+        10년 데이터 분석가가 쓰는 사주 노트 — 정통 명리학을 데이터의 시선으로.<br class="hidden sm:inline"/>
+        매주 새 글이 올라옵니다.
+      </p>
+    </div>
+
+    <!-- 카테고리 탭 -->
+    <div id="category-tabs" class="category-tabs">
+      <button class="cat-tab active" data-cat="all">전체 <span class="cat-count" id="count-all">0</span></button>
+      <button class="cat-tab" data-cat="myeongri">命理 명리 입문 <span class="cat-count" id="count-myeongri">0</span></button>
+      <button class="cat-tab" data-cat="ilju">日柱 일주별 풀이 <span class="cat-count" id="count-ilju">0</span></button>
+      <button class="cat-tab" data-cat="season">流年 운세 시즌 <span class="cat-count" id="count-season">0</span></button>
+      <button class="cat-tab" data-cat="couple">緣 궁합 이야기 <span class="cat-count" id="count-couple">0</span></button>
+      <button class="cat-tab" data-cat="data">數 데이터로 본 사주 <span class="cat-count" id="count-data">0</span></button>
+    </div>
+
+    <!-- 카드 그리드 -->
+    <div id="article-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- JS가 채워넣음 -->
+    </div>
+
+    <!-- 빈 상태 -->
+    <div id="empty-state" class="empty-state hidden">
+      <p class="font-display text-xl mb-2">아직 이 카테고리에 글이 없어요</p>
+      <p class="text-sm">곧 새 글로 찾아오겠습니다.</p>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div id="pagination" class="pagination"></div>
+
+    <!-- 하단 CTA -->
+    <div class="mt-16 p-8 rounded-2xl text-center" style="background: linear-gradient(135deg, rgba(177,58,44,0.05), rgba(184,146,60,0.05)); border: 1px solid var(--paper-dk);">
+      <p class="font-shilla text-xs text-[var(--vermil)] tracking-widest mb-3">YOUR TURN</p>
+      <h3 class="font-display text-2xl mb-3 text-[var(--ink)]">내 사주는 어떻게 풀이될까?</h3>
+      <p class="text-sm text-[var(--ink3)] mb-6">
+        칼럼은 일반론이에요. <strong class="text-[var(--ink)]">내 사주 한정 풀이</strong>는 분석 상품에서 만나보세요.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <a href="../manse.html" class="inline-block px-6 py-3 rounded-lg border border-[var(--jade3)] text-[var(--jade2)] font-shilla font-bold hover:bg-[var(--jade)] hover:text-white transition">
+          曆 무료 만세력으로 먼저 확인
+        </a>
+        <a href="../index.html#products" class="inline-block px-6 py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-shilla font-bold hover:bg-[var(--vermil)] transition">
+          전문 분석 4종 둘러보기 →
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="top-stripe mt-16"></div>
+
+  <!-- Footer -->
+  <footer class="bg-[var(--paper2)] border-t border-[var(--paper-dk)] py-10">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <p class="font-hanja text-sm text-[var(--vermil)] tracking-widest mb-2">四柱日記</p>
+      <p class="font-display text-base mb-2">사주다이어리</p>
+      <p class="text-xs text-[var(--ink4)] font-shilla space-y-1 leading-relaxed">
+        <span class="block">상호: 마일 · 대표: 손승한 · 이메일: cleanblue99@gmail.com</span>
+        <span class="block">사업자등록번호: 254-32-01626 · 통신판매업: 제2025-경기남부-5033호</span>
+        <span class="block">© 2026 사주다이어리. All rights reserved.</span>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    //   칼럼 데이터 — 새 글 추가는 여기에 객체 한 개만 넣으면 됨
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const ARTICLES = [
+      {
+        slug: '2026-05-10-saju-intro',
+        title: '사주가 무엇인가 — 데이터 분석가의 10분 입문',
+        summary: '음양·오행·천간지지·사주팔자 — 명리학 처음 듣는 분도 10분이면 따라잡아요. 어려운 용어 없이 술술 읽히는 입문 가이드.',
+        category: 'myeongri',
+        categoryLabel: '명리 입문',
+        hanja: '理',
+        thumbClass: 'thumb-myeongri',
+        date: '2026-05-10',
+        readMin: 10,
+        views: 0
+      }
+      // ↓ 새 글 추가는 여기에 객체 추가
+      // 카테고리: myeongri / ilju / season / couple / data
+      // hanja 한 글자: 理(명리) 柱(일주) 運(시즌) 緣(궁합) 數(데이터) 또는 자유
+      // thumbClass: thumb-myeongri / thumb-ilju / thumb-season / thumb-couple / thumb-data
+    ];
+
+    const CATEGORIES = {
+      all: '전체',
+      myeongri: '명리 입문',
+      ilju: '일주별 풀이',
+      season: '운세 시즌',
+      couple: '궁합 이야기',
+      data: '데이터로 본 사주'
+    };
+
+    const PER_PAGE = 12;
+    let currentCat = 'all';
+    let currentPage = 1;
+
+    // ─ 카드 HTML 생성 ─
+    function cardHtml(a) {
+      const dateFormatted = a.date.replace(/-/g, '.');
+      return `
+        <a href="${a.slug}.html" class="article-card">
+          <div class="thumb ${a.thumbClass}">
+            <span class="thumb-hanja">${a.hanja}</span>
+            <span class="thumb-cat">${a.categoryLabel}</span>
+          </div>
+          <div class="article-body">
+            <h3 class="article-title">${a.title}</h3>
+            <p class="article-summary">${a.summary}</p>
+            <div class="article-meta">
+              <span>${dateFormatted}</span>
+              <span>${a.readMin}분 읽기</span>
+            </div>
+          </div>
+        </a>
+      `;
+    }
+
+    // ─ 렌더링 ─
+    function render() {
+      const filtered = currentCat === 'all'
+        ? ARTICLES
+        : ARTICLES.filter(a => a.category === currentCat);
+      // 최신순
+      const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
+
+      const grid = document.getElementById('article-grid');
+      const empty = document.getElementById('empty-state');
+      const paginationEl = document.getElementById('pagination');
+
+      if (sorted.length === 0) {
+        grid.innerHTML = '';
+        grid.classList.add('hidden');
+        empty.classList.remove('hidden');
+        paginationEl.innerHTML = '';
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      empty.classList.add('hidden');
+
+      // 페이지네이션
+      const totalPages = Math.ceil(sorted.length / PER_PAGE);
+      if (currentPage > totalPages) currentPage = 1;
+      const start = (currentPage - 1) * PER_PAGE;
+      const pageItems = sorted.slice(start, start + PER_PAGE);
+
+      grid.innerHTML = pageItems.map(cardHtml).join('');
+
+      // 페이지 버튼
+      if (totalPages > 1) {
+        let pagHtml = '';
+        pagHtml += `<button class="page-btn" data-page="prev" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+        for (let i = 1; i <= totalPages; i++) {
+          pagHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+        pagHtml += `<button class="page-btn" data-page="next" ${currentPage === totalPages ? 'disabled' : ''}>›</button>`;
+        paginationEl.innerHTML = pagHtml;
+
+        paginationEl.querySelectorAll('.page-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const p = btn.dataset.page;
+            if (p === 'prev') currentPage = Math.max(1, currentPage - 1);
+            else if (p === 'next') currentPage = Math.min(totalPages, currentPage + 1);
+            else currentPage = parseInt(p, 10);
+            render();
+            window.scrollTo({ top: document.querySelector('main').offsetTop - 80, behavior: 'smooth' });
+          });
+        });
+      } else {
+        paginationEl.innerHTML = '';
+      }
+    }
+
+    // ─ 카테고리별 글 수 표시 ─
+    function updateCounts() {
+      document.getElementById('count-all').textContent = ARTICLES.length;
+      Object.keys(CATEGORIES).forEach(cat => {
+        if (cat === 'all') return;
+        const count = ARTICLES.filter(a => a.category === cat).length;
+        const el = document.getElementById('count-' + cat);
+        if (el) el.textContent = count;
+      });
+    }
+
+    // ─ 카테고리 탭 클릭 ─
+    document.querySelectorAll('.cat-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentCat = tab.dataset.cat;
+        currentPage = 1;
+        render();
+      });
+    });
+
+    // ─ 초기 렌더 ─
+    updateCounts();
+    render();
+  </script>
+</body>
+</html>

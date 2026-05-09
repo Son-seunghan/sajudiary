@@ -25,6 +25,22 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- 칼럼 인덱스 -->
+  <url>
+    <loc>https://sajudiary.com/column/</loc>
+    <lastmod>2026-05-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 칼럼 글들 — 새 글 추가 시 여기에 url 항목 추가 -->
+  <url>
+    <loc>https://sajudiary.com/column/2026-05-10-saju-intro.html</loc>
+    <lastmod>2026-05-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- 법적 문서 -->
   <url>
     <loc>https://sajudiary.com/terms.html</loc>
