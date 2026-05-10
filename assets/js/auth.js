@@ -122,14 +122,19 @@ const Auth = (function () {
     } catch (err) {
       // ─── 토큰 교환 실패 — 우아한 폴백 ───
       // CORS / 백엔드 부재 등으로 토큰 교환이 안 될 때
-      // 카카오에서 받은 인가 코드(code) 자체를 사용자 식별자로 활용
       // ※ 실서비스에서는 백엔드(Vercel 함수)에서 처리해야 함
       console.warn('[Auth] ⚠️ 토큰 교환 실패 — 폴백 모드로 로그인 처리');
       console.warn('[Auth] 원본 에러:', err);
-      console.warn('[Auth] 안내: 실서비스 배포 시 백엔드(Vercel 서버리스 함수)에서 토큰 교환 필요');
 
-      // code의 일부를 해시로 사용 (같은 사용자 = 같은 ID 보장은 안 됨, 임시 식별자)
-      const fallbackId = 'kakao_' + (code.substring(0, 16) || Date.now());
+      // ── 폴백 ID 안정화 ──
+      // 매번 새 인가 code로 새 ID 만들지 말고, 한 번 만들어진 ID는 localStorage에 캐시
+      // (같은 브라우저에서 로그인 = 같은 사용자로 인식 → isMaster·구매내역 유지)
+      const FALLBACK_ID_KEY = 'sajudiary_fallback_id';
+      let fallbackId = localStorage.getItem(FALLBACK_ID_KEY);
+      if (!fallbackId) {
+        fallbackId = 'kakao_fb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem(FALLBACK_ID_KEY, fallbackId);
+      }
       const fallbackUser = {
         id: fallbackId,
         nickname: '카카오 회원',
@@ -137,6 +142,7 @@ const Auth = (function () {
         provider: 'kakao_fallback'
       };
       saveUser(fallbackUser);
+      console.log('[Auth] ✅ 폴백 로그인 — 안정 ID:', fallbackId);
 
       console.log('[Auth] ✅ 폴백 로그인 성공, 결제 페이지로 이동');
       if (product === '__cart__') {
@@ -159,7 +165,29 @@ const Auth = (function () {
 
   // ─── 사용자 정보 저장/조회/삭제 ───
   function saveUser(user) {
-    // 신규 사용자인지 체크 (sajudiary_user_history 에 ID가 없으면 신규)
+    // ── (1) 기존 사용자의 isMaster 권한 보존 ──
+    // 매번 카카오 로그인할 때마다 새 user 객체로 덮어쓰면 isMaster가 풀리는 문제 방지
+    const existingRaw = localStorage.getItem(STORAGE_KEY);
+    if (existingRaw) {
+      try {
+        const existing = JSON.parse(existingRaw);
+        if (existing && existing.isMaster) {
+          user.isMaster = true;
+          console.log('[Auth] ✦ 기존 마스터 권한 유지:', user.id);
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // ── (2) 마스터 화이트리스트 자동 적용 ──
+    // config.js의 MASTER_KAKAO_IDS에 본인 ID가 있으면 자동으로 isMaster 활성화
+    // (카카오 ID는 콘솔 로그에서 확인 → config.js의 MASTER_KAKAO_IDS에 추가)
+    const masterList = (cfg && cfg.MASTER_KAKAO_IDS) || [];
+    if (masterList.includes(user.id)) {
+      user.isMaster = true;
+      console.log('[Auth] ✦ 화이트리스트 마스터 자동 적용:', user.id);
+    }
+
+    // ── (3) 신규 사용자 체크 + 환영 쿠폰 ──
     const histKey = 'sajudiary_user_history';
     const history = JSON.parse(localStorage.getItem(histKey) || '[]');
     const isNewUser = !history.includes(user.id);
@@ -172,7 +200,6 @@ const Auth = (function () {
       if (typeof Cart !== 'undefined' && Cart.issueCoupon) {
         const issued = Cart.issueCoupon('WELCOME3000');
         if (issued) {
-          // 쿠폰 발급 안내를 sessionStorage에 저장 (다음 페이지에서 표시)
           sessionStorage.setItem('coupon_just_issued', 'WELCOME3000');
           console.log('[Auth] 🎉 신규 환영 쿠폰 발급:', issued);
         }
@@ -180,6 +207,7 @@ const Auth = (function () {
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    console.log('[Auth] 사용자 저장됨 — id:', user.id, '| 마스터:', !!user.isMaster);
   }
   function getUser() {
     const raw = localStorage.getItem(STORAGE_KEY);
