@@ -214,9 +214,18 @@
         <button id="btn-logout" class="btn-logout flex-shrink-0">로그아웃</button>
       </div>
 
+      <!-- 내 분석 슬롯 -->
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="font-display text-xl text-[var(--ink)]">내 분석</h2>
+        <span class="font-shilla text-xs text-[var(--ink3)]">총 <span id="analyses-count" class="text-[var(--vermil)] font-bold">0</span>개 저장</span>
+      </div>
+      <div id="analyses-list" class="space-y-3 mb-12">
+        <!-- JS로 채워짐 -->
+      </div>
+
       <!-- 구매 내역 -->
       <div class="mb-4 flex items-center justify-between">
-        <h2 class="font-display text-xl text-[var(--ink)]">구매한 분석</h2>
+        <h2 class="font-display text-xl text-[var(--ink)]">결제 내역</h2>
         <span class="font-shilla text-xs text-[var(--ink3)]">총 <span id="purchase-count" class="text-[var(--vermil)] font-bold">0</span>건</span>
       </div>
 
@@ -287,7 +296,114 @@
       ? `<img src="${user.profile_image}" alt="" class="w-14 h-14 rounded-full object-cover" />`
       : `<div class="w-14 h-14 rounded-full bg-[var(--paper3)] flex items-center justify-center text-[var(--ink3)] text-2xl">👤</div>`;
 
-    // ─── 3) 구매 내역 표시 ───
+    // ─── 3) 내 분석 슬롯 표시 ───
+    function renderAnalyses() {
+      const productIds = ['light', 'deep', 'couple', 'couple_plus'];
+      const analysesEl = document.getElementById('analyses-list');
+      const countEl = document.getElementById('analyses-count');
+
+      // 모든 상품의 슬롯 수집
+      const items = [];
+      let totalCount = 0;
+      productIds.forEach(pid => {
+        const list = AuthGuard.getAnalyses(pid);
+        const remaining = AuthGuard.getRemainingSlots(pid);
+        list.forEach((slot, idx) => {
+          items.push({ productId: pid, slotIdx: idx, slot });
+          totalCount++;
+        });
+        // 잔여 결제분 (입력 가능) 카드도 추가
+        if (remaining > 0) {
+          items.push({ productId: pid, isNewSlot: true, remaining });
+        }
+      });
+
+      countEl.textContent = totalCount;
+
+      if (items.length === 0) {
+        analysesEl.innerHTML = `
+          <div class="empty-state panel">
+            <div class="text-5xl mb-4 opacity-30">📜</div>
+            <p class="font-display text-lg mb-2 text-[var(--ink2)]">아직 저장된 분석이 없습니다</p>
+            <p class="font-shilla text-sm text-[var(--ink4)]">분석 상품을 결제하시면 여기에 저장됩니다</p>
+          </div>
+        `;
+        return;
+      }
+
+      analysesEl.innerHTML = items.map(item => {
+        const product = cfg.PRODUCTS[item.productId];
+        if (!product) return '';
+        const sealClass = product.color === 'jade' ? 'seal-jade'
+                        : product.color === 'plum' ? 'seal-plum'
+                        : product.color === 'wine' ? 'seal-wine' : '';
+        const tagClass = product.color === 'jade' ? 'tag-light'
+                       : product.color === 'plum' ? 'tag-couple'
+                       : product.color === 'wine' ? 'tag-wine' : 'tag-deep';
+
+        if (item.isNewSlot) {
+          // 빈 슬롯 — 새 분석 시작 가능
+          return `
+            <div class="purchase-card" style="border-style:dashed;background:var(--paper2)/30;">
+              <div class="flex items-center gap-4">
+                <div class="seal ${sealClass}" style="opacity:0.4;">＋</div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-display text-base text-[var(--ink)] truncate">
+                    ${product.name} <span class="product-tag ${tagClass}">신규 분석 가능</span>
+                  </p>
+                  <p class="font-shilla text-xs text-[var(--ink3)] mt-0.5">결제 잔여 ${item.remaining}회 — 입력 후 분석 시작</p>
+                </div>
+                <a href="${product.file.includes('?') ? product.file + '&slot=new' : product.file + '?slot=new'}" class="btn-view flex-shrink-0" style="background:var(--gold)">새 분석 시작 →</a>
+              </div>
+            </div>
+          `;
+        }
+
+        // 저장된 분석
+        const inputs = item.slot.inputs || {};
+        let summary = '';
+        if (item.productId === 'couple' || item.productId === 'couple_plus') {
+          // 궁합 — 두 사람
+          const a = inputs.A || {};
+          const b = inputs.B || {};
+          const aName = a.name || '사람 A';
+          const bName = b.name || '사람 B';
+          const aDate = a.year ? `${a.year}.${String(a.month).padStart(2,'0')}.${String(a.day).padStart(2,'0')}` : '';
+          const bDate = b.year ? `${b.year}.${String(b.month).padStart(2,'0')}.${String(b.day).padStart(2,'0')}` : '';
+          summary = `${aName}(${aDate}) × ${bName}(${bDate})`;
+        } else {
+          // 사주 (개인)
+          const name = inputs.name || '본인';
+          const date = inputs.year ? `${inputs.year}.${String(inputs.month).padStart(2,'0')}.${String(inputs.day).padStart(2,'0')}` : '';
+          summary = `${name} · ${date}${inputs.gender === 'male' ? ' · 남' : ' · 여'}`;
+        }
+        const lockedDate = item.slot.lockedAt ? new Date(item.slot.lockedAt) : null;
+        const lockedStr = lockedDate ? `${lockedDate.getFullYear()}.${String(lockedDate.getMonth()+1).padStart(2,'0')}.${String(lockedDate.getDate()).padStart(2,'0')}` : '';
+
+        const sep = product.file.includes('?') ? '&' : '?';
+        const viewUrl = `${product.file}${sep}slot=${item.slotIdx}`;
+
+        return `
+          <div class="purchase-card">
+            <div class="flex items-center gap-4">
+              <div class="seal ${sealClass}">${product.hanja}</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-display text-base text-[var(--ink)] truncate">
+                  ${product.name} <span class="product-tag ${tagClass}">슬롯 ${item.slotIdx + 1}</span>
+                </p>
+                <p class="font-shilla text-xs text-[var(--ink2)] mt-0.5 truncate">${summary}</p>
+                <p class="font-shilla text-[10px] text-[var(--ink4)] mt-0.5">분석 저장: ${lockedStr}</p>
+              </div>
+              <a href="${viewUrl}" class="btn-view flex-shrink-0">보기</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    renderAnalyses();
+
+    // ─── 4) 구매 내역 표시 ───
     const purchases = AuthGuard.getPurchases();
     document.getElementById('purchase-count').textContent = purchases.length;
 

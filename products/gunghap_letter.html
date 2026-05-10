@@ -24,15 +24,25 @@
     AuthGuard.requirePurchase(requiredProduct);
   })();
 
-  // ─── 1회 결제 = 1회 입력 잠금 자동 로드 (궁합) ───
+  // ─── 다중 슬롯 + 카카오 생일 자동입력 (궁합) ───
   window.addEventListener('DOMContentLoaded', function() {
-    const mode = new URLSearchParams(window.location.search).get('mode');
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
     const productId = mode === 'adult' ? 'couple_plus' : 'couple';
-    const saved = AuthGuard.getAnalysis(productId);
+    const slotParam = params.get('slot');
+    const isNewSlot = slotParam === 'new';
+    const slotIdx = (slotParam !== null && slotParam !== 'new') ? parseInt(slotParam, 10) : null;
+
+    let saved = null;
+    if (!isNewSlot) {
+      saved = AuthGuard.getAnalysis(productId, slotIdx);
+    }
+
     const isMaster = AuthGuard.isMaster();
-    if (saved && !isMaster) {
+    const set = function(id, v) { const el = document.getElementById(id); if (el && v !== undefined && v !== null && v !== '') el.value = v; };
+
+    if (saved && !isNewSlot) {
       const i = saved.inputs;
-      const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = v; };
       if (i.A) {
         set('nameA',   i.A.name);
         set('genderA', i.A.gender);
@@ -49,7 +59,6 @@
         set('dayB',    i.B.day);
         set('hourB',   i.B.hour);
       }
-      // 관계 모드 복원
       if (i.relMode) {
         window.currentMode = i.relMode;
         document.querySelectorAll('.rel-btn').forEach(function(b) {
@@ -57,17 +66,46 @@
           else b.classList.remove('active');
         });
       }
-      // 성인 모드/수위 복원
       const adultEl = document.getElementById('adultMode');
       if (adultEl && i.adultMode) adultEl.checked = true;
       if (i.adultLevel) {
         const radio = document.querySelector('input[name=adultLevel][value="' + i.adultLevel + '"]');
         if (radio) radio.checked = true;
       }
-      // 자동 분석 (저장된 입력값이라 confirm 스킵)
       setTimeout(function() {
         if (typeof doCalc === 'function') doCalc(true);
       }, 250);
+    } else {
+      // 신규 — 사람 A는 본인이라 가정, 카카오 정보로 자동 채움
+      const user = AuthGuard.getUser();
+      if (user) {
+        if (user.birthMM) set('monthA', user.birthMM);
+        if (user.birthDD) set('dayA', user.birthDD);
+        if (user.nickname && user.nickname !== '회원' && user.nickname !== '카카오 회원') {
+          set('nameA', user.nickname);
+        }
+      }
+    }
+
+    // 잔여 슬롯 안내
+    const remaining = AuthGuard.getRemainingSlots(productId);
+    const usedCount = AuthGuard.getAnalyses(productId).length;
+    if (usedCount > 0 && !isMaster) {
+      const slotInfoEl = document.getElementById('slotInfo');
+      if (slotInfoEl) {
+        let html = '<div style="margin-bottom:14px;padding:12px 14px;background:rgba(184,96,122,.10);border:1px solid rgba(184,96,122,.35);border-radius:8px;font-size:12px;color:var(--text);line-height:1.7;">';
+        html += '<b style="color:#b8607a;">📊 내 궁합 분석 슬롯</b><br/>';
+        html += '저장된 분석: <b>' + usedCount + '개</b>';
+        if (remaining > 0) {
+          html += ' · 남은 입력 가능: <b style="color:#a8d96e;">' + remaining + '회</b>';
+          html += '<br/><span style="color:var(--muted);font-size:11px;">신규 분석을 시작하려면 두 분 정보 입력 후 분석하기를 누르세요.</span>';
+        } else {
+          html += ' · <span style="color:var(--muted);">잔여 결제분 없음</span>';
+          html += '<br/><a href="../mypage.html" style="color:var(--accent);text-decoration:underline;">→ 마이페이지에서 다른 분석 보기</a>';
+        }
+        html += '</div>';
+        slotInfoEl.innerHTML = html;
+      }
     }
   });
 </script>
@@ -270,6 +308,7 @@ body.has-fbar{padding-bottom:96px;}
   </header>
   <section id="inputCard" class="card">
     <div class="card-title">두 분의 생년월일을 적어주세요</div>
+    <div id="slotInfo"></div>
     <div style="margin-bottom:14px;padding:12px 14px;background:rgba(232,200,122,.08);border:1px solid rgba(232,200,122,.3);border-radius:8px;font-size:12px;color:var(--text);line-height:1.7;">
       <b style="color:#e8c87a;">⚠️ 1회 분석 안내</b><br/>
       입력 후 분석 결과가 저장되며, <b>같은 결제로는 다른 궁합 입력이 불가</b>합니다. 두 분의 생년월일·시간을 정확히 확인 후 분석해주세요.
@@ -2050,26 +2089,31 @@ document.querySelectorAll('.rel-btn').forEach(btn=>{
 });
 function doCalc(skipConfirm){
   try{
-    // ─── 분석 시작 전 확인 다이얼로그 ───
+    // ─── 분석 시작 전 확인 다이얼로그 (다중 슬롯) ───
     const _modePre = new URLSearchParams(window.location.search).get('mode');
     const _productIdPre = _modePre === 'adult' ? 'couple_plus' : 'couple';
-    const _alreadySaved=(typeof AuthGuard!=='undefined')&&AuthGuard.hasAnalysis(_productIdPre);
     const _isMaster=(typeof AuthGuard!=='undefined')&&AuthGuard.isMaster();
-    if(!skipConfirm && !_alreadySaved && !_isMaster){
-      const _msg='입력하신 두 분의 정보로 궁합 분석을 시작합니다.\n\n'
-               +'⚠️ 분석 후에는 같은 결제로 다른 궁합을 입력할 수 없습니다.\n'
-               +'두 분의 생년월일·시간이 정확한지 한 번 더 확인해주세요.\n\n'
-               +'계속하시겠습니까?';
+    const _canAnalyze=(typeof AuthGuard!=='undefined')&&AuthGuard.canAnalyze(_productIdPre);
+    if(!skipConfirm && _canAnalyze && !_isMaster){
+      const _used=AuthGuard.getAnalyses(_productIdPre).length;
+      const _remaining=AuthGuard.getRemainingSlots(_productIdPre);
+      let _msg='입력하신 두 분의 정보로 궁합 분석을 시작합니다.\n\n';
+      if(_used>0){
+        _msg+='💡 현재 ' +_used+ '개 분석이 저장되어 있고, 추가 가능 횟수: ' +_remaining+ '회\n\n';
+      }
+      _msg+='⚠️ 분석 후에는 입력값이 슬롯에 잠기며 수정할 수 없습니다.\n'
+         + '두 분의 생년월일·시간이 정확한지 한 번 더 확인해주세요.\n\n'
+         + '계속하시겠습니까?';
       if(!confirm(_msg)) return;
     }
 
     const A=buildSaju({name:document.getElementById('nameA').value||'사람 A',gender:document.getElementById('genderA').value,year:parseInt(document.getElementById('yearA').value,10),month:parseInt(document.getElementById('monthA').value,10),day:parseInt(document.getElementById('dayA').value,10),hour:parseInt(document.getElementById('hourA').value,10)});
     const B=buildSaju({name:document.getElementById('nameB').value||'사람 B',gender:document.getElementById('genderB').value,year:parseInt(document.getElementById('yearB').value,10),month:parseInt(document.getElementById('monthB').value,10),day:parseInt(document.getElementById('dayB').value,10),hour:parseInt(document.getElementById('hourB').value,10)});
 
-    // ─── 1회 결제 = 1회 입력 잠금 저장 (궁합) ───
+    // ─── 신규 슬롯 저장 (잔여 결제분 있을 때만, 다중 슬롯) ───
     const _mode = new URLSearchParams(window.location.search).get('mode');
     const _productId = _mode === 'adult' ? 'couple_plus' : 'couple';
-    if(typeof AuthGuard !== 'undefined' && !AuthGuard.hasAnalysis(_productId)){
+    if(typeof AuthGuard !== 'undefined' && AuthGuard.canAnalyze(_productId)){
       const _adultEl = document.getElementById('adultMode');
       const _adultLevelEl = document.querySelector('input[name=adultLevel]:checked');
       AuthGuard.saveAnalysis(_productId, {
@@ -2107,12 +2151,23 @@ function doCalc(skipConfirm){
   }catch(e){alert('계산 중 오류: '+e.message);console.error(e);}
 }
 function goBack(){
-  // 1회 결제 = 1회 입력 정책: 이미 분석된 경우 마스터만 수정 허용
   const _mode = new URLSearchParams(window.location.search).get('mode');
   const _productId = _mode === 'adult' ? 'couple_plus' : 'couple';
-  if(typeof AuthGuard !== 'undefined' && AuthGuard.hasAnalysis(_productId) && !AuthGuard.isMaster()){
-    alert('이미 분석이 저장되었습니다.\n\n사주다이어리는 1회 결제 = 1회 분석 정책입니다.\n다른 궁합을 분석하려면 추가 결제가 필요합니다.');
+  if(typeof AuthGuard !== 'undefined' && !AuthGuard.canAnalyze(_productId) && !AuthGuard.isMaster()){
+    alert('현재 결제분 슬롯을 모두 사용했습니다.\n\n다른 궁합을 분석하려면 추가 결제가 필요합니다.\n또는 마이페이지에서 기존 분석을 다시 보실 수 있습니다.');
     return;
+  }
+  // 잔여 슬롯 있음 — 빈 입력 폼 + 카카오 정보 자동 채움
+  const inputs=['nameA','genderA','yearA','monthA','dayA','hourA','nameB','genderB','yearB','monthB','dayB','hourB'];
+  inputs.forEach(function(id){const el=document.getElementById(id);if(el)el.value='';});
+  if(typeof AuthGuard !== 'undefined'){
+    const user=AuthGuard.getUser();
+    if(user){
+      const set=function(id,v){const el=document.getElementById(id);if(el && v)el.value=v;};
+      if(user.birthMM)set('monthA',user.birthMM);
+      if(user.birthDD)set('dayA',user.birthDD);
+      if(user.nickname && user.nickname !== '회원' && user.nickname !== '카카오 회원')set('nameA',user.nickname);
+    }
   }
   document.getElementById('inputCard').classList.remove('hidden');
   document.getElementById('resultArea').classList.add('hidden');

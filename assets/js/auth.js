@@ -54,7 +54,9 @@ const Auth = (function () {
     Kakao.Auth.authorize({
       redirectUri: window.location.origin + window.location.pathname,
       state: isCartMode ? '__cart__' : (productId || ''),
-      scope: 'profile_nickname,profile_image'
+      // birthday: 생일(MMDD) — 사주 자동입력용. 카카오 동의 항목 활성화 필요.
+      // gender / birthyear / age_range는 비즈니스 인증 필요 — 미사용.
+      scope: 'profile_nickname,profile_image,birthday'
     });
   }
 
@@ -104,11 +106,18 @@ const Auth = (function () {
       const userResponse = await Kakao.API.request({ url: '/v2/user/me' });
       console.log('[Auth] 사용자 정보:', userResponse);
 
+      // 카카오 생일 (MMDD) — 사주 자동입력용
+      const birthday = userResponse.kakao_account?.birthday || '';
+      const birthMM = birthday.length === 4 ? parseInt(birthday.substring(0, 2), 10) : null;
+      const birthDD = birthday.length === 4 ? parseInt(birthday.substring(2, 4), 10) : null;
+
       const user = {
         id: 'kakao_' + userResponse.id,
         nickname: userResponse.kakao_account?.profile?.nickname || '회원',
         profile_image: userResponse.kakao_account?.profile?.profile_image_url || '',
-        provider: 'kakao'
+        provider: 'kakao',
+        birthMM: birthMM,
+        birthDD: birthDD
       };
       saveUser(user);
       console.log('[Auth] 로그인 성공! 결제 페이지로 이동');
