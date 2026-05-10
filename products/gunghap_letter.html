@@ -23,6 +23,53 @@
     }
     AuthGuard.requirePurchase(requiredProduct);
   })();
+
+  // ─── 1회 결제 = 1회 입력 잠금 자동 로드 (궁합) ───
+  window.addEventListener('DOMContentLoaded', function() {
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    const productId = mode === 'adult' ? 'couple_plus' : 'couple';
+    const saved = AuthGuard.getAnalysis(productId);
+    const isMaster = AuthGuard.isMaster();
+    if (saved && !isMaster) {
+      const i = saved.inputs;
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = v; };
+      if (i.A) {
+        set('nameA',   i.A.name);
+        set('genderA', i.A.gender);
+        set('yearA',   i.A.year);
+        set('monthA',  i.A.month);
+        set('dayA',    i.A.day);
+        set('hourA',   i.A.hour);
+      }
+      if (i.B) {
+        set('nameB',   i.B.name);
+        set('genderB', i.B.gender);
+        set('yearB',   i.B.year);
+        set('monthB',  i.B.month);
+        set('dayB',    i.B.day);
+        set('hourB',   i.B.hour);
+      }
+      // 관계 모드 복원
+      if (i.relMode) {
+        window.currentMode = i.relMode;
+        document.querySelectorAll('.rel-btn').forEach(function(b) {
+          if (b.dataset.rel === i.relMode) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+      }
+      // 성인 모드/수위 복원
+      const adultEl = document.getElementById('adultMode');
+      if (adultEl && i.adultMode) adultEl.checked = true;
+      if (i.adultLevel) {
+        const radio = document.querySelector('input[name=adultLevel][value="' + i.adultLevel + '"]');
+        if (radio) radio.checked = true;
+      }
+      // 자동 분석 (저장된 입력값이라 confirm 스킵)
+      setTimeout(function() {
+        if (typeof doCalc === 'function') doCalc(true);
+      }, 250);
+    }
+  });
 </script>
 <!-- 카카오 SDK (공유용) -->
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
@@ -202,6 +249,16 @@ body.has-fbar{padding-bottom:96px;}
 }
 
 </style>
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JTND4S6842');
+</script>
+<!-- Vercel Web Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -213,6 +270,10 @@ body.has-fbar{padding-bottom:96px;}
   </header>
   <section id="inputCard" class="card">
     <div class="card-title">두 분의 생년월일을 적어주세요</div>
+    <div style="margin-bottom:14px;padding:12px 14px;background:rgba(232,200,122,.08);border:1px solid rgba(232,200,122,.3);border-radius:8px;font-size:12px;color:var(--text);line-height:1.7;">
+      <b style="color:#e8c87a;">⚠️ 1회 분석 안내</b><br/>
+      입력 후 분석 결과가 저장되며, <b>같은 결제로는 다른 궁합 입력이 불가</b>합니다. 두 분의 생년월일·시간을 정확히 확인 후 분석해주세요.
+    </div>
     <div class="rel-toggle"><button type="button" class="rel-btn active" data-rel="couple">연인 · 결혼</button><button type="button" class="rel-btn" data-rel="friend">친구 · 형제</button><button type="button" class="rel-btn" data-rel="work">동업 · 직장</button></div>
     <div class="dual-form">
       <div class="person-panel A" data-label="사람 A"><div class="form-grid">
@@ -1987,10 +2048,39 @@ document.querySelectorAll('.rel-btn').forEach(btn=>{
     syncAdultModeUI();
   });
 });
-function doCalc(){
+function doCalc(skipConfirm){
   try{
+    // ─── 분석 시작 전 확인 다이얼로그 ───
+    const _modePre = new URLSearchParams(window.location.search).get('mode');
+    const _productIdPre = _modePre === 'adult' ? 'couple_plus' : 'couple';
+    const _alreadySaved=(typeof AuthGuard!=='undefined')&&AuthGuard.hasAnalysis(_productIdPre);
+    const _isMaster=(typeof AuthGuard!=='undefined')&&AuthGuard.isMaster();
+    if(!skipConfirm && !_alreadySaved && !_isMaster){
+      const _msg='입력하신 두 분의 정보로 궁합 분석을 시작합니다.\n\n'
+               +'⚠️ 분석 후에는 같은 결제로 다른 궁합을 입력할 수 없습니다.\n'
+               +'두 분의 생년월일·시간이 정확한지 한 번 더 확인해주세요.\n\n'
+               +'계속하시겠습니까?';
+      if(!confirm(_msg)) return;
+    }
+
     const A=buildSaju({name:document.getElementById('nameA').value||'사람 A',gender:document.getElementById('genderA').value,year:parseInt(document.getElementById('yearA').value,10),month:parseInt(document.getElementById('monthA').value,10),day:parseInt(document.getElementById('dayA').value,10),hour:parseInt(document.getElementById('hourA').value,10)});
     const B=buildSaju({name:document.getElementById('nameB').value||'사람 B',gender:document.getElementById('genderB').value,year:parseInt(document.getElementById('yearB').value,10),month:parseInt(document.getElementById('monthB').value,10),day:parseInt(document.getElementById('dayB').value,10),hour:parseInt(document.getElementById('hourB').value,10)});
+
+    // ─── 1회 결제 = 1회 입력 잠금 저장 (궁합) ───
+    const _mode = new URLSearchParams(window.location.search).get('mode');
+    const _productId = _mode === 'adult' ? 'couple_plus' : 'couple';
+    if(typeof AuthGuard !== 'undefined' && !AuthGuard.hasAnalysis(_productId)){
+      const _adultEl = document.getElementById('adultMode');
+      const _adultLevelEl = document.querySelector('input[name=adultLevel]:checked');
+      AuthGuard.saveAnalysis(_productId, {
+        A: { name: document.getElementById('nameA').value||'사람 A', gender: document.getElementById('genderA').value, year: parseInt(document.getElementById('yearA').value,10), month: parseInt(document.getElementById('monthA').value,10), day: parseInt(document.getElementById('dayA').value,10), hour: parseInt(document.getElementById('hourA').value,10) },
+        B: { name: document.getElementById('nameB').value||'사람 B', gender: document.getElementById('genderB').value, year: parseInt(document.getElementById('yearB').value,10), month: parseInt(document.getElementById('monthB').value,10), day: parseInt(document.getElementById('dayB').value,10), hour: parseInt(document.getElementById('hourB').value,10) },
+        relMode: currentMode,
+        adultMode: !!(_adultEl && _adultEl.checked),
+        adultLevel: _adultLevelEl ? _adultLevelEl.value : 'medium'
+      });
+    }
+
     const pair=analyzePair(A,B);
     const score=computeOverallScore(A,B,pair,currentMode);
     const label=getScoreLabel(score,currentMode);
@@ -2017,6 +2107,13 @@ function doCalc(){
   }catch(e){alert('계산 중 오류: '+e.message);console.error(e);}
 }
 function goBack(){
+  // 1회 결제 = 1회 입력 정책: 이미 분석된 경우 마스터만 수정 허용
+  const _mode = new URLSearchParams(window.location.search).get('mode');
+  const _productId = _mode === 'adult' ? 'couple_plus' : 'couple';
+  if(typeof AuthGuard !== 'undefined' && AuthGuard.hasAnalysis(_productId) && !AuthGuard.isMaster()){
+    alert('이미 분석이 저장되었습니다.\n\n사주다이어리는 1회 결제 = 1회 분석 정책입니다.\n다른 궁합을 분석하려면 추가 결제가 필요합니다.');
+    return;
+  }
   document.getElementById('inputCard').classList.remove('hidden');
   document.getElementById('resultArea').classList.add('hidden');
   document.getElementById('tocCard').classList.add('hidden');document.getElementById('floatBar').classList.add('hidden');

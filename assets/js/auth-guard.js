@@ -8,6 +8,7 @@
 const AuthGuard = (function () {
   const USER_KEY      = 'sajudiary_user';
   const PURCHASES_KEY = 'sajudiary_purchases';
+  const ANALYSES_KEY  = 'sajudiary_analyses';
 
   // ─── 사용자 ───
   function getUser() {
@@ -31,6 +32,47 @@ const AuthGuard = (function () {
     const list = getPurchases();
     list.push({ ...record, purchasedAt: new Date().toISOString() });
     localStorage.setItem(PURCHASES_KEY, JSON.stringify(list));
+  }
+
+  // ─── 분석 입력 잠금 ───
+  // localStorage에 { productId: { inputs: {...}, lockedAt: ISO } } 형태로 저장
+  // 1회 결제 = 1회 입력 정책. 마스터는 무제한.
+  function _getAllAnalyses() {
+    const raw = localStorage.getItem(ANALYSES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }
+  function getAnalysis(productId) {
+    return _getAllAnalyses()[productId] || null;
+  }
+  function hasAnalysis(productId) {
+    return getAnalysis(productId) !== null;
+  }
+  // 첫 입력 시에만 저장. 이미 있으면 무시 (마스터는 덮어쓰기 가능)
+  function saveAnalysis(productId, inputs) {
+    const all = _getAllAnalyses();
+    const isMaster = !!(getUser() && getUser().isMaster);
+    if (all[productId] && !isMaster) {
+      console.warn('[AuthGuard] 이미 잠긴 분석입니다:', productId);
+      return false;
+    }
+    all[productId] = {
+      inputs,
+      lockedAt: new Date().toISOString()
+    };
+    localStorage.setItem(ANALYSES_KEY, JSON.stringify(all));
+    console.log('[AuthGuard] 분석 저장 + 잠금:', productId);
+    return true;
+  }
+  // 마스터 전용 — 잠금 해제
+  function clearAnalysis(productId) {
+    if (!(getUser() && getUser().isMaster)) {
+      console.warn('[AuthGuard] 잠금 해제는 마스터만 가능합니다.');
+      return false;
+    }
+    const all = _getAllAnalyses();
+    delete all[productId];
+    localStorage.setItem(ANALYSES_KEY, JSON.stringify(all));
+    return true;
   }
 
   // ─── 페이지 접근 가드 ───
@@ -94,6 +136,7 @@ const AuthGuard = (function () {
   return {
     getUser, isLoggedIn,
     getPurchases, hasPurchased, addPurchase,
+    getAnalysis, hasAnalysis, saveAnalysis, clearAnalysis,
     requirePurchase, requireLogin,
     setMaster, isMaster
   };
