@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="navyBorder" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1d2c54"/>
+      <stop offset="100%" stop-color="#0e1830"/>
+    </linearGradient>
+    <linearGradient id="paperFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8f1da"/>
+      <stop offset="100%" stop-color="#f0e6c8"/>
+    </linearGradient>
+    <filter id="paperNoise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="3"/>
+      <feColorMatrix values="0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0 0.20 0 0 0 0.06 0"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#navyBorder)"/>
+  <rect x="28" y="28" width="456" height="456" fill="url(#paperFill)" rx="6"/>
+  <rect x="28" y="28" width="456" height="456" filter="url(#paperNoise)" opacity="0.55" rx="6"/>
+
+  <!-- 산 실루엣 -->
+  <g opacity="0.14" fill="#3a4255">
+    <path d="M 28 405 Q 80 360 130 380 T 215 360 T 300 395 T 380 370 T 484 395 L 484 484 L 28 484 Z"/>
+  </g>
+  <g opacity="0.10" fill="#5a6275">
+    <path d="M 28 430 Q 95 405 155 420 T 270 405 T 365 425 T 484 425 L 484 484 L 28 484 Z"/>
+  </g>
+
+  <!-- 학 -->
+  <g fill="none" stroke="#1d2c54" stroke-width="1.8" opacity="0.35" stroke-linecap="round">
+    <path d="M 82 138 q 8 -5 14 -1 l 8 3 m -8 -3 q 6 4 12 4 m -12 -4 l 8 6"/>
+    <path d="M 122 162 q 8 -5 14 -1 l 7 2 m -7 -2 q 5 4 11 4 m -11 -4 l 7 6"/>
+  </g>
+
+  <!-- 한옥 처마 -->
+  <g opacity="0.20" fill="none" stroke="#9b7728" stroke-width="1.4">
+    <path d="M 380 60 q 25 -12 50 0 q -25 6 -50 0"/>
+    <path d="M 400 76 q 18 -10 40 0"/>
+    <path d="M 415 92 q 12 -8 28 0"/>
+  </g>
+
+  <!-- 한국어 — 사주 / 다이어리 (세로) -->
+  <g fill="#1a2848">
+    <text x="256" y="220"
+          font-family="'Shilla Culture', 'Noto Serif KR', 'Nanum Myeongjo', serif"
+          font-size="140" font-weight="900"
+          text-anchor="middle" letter-spacing="8">사주</text>
+    <text x="256" y="380"
+          font-family="'Shilla Culture', 'Noto Serif KR', 'Nanum Myeongjo', serif"
+          font-size="92" font-weight="900"
+          text-anchor="middle" letter-spacing="4">다이어리</text>
+  </g>
+
+  <!-- 작은 한자 부제 -->
+  <text x="256" y="448"
+        font-family="'Shilla Culture', 'Noto Serif KR', serif"
+        font-size="22" fill="#1a2848"
+        text-anchor="middle" letter-spacing="6" opacity="0.65">四柱日記</text>
+</svg>

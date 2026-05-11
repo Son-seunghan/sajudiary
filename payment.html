@@ -139,6 +139,58 @@
     margin-top: 6px; padding-top: 16px;
     font-size: 18px;
   }
+
+  /* 쿠폰 코드 입력 */
+  .coupon-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--ink2);
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 14px;
+    padding: 4px 0;
+  }
+  .coupon-toggle:hover { color: var(--vermil); }
+  .coupon-arrow { transition: transform .2s ease; }
+  .coupon-toggle.open .coupon-arrow { transform: rotate(180deg); }
+
+  .coupon-body { display: none; margin-top: 14px; }
+  .coupon-body.open { display: block; }
+  .coupon-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 8px;
+    background: var(--paper2);
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .coupon-input:focus { outline: none; border-color: var(--gold); background: #fff; }
+  .btn-coupon-apply {
+    margin-top: 10px;
+    width: 100%;
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 11px;
+    border-radius: 8px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-weight: 600; font-size: 14px;
+    transition: all .2s ease;
+  }
+  .btn-coupon-apply:hover { background: var(--vermil); }
+  .coupon-msg {
+    margin-top: 10px;
+    font-size: 12px;
+    font-family: 'Shilla Gothic', sans-serif;
+    min-height: 1.2em;
+  }
+  .coupon-msg.error { color: var(--vermil2); }
+  .coupon-msg.success { color: var(--jade2); }
 </style>
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
@@ -204,6 +256,19 @@
             <span class="font-display text-[var(--ink)]">최종 결제 금액</span>
             <span id="amount-final" class="font-display text-[var(--vermil)]">-</span>
           </div>
+        </div>
+      </div>
+
+      <!-- 쿠폰 코드 입력 -->
+      <div class="panel p-5 mb-5">
+        <button type="button" id="coupon-toggle" class="coupon-toggle">
+          <span><span style="color:var(--gold);font-weight:700">🎟</span> 쿠폰 코드가 있어요</span>
+          <span class="coupon-arrow">▾</span>
+        </button>
+        <div id="coupon-body" class="coupon-body">
+          <input type="text" id="coupon-input" class="coupon-input" placeholder="예: saju2026-light" autocomplete="off" spellcheck="false" />
+          <button type="button" id="btn-coupon-apply" class="btn-coupon-apply">쿠폰 적용</button>
+          <div id="coupon-msg" class="coupon-msg"></div>
         </div>
       </div>
 
@@ -401,6 +466,52 @@
     const agree = document.getElementById('agree-terms');
     const btnPay = document.getElementById('btn-pay');
     agree.addEventListener('change', () => { btnPay.disabled = !agree.checked; });
+
+    // ─── 9-1) 쿠폰 코드 적용 ───
+    (function setupCoupon() {
+      const toggle = document.getElementById('coupon-toggle');
+      const body   = document.getElementById('coupon-body');
+      const input  = document.getElementById('coupon-input');
+      const apply  = document.getElementById('btn-coupon-apply');
+      const msg    = document.getElementById('coupon-msg');
+
+      toggle.addEventListener('click', () => {
+        toggle.classList.toggle('open');
+        body.classList.toggle('open');
+        if (body.classList.contains('open')) input.focus();
+      });
+
+      function showMsg(text, type) {
+        msg.textContent = text;
+        msg.classList.remove('error', 'success');
+        if (type) msg.classList.add(type);
+      }
+
+      function doApply() {
+        const code = (input.value || '').trim();
+        if (!code) {
+          showMsg('쿠폰 코드를 입력해주세요.', 'error');
+          return;
+        }
+        const r = AuthGuard.redeemCoupon(code);
+        if (!r.success) {
+          showMsg(r.error, 'error');
+          return;
+        }
+        showMsg(`✓ ${r.label} — 분석 페이지로 이동합니다.`, 'success');
+        apply.disabled = true;
+        input.disabled = true;
+        const productFile = cfg.PRODUCTS[r.productId] && cfg.PRODUCTS[r.productId].file;
+        setTimeout(() => {
+          window.location.href = productFile ? productFile : 'mypage.html';
+        }, 900);
+      }
+
+      apply.addEventListener('click', doApply);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); doApply(); }
+      });
+    })();
 
     // ─── 10) 결제 실행 ───
     btnPay.addEventListener('click', () => {

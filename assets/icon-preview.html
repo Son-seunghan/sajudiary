@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>사주다이어리 앱 아이콘 미리보기</title>
+<style>
+  @font-face {
+    font-family: 'Shilla Culture';
+    src: url('fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf') format('truetype');
+    font-weight: 700;
+    font-display: block;
+  }
+  body {
+    margin: 0;
+    padding: 40px 20px;
+    background: #2a2a35;
+    color: #e6dfc8;
+    font-family: 'Pretendard', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+  }
+  h1 { font-size: 18px; opacity: 0.7; margin: 0 0 6px; font-weight: 600; }
+  .label { font-size: 13px; opacity: 0.55; margin-bottom: 14px; letter-spacing: 0.05em; }
+  .row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    width: 512px; height: 512px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .icon-frame svg { display: block; width: 100%; height: 100%; }
+  .scaled { width: 128px; height: 128px; margin-top: 16px; }
+  .actions { margin-top: 16px; }
+  .actions a {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #e6dfc8;
+    color: #1a2848;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 4px;
+  }
+  .actions a:hover { background: #fff; }
+  .note {
+    max-width: 700px;
+    background: rgba(255,255,255,0.05);
+    border-left: 3px solid #b8923c;
+    padding: 16px 22px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .note strong { color: #d6b660; }
+  code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1>사주다이어리 앱 아이콘 미리보기</h1>
+
+  <div class="row">
+    <div class="icon-wrap">
+      <div class="label">옵션 A — 한자 (四柱日記)</div>
+      <div class="icon-frame">
+        <object type="image/svg+xml" data="app-icon.svg" style="width:100%;height:100%;pointer-events:none;"></object>
+      </div>
+      <div class="label" style="margin-top:14px">↓ 실제 카카오 표시 크기 (128×128)</div>
+      <div class="icon-frame scaled">
+        <object type="image/svg+xml" data="app-icon.svg" style="width:100%;height:100%;pointer-events:none;"></object>
+      </div>
+      <div class="actions">
+        <a href="app-icon.svg" download="sajudiary-icon-hanja.svg">SVG 다운로드</a>
+      </div>
+    </div>
+
+    <div class="icon-wrap">
+      <div class="label">옵션 B — 한글 (사주 / 다이어리)</div>
+      <div class="icon-frame">
+        <object type="image/svg+xml" data="app-icon-kr.svg" style="width:100%;height:100%;pointer-events:none;"></object>
+      </div>
+      <div class="label" style="margin-top:14px">↓ 실제 카카오 표시 크기 (128×128)</div>
+      <div class="icon-frame scaled">
+        <object type="image/svg+xml" data="app-icon-kr.svg" style="width:100%;height:100%;pointer-events:none;"></object>
+      </div>
+      <div class="actions">
+        <a href="app-icon-kr.svg" download="sajudiary-icon-kr.svg">SVG 다운로드</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>PNG로 변환하는 법</strong><br/>
+    카카오는 PNG/JPG만 받아요. 두 가지 방법:<br/><br/>
+    <strong>방법 1 — 온라인 변환 (가장 빠름)</strong><br/>
+    1. 위에서 마음에 드는 SVG <code>다운로드</code> 클릭<br/>
+    2. <a href="https://cloudconvert.com/svg-to-png" target="_blank" style="color:#d6b660">cloudconvert.com</a> 또는 <a href="https://svgtopng.com" target="_blank" style="color:#d6b660">svgtopng.com</a> 접속<br/>
+    3. SVG 업로드 → 512×512 PNG 다운로드 → 카카오에 업로드<br/><br/>
+
+    <strong>방법 2 — 브라우저 스크린샷</strong><br/>
+    1. 위 512×512 아이콘 영역을 화면 캡처 (Win+Shift+S)<br/>
+    2. 정사각형으로 잘라서 PNG 저장<br/>
+    3. 카카오에 업로드<br/><br/>
+
+    <strong>지금 보이는 모습이 어색하면?</strong><br/>
+    Shilla Culture 폰트가 안 로드된 상태일 수 있어요. 새로고침(Ctrl+F5)하거나, sajudiary.com에 한 번 접속한 후 다시 열어주세요.
+  </div>
+</body>
+</html>

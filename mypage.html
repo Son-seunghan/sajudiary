@@ -157,6 +157,38 @@
   .tag-deep   { background: rgba(177,58,44,0.12);   color: var(--vermil2); }
   .tag-couple { background: rgba(184,96,122,0.15);  color: var(--plum2); }
   .tag-wine   { background: rgba(138,58,77,0.15);   color: var(--wine2); }
+
+  /* 마스터 전용 삭제 버튼 */
+  .btn-master-delete {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid var(--paper-dk);
+    color: var(--ink4);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all .15s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-master-delete:hover {
+    background: var(--vermil);
+    border-color: var(--vermil);
+    color: #fff;
+  }
+  .master-tag {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
 </style>
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
@@ -216,7 +248,7 @@
 
       <!-- 내 분석 슬롯 -->
       <div class="mb-4 flex items-center justify-between">
-        <h2 class="font-display text-xl text-[var(--ink)]">내 분석</h2>
+        <h2 class="font-display text-xl text-[var(--ink)]">내 분석<span id="master-badge" class="master-tag hidden">MASTER</span></h2>
         <span class="font-shilla text-xs text-[var(--ink3)]">총 <span id="analyses-count" class="text-[var(--vermil)] font-bold">0</span>개 저장</span>
       </div>
       <div id="analyses-list" class="space-y-3 mb-12">
@@ -297,6 +329,11 @@
       : `<div class="w-14 h-14 rounded-full bg-[var(--paper3)] flex items-center justify-center text-[var(--ink3)] text-2xl">👤</div>`;
 
     // ─── 3) 내 분석 슬롯 표시 ───
+    const isMaster = AuthGuard.isMaster();
+    if (isMaster) {
+      document.getElementById('master-badge').classList.remove('hidden');
+    }
+
     function renderAnalyses() {
       const productIds = ['light', 'deep', 'couple', 'couple_plus'];
       const analysesEl = document.getElementById('analyses-list');
@@ -383,6 +420,10 @@
         const sep = product.file.includes('?') ? '&' : '?';
         const viewUrl = `${product.file}${sep}slot=${item.slotIdx}`;
 
+        const masterBtn = isMaster
+          ? `<button class="btn-master-delete" title="마스터 — 이 분석 삭제" data-master-delete="${item.productId}|${item.slotIdx}">✕</button>`
+          : '';
+
         return `
           <div class="purchase-card">
             <div class="flex items-center gap-4">
@@ -395,6 +436,7 @@
                 <p class="font-shilla text-[10px] text-[var(--ink4)] mt-0.5">분석 저장: ${lockedStr}</p>
               </div>
               <a href="${viewUrl}" class="btn-view flex-shrink-0">보기</a>
+              ${masterBtn}
             </div>
           </div>
         `;
@@ -517,6 +559,23 @@
     let currentRatings = {};  // 각 상품별 선택된 별점
 
     document.addEventListener('click', (e) => {
+      // 마스터 — 분석 슬롯 삭제
+      const masterDel = e.target.dataset.masterDelete;
+      if (masterDel) {
+        const [pid, idxStr] = masterDel.split('|');
+        const idx = parseInt(idxStr, 10);
+        const product = cfg.PRODUCTS[pid];
+        const label = product ? product.name : pid;
+        if (!confirm(`[마스터] "${label}" 슬롯 ${idx + 1}을(를) 삭제하시겠습니까?\n결제 기록은 유지되며, 해당 슬롯이 다시 비어있는 상태로 돌아갑니다.`)) return;
+        const ok = AuthGuard.clearAnalysis(pid, idx);
+        if (ok) {
+          renderAnalyses();
+        } else {
+          alert('삭제 실패. 마스터 권한을 확인해주세요.');
+        }
+        return;
+      }
+
       // 후기 쓰기/수정 토글
       const writeId = e.target.dataset.writeReview || e.target.dataset.editReview;
       if (writeId) {

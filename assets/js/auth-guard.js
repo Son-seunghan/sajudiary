@@ -9,6 +9,7 @@ const AuthGuard = (function () {
   const USER_KEY      = 'sajudiary_user';
   const PURCHASES_KEY = 'sajudiary_purchases';
   const ANALYSES_KEY  = 'sajudiary_analyses';
+  const COUPONS_KEY   = 'sajudiary_redeemed_coupons';
 
   // ─── 사용자 ───
   function getUser() {
@@ -121,6 +122,51 @@ const AuthGuard = (function () {
     return true;
   }
 
+  // ─── 무료 액세스 쿠폰 ───
+  // localStorage에 ['saju2026-light', ...] 형태로 사용한 코드 저장 (디바이스당 1회)
+  function _getRedeemedCoupons() {
+    const raw = localStorage.getItem(COUPONS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
+  function _markCouponRedeemed(normalizedCode) {
+    const list = _getRedeemedCoupons();
+    if (!list.includes(normalizedCode)) {
+      list.push(normalizedCode);
+      localStorage.setItem(COUPONS_KEY, JSON.stringify(list));
+    }
+  }
+  // 코드 검증 + 무료 구매 슬롯 부여
+  // return: { success: true, productId, label } | { success: false, error }
+  function redeemCoupon(rawCode) {
+    if (!rawCode) return { success: false, error: '쿠폰 코드를 입력해주세요.' };
+    const cfg = window.SAJULOG_CONFIG;
+    if (!cfg || !cfg.FREE_COUPONS) {
+      return { success: false, error: '쿠폰 시스템이 비활성화 상태입니다.' };
+    }
+    const code = String(rawCode).trim().toLowerCase();
+    const coupon = cfg.FREE_COUPONS[code];
+    if (!coupon) return { success: false, error: '유효하지 않은 쿠폰 코드입니다.' };
+
+    if (!getUser()) return { success: false, error: '쿠폰 사용 전 로그인이 필요합니다.' };
+
+    if (_getRedeemedCoupons().includes(code)) {
+      return { success: false, error: '이 쿠폰은 이미 사용되었습니다.' };
+    }
+
+    // 무료 구매 슬롯 1회 부여
+    addPurchase({
+      productId: coupon.productId,
+      orderId: 'coupon_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      paymentKey: null,
+      amount: 0,
+      method: 'coupon',
+      couponCode: code
+    });
+    _markCouponRedeemed(code);
+    console.log('[AuthGuard] 쿠폰 사용 완료:', code, '→', coupon.productId);
+    return { success: true, productId: coupon.productId, label: coupon.label };
+  }
+
   // ─── 페이지 접근 가드 ───
   // 사용 예: AuthGuard.requirePurchase('couple_plus')
   function requirePurchase(productId, options = {}) {
@@ -184,6 +230,7 @@ const AuthGuard = (function () {
     getPurchases, hasPurchased, addPurchase,
     getAnalyses, getAnalysis, hasAnalysis, saveAnalysis, clearAnalysis,
     getRemainingSlots, canAnalyze,
+    redeemCoupon,
     requirePurchase, requireLogin,
     setMaster, isMaster
   };
