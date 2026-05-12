@@ -316,6 +316,7 @@
         <a href="../manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
         <a href="../today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
         <a href="./" class="hidden md:inline px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
+        <a href="../qna.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">독자의 글</a>
         <a href="../index.html#products" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
         <a href="../index.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
 
@@ -338,6 +339,9 @@
         </a>
         <a href="./" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
           <span class="text-[var(--vermil)]">録</span> 칼럼
+        </a>
+        <a href="../qna.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--gold)]">問</span> 독자의 글
         </a>
         <a href="../index.html#products" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
           <span class="text-[var(--ink3)]">命</span> 분석 상품
@@ -667,9 +671,9 @@
         <p class="nav-label">← 이전 글</p>
         <p class="nav-title">나는 올해 왜 유난히 힘들까</p>
       </a>
-      <a href="./" class="next">
-        <p class="nav-label">목록으로 →</p>
-        <p class="nav-title">전체 칼럼 보기</p>
+      <a href="2026-05-08-yangpaltong.html" class="next">
+        <p class="nav-label">다음 글 →</p>
+        <p class="nav-title">사주 8글자가 모두 양(陽)이면 어떻게 살까</p>
       </a>
     </div>
 
@@ -690,5 +694,11 @@
     </div>
   </footer>
 
+  <!-- 댓글 위젯 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/column-comments.js"></script>
 </body>
 </html>

@@ -96,6 +96,23 @@ window.SAJULOG_CONFIG = {
   },
 
   // ─────────────────────────────────────────
+  // 3-B. Supabase (QNA·칼럼 댓글 시스템)
+  // ─────────────────────────────────────────
+  // 셋업 가이드: 사주다이어리_Supabase_셋업.md
+  // Project Settings → API에서 두 값 복사
+  //
+  // 비어있는 상태(값 없음/placeholder)에서는 QNA·댓글 기능이 자동 비활성화됨.
+  // (사이트는 정상 동작, 게시판만 "준비 중" 메시지 표시)
+  SUPABASE_URL:      '',  // 예: 'https://xxxxxxxxx.supabase.co'
+  SUPABASE_ANON_KEY: '',  // 예: 'eyJhbGc...' (anon key — 공개 OK, service_role X)
+
+  get SUPABASE_ENABLED() {
+    return !!(this.SUPABASE_URL && this.SUPABASE_ANON_KEY
+              && this.SUPABASE_URL.startsWith('https://')
+              && this.SUPABASE_ANON_KEY.length > 20);
+  },
+
+  // ─────────────────────────────────────────
   // 4-A. 무료 액세스 쿠폰 (마스터 발급용)
   // ─────────────────────────────────────────
   // 친구·체험단 등에 코드로 상품 1회 무료 액세스 부여.

@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>독자의 글 — 사주다이어리 四柱日記</title>
+<meta name="description" content="사주다이어리 독자 게시판. 칼럼 관련 질문, 읽고 싶은 주제 요청, 사주 관련 의견을 자유롭게 남겨주세요. 모든 답변은 운영자(손승한)가 직접 작성합니다.">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728;
+    --jade:#5a8a98; --jade2:#406878;
+    --plum:#b8607a; --plum2:#944860;
+    --wine:#8a3a4d; --wine2:#6a2438;
+  }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 50% 30%, rgba(184,146,60,0.06) 0%, transparent 45%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--jade) 0%, var(--jade) 20%,
+      var(--vermil) 20%, var(--vermil) 40%,
+      var(--gold) 40%, var(--gold) 60%,
+      var(--plum) 60%, var(--plum) 80%,
+      var(--ink) 80%, var(--ink) 100%);
+  }
+
+  .panel {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.06);
+  }
+
+  /* ━━━ 신뢰 카피 강조 박스 ━━━ */
+  .trust-banner {
+    position: relative;
+    background: linear-gradient(135deg, var(--paper2) 0%, #fff7e0 100%);
+    border: 1.5px solid var(--gold);
+    border-radius: 14px;
+    padding: 20px 24px 20px 84px;
+    box-shadow: 0 6px 20px rgba(184,146,60,0.15);
+  }
+  .trust-seal {
+    position: absolute;
+    left: 16px; top: 50%;
+    transform: translateY(-50%) rotate(-6deg);
+    width: 56px; height: 56px;
+    background: var(--vermil);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700; font-size: 16px;
+    line-height: 1.1; text-align: center;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18), inset 0 0 0 3px var(--vermil), 0 4px 10px rgba(177,58,44,0.3);
+    letter-spacing: -0.02em;
+  }
+  .trust-banner h2 {
+    font-family: 'Shilla Culture', serif;
+    font-size: 16px;
+    color: var(--ink);
+    margin: 0 0 4px;
+    font-weight: 700;
+  }
+  .trust-banner p {
+    font-size: 13px;
+    color: var(--ink2);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .trust-banner strong { color: var(--vermil); font-weight: 700; }
+
+  /* ━━━ 카테고리 탭 ━━━ */
+  .cat-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .cat-tab {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--paper-dk);
+    background: var(--paper2);
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink2);
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .cat-tab:hover { border-color: var(--gold); color: var(--ink); }
+  .cat-tab.active {
+    background: var(--ink);
+    color: var(--paper2);
+    border-color: var(--ink);
+  }
+
+  /* ━━━ 글 작성 폼 ━━━ */
+  .write-toggle {
+    width: 100%;
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 14px;
+    border-radius: 12px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    transition: all .2s ease;
+    border: 1.5px solid var(--ink);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .write-toggle:hover {
+    background: var(--vermil);
+    border-color: var(--vermil);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(177,58,44,0.2);
+  }
+
+  .write-form {
+    display: none;
+  }
+  .write-form.open { display: block; }
+
+  .form-label {
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink3);
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .cat-pick {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .cat-pick-btn {
+    padding: 12px 8px;
+    border-radius: 10px;
+    border: 1.5px solid var(--paper-dk);
+    background: var(--paper2);
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s ease;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 13px;
+    color: var(--ink2);
+    font-weight: 600;
+  }
+  .cat-pick-btn:hover { border-color: var(--gold); }
+  .cat-pick-btn.active {
+    background: #fff;
+    box-shadow: 0 0 0 2px var(--vermil), 0 4px 10px rgba(177,58,44,0.15);
+    border-color: var(--vermil);
+    color: var(--vermil);
+  }
+  .cat-pick-btn .ic { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  .input-field,
+  .textarea-field {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--paper-dk);
+    border-radius: 10px;
+    background: var(--paper2);
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.6;
+    resize: vertical;
+  }
+  .input-field:focus,
+  .textarea-field:focus { outline: none; border-color: var(--gold); background: #fff; }
+  .textarea-field { min-height: 120px; }
+
+  .toggle-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 10px;
+    background: var(--paper2);
+    cursor: pointer;
+  }
+  .toggle-row input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: var(--vermil);
+  }
+  .toggle-row-body { flex: 1; }
+  .toggle-row-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink2);
+  }
+  .toggle-row-desc {
+    font-size: 11px;
+    color: var(--ink4);
+    margin-top: 2px;
+    line-height: 1.5;
+  }
+
+  .saju-select {
+    margin-top: 10px;
+    padding-left: 28px;
+    display: none;
+  }
+  .saju-select.show { display: block; }
+
+  .btn-submit {
+    background: linear-gradient(180deg, var(--vermil3), var(--vermil));
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    border: 1px solid var(--gold);
+    transition: all .2s ease;
+  }
+  .btn-submit:hover {
+    background: linear-gradient(180deg, var(--vermil), var(--vermil2));
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(177,58,44,0.3);
+  }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-cancel {
+    background: transparent;
+    color: var(--ink3);
+    border: 1px solid var(--paper-dk);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .btn-cancel:hover { border-color: var(--vermil); color: var(--vermil); }
+
+  /* ━━━ 글 목록 카드 ━━━ */
+  .inq-card {
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-left-width: 4px;
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: all .2s ease;
+  }
+  .inq-card:hover { box-shadow: 0 6px 18px rgba(60,45,30,0.08); border-color: var(--gold); }
+  .inq-card.cat-question      { border-left-color: var(--jade); }
+  .inq-card.cat-topic_request { border-left-color: var(--gold); }
+  .inq-card.cat-opinion       { border-left-color: var(--plum); }
+
+  .cat-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .badge-question      { background: rgba(90,138,152,0.15);  color: var(--jade2); }
+  .badge-topic_request { background: rgba(184,146,60,0.15);  color: var(--gold2); }
+  .badge-opinion       { background: rgba(184,96,122,0.15);  color: var(--plum2); }
+
+  .priv-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(60,45,30,0.1);
+    color: var(--ink3);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .inq-content { font-size: 14px; line-height: 1.75; color: var(--ink); white-space: pre-wrap; word-break: break-word; }
+  .inq-meta { font-size: 11px; color: var(--ink4); font-family: 'Shilla Gothic', sans-serif; }
+
+  /* ━━━ 답글 ━━━ */
+  .reply-wrap {
+    margin-top: 14px;
+    margin-left: 24px;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, #fff7e0 0%, #fdf3d0 100%);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+  }
+  .reply-author {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--ink);
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 8px;
+    font-family: 'Shilla Gothic', sans-serif;
+  }
+  .reply-content { font-size: 13.5px; line-height: 1.75; color: var(--ink); white-space: pre-wrap; margin-top: 6px; }
+
+  /* ━━━ 좋아요 ━━━ */
+  .like-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: transparent;
+    border: 1px solid var(--paper-dk);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--ink3);
+    transition: all .15s ease;
+    cursor: pointer;
+    font-family: 'Shilla Gothic', sans-serif;
+  }
+  .like-btn:hover { border-color: var(--vermil); color: var(--vermil); }
+  .like-btn.liked { background: rgba(177,58,44,0.1); border-color: var(--vermil); color: var(--vermil); font-weight: 700; }
+
+  /* ━━━ 마스터 답글 작성 ━━━ */
+  .master-reply-form {
+    margin-top: 14px;
+    padding: 14px;
+    background: rgba(184,146,60,0.08);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+  }
+  .saju-attached-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--paper3);
+    border-radius: 8px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 12px;
+    color: var(--ink2);
+  }
+  .saju-attached-box strong { color: var(--vermil2); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink3);
+  }
+
+  /* ━━━ 토스트 ━━━ */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-family: 'Shilla Gothic', sans-serif;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity .2s ease;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JTND4S6842');
+</script>
+<!-- Vercel Web Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+
+<body class="paper-bg min-h-screen flex flex-col">
+  <div class="top-stripe"></div>
+
+  <!-- Header -->
+  <header class="border-b border-[var(--paper-dk)]/60">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-xl sm:text-2xl text-[var(--vermil)]">四柱日記</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-base sm:text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
+      </a>
+      <nav class="font-shilla flex items-center gap-1 sm:gap-3 text-sm">
+        <a href="manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">만세력</a>
+        <a href="today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘 운세</a>
+        <a href="column/" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">칼럼</a>
+        <a href="qna.html" class="px-3 py-2 text-[var(--vermil)] font-bold">독자의 글</a>
+        <a href="index.html#products" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="mypage.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">마이</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 px-4 sm:px-6 py-10">
+    <div class="max-w-4xl mx-auto">
+
+      <!-- 페이지 타이틀 -->
+      <div class="text-center mb-8">
+        <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">READER&#39;S CORNER</p>
+        <h1 class="font-display text-3xl text-[var(--ink)] mb-2">독자의 글</h1>
+        <p class="text-sm text-[var(--ink3)] leading-relaxed">
+          칼럼 관련 질문, 읽고 싶은 주제 요청, 사주 관련 의견을 자유롭게 남겨주세요
+        </p>
+      </div>
+
+      <!-- ★ 신뢰 카피 강조 박스 ★ -->
+      <div class="trust-banner mb-6">
+        <div class="trust-seal">人<br/>直答</div>
+        <h2>모든 답변은 운영자가 직접 작성합니다</h2>
+        <p>
+          이 게시판은 <strong>AI 자동응답을 사용하지 않습니다</strong>.
+          질문을 남기시면 운영자(손승한)가 칼럼과 동일한 톤으로 직접 답변드려요.
+          <br/>사주 정보를 첨부하시면 더 정확하고 개인화된 답변을 받으실 수 있습니다.
+        </p>
+      </div>
+
+      <!-- 작성 토글 -->
+      <button id="btn-write-toggle" class="write-toggle mb-4">
+        <span>＋</span> 새 글 남기기
+      </button>
+
+      <!-- 작성 폼 -->
+      <div id="write-form" class="write-form panel p-6 mb-8 space-y-5">
+        <!-- 카테고리 -->
+        <div>
+          <span class="form-label">카테고리</span>
+          <div class="cat-pick" id="cat-pick">
+            <button type="button" class="cat-pick-btn active" data-cat="question">
+              <span class="ic">❓</span>질문
+            </button>
+            <button type="button" class="cat-pick-btn" data-cat="topic_request">
+              <span class="ic">📝</span>주제 요청
+            </button>
+            <button type="button" class="cat-pick-btn" data-cat="opinion">
+              <span class="ic">💬</span>의견
+            </button>
+          </div>
+        </div>
+
+        <!-- 본문 -->
+        <div>
+          <span class="form-label">내용</span>
+          <textarea id="inp-content" class="textarea-field" maxlength="2000"
+            placeholder="5자 이상 작성해주세요. 칼럼에서 이해 안 되는 부분, 더 알고 싶은 주제, 자기 사주 관련 질문 등 자유롭게.
+
+질문 예: '재성이 약한데도 부자가 되는 경우는 어떻게 봐야 하나요?'
+주제 요청 예: '편관과 정관의 차이를 더 깊이 다뤄주세요'"></textarea>
+          <p class="text-[10px] text-[var(--ink4)] mt-1 text-right"><span id="char-count">0</span> / 2000</p>
+        </div>
+
+        <!-- 닉네임 -->
+        <div>
+          <span class="form-label">닉네임 (선택)</span>
+          <input id="inp-nickname" type="text" class="input-field" maxlength="30"
+            placeholder="비워두면 '독자XXXX' 자동 부여 — 카카오 닉네임을 쓰려면 직접 입력" />
+        </div>
+
+        <!-- 사주 첨부 -->
+        <div>
+          <label class="toggle-row" for="cb-saju">
+            <input id="cb-saju" type="checkbox" />
+            <div class="toggle-row-body">
+              <div class="toggle-row-title">사주 정보 첨부 <span style="color:var(--gold2)">— 운영자에게만 보임</span></div>
+              <div class="toggle-row-desc">생년월일·시간·성별을 첨부하시면 더 정확한 답변을 받으실 수 있어요. 다른 독자에게는 노출되지 않습니다.</div>
+            </div>
+          </label>
+          <div id="saju-select" class="saju-select">
+            <select id="sel-saju-slot" class="input-field" style="margin-top:8px"></select>
+            <p class="text-[11px] text-[var(--ink4)] mt-2 leading-relaxed">
+              저장된 분석 슬롯이 없으면 <a href="manse.html" class="underline text-[var(--vermil)]">만세력</a>에서 본인 사주를 확인하신 뒤 직접 본문에 적어주세요.
+            </p>
+          </div>
+        </div>
+
+        <!-- 비공개 -->
+        <div>
+          <label class="toggle-row" for="cb-private">
+            <input id="cb-private" type="checkbox" />
+            <div class="toggle-row-body">
+              <div class="toggle-row-title">비공개로 묻기 🔒</div>
+              <div class="toggle-row-desc">본인과 운영자만 볼 수 있어요. 답변도 본인에게만 노출됩니다. 민감한 사연이라면 체크하세요.</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="flex gap-3 justify-end pt-2">
+          <button type="button" id="btn-cancel" class="btn-cancel">취소</button>
+          <button type="button" id="btn-submit" class="btn-submit">등록</button>
+        </div>
+      </div>
+
+      <!-- 카테고리 탭 -->
+      <div class="cat-tabs mb-6">
+        <button class="cat-tab active" data-filter="all">전체</button>
+        <button class="cat-tab" data-filter="question">❓ 질문</button>
+        <button class="cat-tab" data-filter="topic_request">📝 주제 요청</button>
+        <button class="cat-tab" data-filter="opinion">💬 의견</button>
+      </div>
+
+      <!-- 글 목록 -->
+      <div id="inq-list" class="space-y-4">
+        <div class="empty-state panel">
+          <div class="text-4xl mb-3 opacity-30">📜</div>
+          <p class="font-display text-lg text-[var(--ink2)]">불러오는 중...</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="flex justify-center gap-4 font-shilla">
+        <a href="terms.html" class="hover:text-[var(--vermil)]">이용약관</a>
+        <span>·</span>
+        <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
+      </div>
+      <p>© 2026 사주다이어리. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="top-stripe"></div>
+
+  <!-- 토스트 -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ━━━━━━━━━━━ Scripts ━━━━━━━━━━━ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/auth-guard.js"></script>
+  <script src="assets/js/supabase-client.js"></script>
+
+  <script>
+    const cfg = window.SAJULOG_CONFIG;
+    const user = AuthGuard.getUser();
+    const isMaster = AuthGuard.isMaster();
+    let currentFilter = 'all';
+    let currentCategory = 'question';
+
+    // ─── Supabase 미설정 시 안내 ───
+    if (!SajuSupa.isEnabled()) {
+      document.getElementById('inq-list').innerHTML = `
+        <div class="empty-state panel" style="padding:80px 20px">
+          <div class="text-5xl mb-4">⏳</div>
+          <p class="font-display text-xl mb-3 text-[var(--ink2)]">게시판 준비 중입니다</p>
+          <p class="font-shilla text-sm text-[var(--ink4)] leading-relaxed">
+            Supabase 셋업 완료 후 활성화됩니다.<br/>잠시만 기다려주세요.
+          </p>
+        </div>
+      `;
+      document.getElementById('btn-write-toggle').style.display = 'none';
+    }
+
+    // ─── 토스트 ───
+    let toastTimer = null;
+    function toast(msg, ms = 2500) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+    }
+
+    // ─── 작성 폼 토글 ───
+    const writeToggle = document.getElementById('btn-write-toggle');
+    const writeForm = document.getElementById('write-form');
+    writeToggle.addEventListener('click', () => {
+      if (!user) {
+        if (confirm('글을 남기려면 카카오 로그인이 권장됩니다. (익명도 가능)\n로그인 페이지로 이동할까요?')) {
+          window.location.href = 'login.html?from=' + encodeURIComponent('/qna.html');
+          return;
+        }
+      }
+      writeForm.classList.toggle('open');
+      writeToggle.style.display = writeForm.classList.contains('open') ? 'none' : '';
+    });
+
+    document.getElementById('btn-cancel').addEventListener('click', () => {
+      writeForm.classList.remove('open');
+      writeToggle.style.display = '';
+    });
+
+    // ─── 카테고리 선택 (작성 폼) ───
+    document.getElementById('cat-pick').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-cat]');
+      if (!btn) return;
+      document.querySelectorAll('#cat-pick .cat-pick-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = btn.dataset.cat;
+    });
+
+    // ─── 글자수 카운터 ───
+    const contentInput = document.getElementById('inp-content');
+    contentInput.addEventListener('input', () => {
+      document.getElementById('char-count').textContent = contentInput.value.length;
+    });
+
+    // ─── 사주 첨부 토글 ───
+    const cbSaju = document.getElementById('cb-saju');
+    const sajuSelectWrap = document.getElementById('saju-select');
+    const selSajuSlot = document.getElementById('sel-saju-slot');
+
+    function populateSajuSlots() {
+      selSajuSlot.innerHTML = '';
+      const productIds = ['light', 'deep', 'couple', 'couple_plus'];
+      const opts = [];
+      productIds.forEach(pid => {
+        const slots = AuthGuard.getAnalyses(pid);
+        slots.forEach((slot, idx) => {
+          const inp = slot.inputs || {};
+          let label;
+          if (pid === 'couple' || pid === 'couple_plus') {
+            const a = inp.A || {}, b = inp.B || {};
+            label = `${cfg.PRODUCTS[pid].name} — ${a.name || '?'} × ${b.name || '?'}`;
+          } else {
+            const date = inp.year ? `${inp.year}.${inp.month}.${inp.day}` : '?';
+            label = `${cfg.PRODUCTS[pid].name} — ${inp.name || '본인'} · ${date}`;
+          }
+          opts.push(`<option value="${pid}|${idx}">${label}</option>`);
+        });
+      });
+      if (opts.length === 0) {
+        selSajuSlot.innerHTML = '<option value="">저장된 분석이 없습니다 — 본문에 직접 적어주세요</option>';
+        selSajuSlot.disabled = true;
+      } else {
+        selSajuSlot.innerHTML = opts.join('');
+        selSajuSlot.disabled = false;
+      }
+    }
+
+    cbSaju.addEventListener('change', () => {
+      if (cbSaju.checked) {
+        populateSajuSlots();
+        sajuSelectWrap.classList.add('show');
+      } else {
+        sajuSelectWrap.classList.remove('show');
+      }
+    });
+
+    // 로그인 + 저장 슬롯 있으면 디폴트 ON
+    if (user) {
+      const hasAnalysis = ['light','deep','couple','couple_plus'].some(p => AuthGuard.getAnalyses(p).length > 0);
+      if (hasAnalysis) {
+        cbSaju.checked = true;
+        populateSajuSlots();
+        sajuSelectWrap.classList.add('show');
+      }
+    }
+
+    // ─── 글 등록 ───
+    document.getElementById('btn-submit').addEventListener('click', async () => {
+      const content = contentInput.value;
+      if (!content || content.trim().length < 5) {
+        toast('본문은 5자 이상 입력해주세요.');
+        return;
+      }
+
+      let attachedSaju = null;
+      if (cbSaju.checked && !selSajuSlot.disabled && selSajuSlot.value) {
+        const [pid, idxStr] = selSajuSlot.value.split('|');
+        const slot = AuthGuard.getAnalysis(pid, parseInt(idxStr));
+        if (slot && slot.inputs) {
+          attachedSaju = { productId: pid, ...slot.inputs };
+        }
+      }
+
+      const customNickname = document.getElementById('inp-nickname').value;
+      const anonymous = !customNickname.trim();   // 빈 값이면 익명 (또는 카카오 닉네임)
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.textContent = '등록 중...';
+
+      const { data, error } = await SajuSupa.createInquiry({
+        category: currentCategory,
+        content: content.trim(),
+        anonymous: anonymous,
+        customNickname: customNickname,
+        isPrivate: document.getElementById('cb-private').checked,
+        attachedSaju: attachedSaju
+      });
+
+      btn.disabled = false;
+      btn.textContent = '등록';
+
+      if (error) {
+        toast('등록 실패: ' + error.message);
+        return;
+      }
+
+      toast('등록되었습니다. 운영자가 곧 답변드릴게요.');
+      contentInput.value = '';
+      document.getElementById('inp-nickname').value = '';
+      document.getElementById('cb-private').checked = false;
+      document.getElementById('char-count').textContent = '0';
+      writeForm.classList.remove('open');
+      writeToggle.style.display = '';
+      await loadList();
+    });
+
+    // ─── 필터 탭 ───
+    document.querySelector('.cat-tabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.cat-tab');
+      if (!btn) return;
+      document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      loadList();
+    });
+
+    // ─── 목록 로드 ───
+    async function loadList() {
+      const listEl = document.getElementById('inq-list');
+      const params = { limit: 50 };
+      if (currentFilter !== 'all') params.category = currentFilter;
+
+      const { data, error } = await SajuSupa.listInquiries(params);
+      if (error) {
+        listEl.innerHTML = `<div class="empty-state panel"><p>불러오기 실패: ${SajuSupa.escapeHtml(error.message)}</p></div>`;
+        return;
+      }
+      if (!data || data.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state panel">
+            <div class="text-4xl mb-3 opacity-30">📭</div>
+            <p class="font-display text-lg text-[var(--ink2)]">아직 글이 없어요</p>
+            <p class="font-shilla text-sm text-[var(--ink4)] mt-2">첫 번째 글의 주인공이 되어주세요</p>
+          </div>
+        `;
+        return;
+      }
+
+      const likedSet = await SajuSupa.getUserLikes('inquiry', data.map(d => d.id));
+
+      listEl.innerHTML = data.map(item => renderCard(item, likedSet.has(item.id))).join('');
+    }
+
+    // ─── 카드 렌더 ───
+    function renderCard(item, liked) {
+      const cat = SajuSupa.CATEGORIES[item.category] || { label: item.category, color: '#6b5d4f', icon: '·' };
+      const reply = (item.replies || []).find(r => r.is_master);
+      const isMine = user && item.user_kakao_id === user.id;
+      const isPrivate = item.is_private;
+
+      let sajuBox = '';
+      if (isMaster && item.attached_saju) {
+        const s = item.attached_saju;
+        if (s.A && s.B) {
+          sajuBox = `<div class="saju-attached-box">📎 첨부 사주 — <strong>${SajuSupa.escapeHtml(s.A.name||'?')} (${s.A.year}.${s.A.month}.${s.A.day})</strong> × <strong>${SajuSupa.escapeHtml(s.B.name||'?')} (${s.B.year}.${s.B.month}.${s.B.day})</strong> <a href="manse.html" class="underline ml-2">만세력 열기</a></div>`;
+        } else {
+          const genderLabel = s.gender === 'male' ? '남' : (s.gender === 'female' ? '여' : '?');
+          sajuBox = `<div class="saju-attached-box">📎 첨부 사주 — <strong>${SajuSupa.escapeHtml(s.name||'본인')} · ${s.year}.${s.month}.${s.day} ${s.hour||'?'}:${String(s.minute||0).padStart(2,'0')} · ${genderLabel}</strong> <a href="manse.html?y=${s.year}&m=${s.month}&d=${s.day}&h=${s.hour||''}&min=${s.minute||0}" class="underline ml-2">만세력 열기</a></div>`;
+        }
+      }
+
+      let replyHtml = '';
+      if (reply) {
+        replyHtml = `
+          <div class="reply-wrap">
+            <span class="reply-author">운영자 직답</span>
+            <span class="inq-meta">${SajuSupa.formatTime(reply.created_at)}</span>
+            <div class="reply-content">${SajuSupa.escapeHtml(reply.content)}</div>
+            ${isMaster ? `<div class="mt-2 text-right"><button class="text-[11px] text-[var(--vermil)] hover:underline" data-del-reply="${reply.id}">답글 삭제</button></div>` : ''}
+          </div>
+        `;
+      } else if (isMaster) {
+        replyHtml = `
+          <div class="master-reply-form">
+            <p class="form-label" style="margin-bottom:6px">[마스터] 답변 작성</p>
+            <textarea class="textarea-field" id="reply-input-${item.id}" placeholder="답변을 작성하세요..."></textarea>
+            <div class="mt-2 text-right">
+              <button class="btn-submit" data-reply-to="${item.id}" style="padding:8px 18px;font-size:13px">답변 등록</button>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="inq-card cat-${item.category}" data-id="${item.id}">
+          <div class="flex items-center gap-2 mb-2 flex-wrap">
+            <span class="cat-badge badge-${item.category}">${cat.icon} ${cat.label}</span>
+            ${isPrivate ? '<span class="priv-badge">🔒 비공개</span>' : ''}
+            <span class="inq-meta ml-auto">${SajuSupa.escapeHtml(item.display_nickname)} · ${SajuSupa.formatTime(item.created_at)}</span>
+          </div>
+          <div class="inq-content">${SajuSupa.escapeHtml(item.content)}</div>
+          ${sajuBox}
+          <div class="flex items-center gap-3 mt-3">
+            <button class="like-btn ${liked ? 'liked' : ''}" data-like="${item.id}">
+              ${liked ? '♥' : '♡'} <span data-like-count="${item.id}">${item.likes_count || 0}</span>
+            </button>
+            ${(isMine || isMaster) ? `<button class="like-btn" data-del-inq="${item.id}">삭제</button>` : ''}
+          </div>
+          ${replyHtml}
+        </div>
+      `;
+    }
+
+    // ─── 클릭 핸들러 (위임) ───
+    document.getElementById('inq-list').addEventListener('click', async (e) => {
+      // 좋아요
+      const likeId = e.target.closest('[data-like]')?.dataset.like;
+      if (likeId) {
+        const r = await SajuSupa.toggleLike('inquiry', parseInt(likeId));
+        if (r.error) { toast(r.error.message); return; }
+        const btn = e.target.closest('[data-like]');
+        const countEl = document.querySelector(`[data-like-count="${likeId}"]`);
+        const cur = parseInt(countEl.textContent) || 0;
+        if (r.liked) {
+          btn.classList.add('liked');
+          btn.innerHTML = `♥ <span data-like-count="${likeId}">${cur + 1}</span>`;
+        } else {
+          btn.classList.remove('liked');
+          btn.innerHTML = `♡ <span data-like-count="${likeId}">${Math.max(0, cur - 1)}</span>`;
+        }
+        return;
+      }
+
+      // 답글 등록 (마스터)
+      const replyTo = e.target.closest('[data-reply-to]')?.dataset.replyTo;
+      if (replyTo) {
+        const txt = document.getElementById('reply-input-' + replyTo).value;
+        if (!txt || txt.trim().length < 2) { toast('답변이 너무 짧습니다.'); return; }
+        const { error } = await SajuSupa.createReply(parseInt(replyTo), txt);
+        if (error) { toast('답글 등록 실패: ' + error.message); return; }
+        toast('답글 등록 완료');
+        await loadList();
+        return;
+      }
+
+      // 답글 삭제 (마스터)
+      const delReply = e.target.closest('[data-del-reply]')?.dataset.delReply;
+      if (delReply) {
+        if (!confirm('답글을 삭제하시겠습니까?')) return;
+        const { error } = await SajuSupa.deleteReply(parseInt(delReply));
+        if (error) { toast(error.message); return; }
+        await loadList();
+        return;
+      }
+
+      // 글 삭제 (본인/마스터)
+      const delInq = e.target.closest('[data-del-inq]')?.dataset.delInq;
+      if (delInq) {
+        if (!confirm('이 글을 삭제하시겠습니까? 답글도 함께 사라집니다.')) return;
+        const { error } = await SajuSupa.deleteInquiry(parseInt(delInq));
+        if (error) { toast(error.message); return; }
+        toast('삭제되었습니다');
+        await loadList();
+        return;
+      }
+    });
+
+    // ─── 초기 로드 ───
+    if (SajuSupa.isEnabled()) {
+      loadList();
+    }
+  </script>
+</body>
+</html>
