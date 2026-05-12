@@ -241,7 +241,7 @@
         <p class="desc">읽으신 소감, 궁금한 점, 다른 시각을 자유롭게 남겨주세요</p>
       </div>
       <div class="col-comments-trust">
-        ※ 운영자(<strong>손승한</strong>) 답글은 <strong>AI 자동응답이 아닌 직접 작성</strong>입니다.
+        ※ <strong>사주다이어리를 만든 분석가</strong>가 답글을 답니다 ─ <strong>AI 자동응답이 아닌 직접 작성</strong>이에요.
       </div>
       <div class="col-comments-form" id="col-cc-form-wrap"></div>
       <div class="col-cc-list" id="col-cc-list"></div>
@@ -389,7 +389,7 @@
       <div class="col-cc-item${replyClass}${masterClass}" data-id="${c.id}">
         <div class="col-cc-meta">
           <span class="col-cc-nickname">${SajuSupa.escapeHtml(c.display_nickname)}</span>
-          ${c.is_master ? '<span class="col-cc-badge">운영자</span>' : ''}
+          ${c.is_master ? '<span class="col-cc-badge">분석가</span>' : ''}
           <span class="col-cc-time">· ${SajuSupa.formatTime(c.created_at)}</span>
         </div>
         <div class="col-cc-content">${SajuSupa.escapeHtml(c.content)}</div>

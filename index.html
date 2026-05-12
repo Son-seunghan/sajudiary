@@ -268,14 +268,15 @@
     font-weight: 600; letter-spacing: 0.02em;
     font-size: 15px;
     transition: all .25s ease;
-    border: 1px solid var(--paper-dk);
-    background: transparent;
-    color: var(--ink2);
+    border: 1.5px solid var(--ink3);
+    background: rgba(255,255,255,0.4);
+    color: var(--ink);
   }
   .btn-ghost:hover {
-    background: var(--paper3);
-    border-color: var(--gold);
-    color: var(--vermil);
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper2);
+    transform: translateY(-1px);
   }
 
   /* 만세력 카드 — 청옥 테마 */
@@ -569,10 +570,10 @@
   <!-- ━━━━━━━━━━━ Header ━━━━━━━━━━━ -->
   <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
     <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="/" class="flex items-center gap-3">
+      <a href="/" class="flex items-center gap-3 shrink-0">
         <span class="font-hanja text-xl sm:text-2xl text-[var(--vermil)]">四柱日記</span>
         <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
-        <span class="font-display text-base sm:text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
+        <span class="hidden sm:inline font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
       </a>
       <nav class="font-shilla flex items-center gap-1 sm:gap-2 text-sm">
         <a href="manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">무료 만세력</a>
@@ -658,16 +659,16 @@
 
     <p class="font-hanja text-sm text-[var(--ink3)] mb-6 tracking-[0.4em]">正統命理 ✦ 十年分析</p>
 
-    <h1 class="font-display text-4xl sm:text-5xl md:text-6xl mb-6 leading-tight text-[var(--ink)] relative">
+    <h1 class="font-display text-[2.25rem] sm:text-5xl md:text-6xl mb-6 leading-tight text-[var(--ink)] relative">
       당신의 운명을<br/>
       <span class="text-[var(--vermil)]">한 글자씩</span> 풀어드립니다
     </h1>
 
-    <p class="text-[var(--ink3)] text-base sm:text-lg max-w-2xl mx-auto mb-4 leading-relaxed relative">
-      10년간 데이터를 다뤘고, 3,000건 이상의 사주를 분석했습니다.
+    <p class="text-[var(--ink3)] text-sm sm:text-lg max-w-2xl mx-auto mb-4 leading-relaxed relative">
+      10년간 데이터를 다뤘고,<br class="sm:hidden"/> 3,000건 이상의 사주를 분석했습니다.
     </p>
-    <p class="text-[var(--ink3)] text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed relative">
-      정통 명리학을 <span class="text-[var(--vermil)] font-medium">데이터 분석가의 시선</span>으로 풀어드립니다.
+    <p class="text-[var(--ink3)] text-sm sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed relative">
+      정통 명리학을 <span class="text-[var(--vermil)] font-medium">데이터 분석가의 시선</span>으로<br class="sm:hidden"/> 풀어드립니다.
     </p>
 
     <div class="flex flex-col sm:flex-row gap-3 justify-center items-center relative">
@@ -691,7 +692,7 @@
     <div class="max-w-6xl mx-auto px-6">
       <div class="text-center mb-12">
         <span class="free-tag">FREE ✦ 무료 체험</span>
-        <h2 class="font-display text-3xl md:text-4xl mt-5 mb-3 text-[var(--ink)]">
+        <h2 class="font-display text-2xl sm:text-3xl md:text-4xl mt-5 mb-3 text-[var(--ink)]">
           먼저 무료로 시작해보세요
         </h2>
         <p class="text-[var(--ink3)] max-w-xl mx-auto leading-relaxed">
@@ -777,7 +778,7 @@
   <section id="products" class="max-w-6xl mx-auto px-6 pt-12 pb-24">
     <div class="text-center mb-14">
       <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">PRODUCTS</p>
-      <h2 class="font-display text-3xl md:text-4xl mb-3 text-[var(--ink)]">
+      <h2 class="font-display text-2xl sm:text-3xl md:text-4xl mb-3 text-[var(--ink)]">
         당신에게 맞는 분석을 선택하세요
       </h2>
       <p class="text-[var(--ink3)]">한 번 결제하시면 마이페이지에서 언제든 다시 보실 수 있어요</p>
@@ -795,9 +796,10 @@
           </div>
         </div>
 
-        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+        <h3 class="font-display text-2xl mb-1 text-[var(--ink)]">
           입문용 <span class="font-shilla text-[var(--jade)] text-base font-medium">Light</span>
         </h3>
+        <span class="inline-block text-[11px] font-shilla font-bold px-2 py-0.5 rounded-full mb-2" style="background:rgba(90,138,152,0.15);color:var(--jade2)">👤 사주 입문자에게 추천</span>
         <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           사주가 처음이라면 — 나는 어떤 사람일까?
         </p>
@@ -808,13 +810,12 @@
         <ul class="space-y-3 text-sm text-[var(--ink2)] mb-8">
           <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>타고난 성격과 기질 분석</span></li>
           <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>강점과 약점 핵심 정리</span></li>
-          <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>인생 흐름 미리보기</span></li>
+          <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>인생 흐름 미리보기 <span class="text-[var(--ink4)] text-xs">(10년 단위 대운)</span></span></li>
           <li class="flex gap-3"><span class="check-mark check-jade">✓</span><span>어려운 용어 없이 술술 읽히는 풀이</span></li>
         </ul>
 
         <button data-product="light" class="product-btn btn-base btn-light">시작하기 →</button>
         <button data-add-cart="light" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
-        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">사주 입문자에게 가장 적합한 라이트 버전</p>
       </div>
 
       <!-- ── Card 2: 전문가용 (Deep) — 命 — BEST ── -->
@@ -829,9 +830,10 @@
           </div>
         </div>
 
-        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+        <h3 class="font-display text-2xl mb-1 text-[var(--ink)]">
           전문가용 <span class="font-shilla text-[var(--vermil)] text-base font-medium">Deep</span>
         </h3>
+        <span class="inline-block text-[11px] font-shilla font-bold px-2 py-0.5 rounded-full mb-2" style="background:rgba(177,58,44,0.12);color:var(--vermil2)">📖 사주를 깊이 알고 싶은 분</span>
         <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           더 이상 사주에 돈을 쓰지 않아도 되는 완전판
         </p>
@@ -854,7 +856,6 @@
 
         <button data-product="deep" class="product-btn btn-base btn-deep">시작하기 →</button>
         <button data-add-cart="deep" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
-        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">사주를 깊이 이해하고 싶은 분께</p>
       </div>
 
       <!-- ── Card 3: 궁합 (Couple) — 緣 ── -->
@@ -867,9 +868,10 @@
           </div>
         </div>
 
-        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+        <h3 class="font-display text-2xl mb-1 text-[var(--ink)]">
           궁합 분석 <span class="font-shilla text-[var(--plum)] text-base font-medium">Couple</span>
         </h3>
+        <span class="inline-block text-[11px] font-shilla font-bold px-2 py-0.5 rounded-full mb-2" style="background:rgba(184,96,122,0.15);color:var(--plum2)">💑 연인·친구·동료의 관계가 궁금한 분</span>
         <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           연인·친구·직장 — 두 사람의 깊은 인연
         </p>
@@ -885,7 +887,6 @@
 
         <button data-product="couple" class="product-btn btn-base btn-couple">시작하기 →</button>
         <button data-add-cart="couple" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
-        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">두 사람의 에너지가 어떻게 만나는지</p>
       </div>
 
       <!-- ── Card 4: 궁합 성인용 (Couple+) — 桃 — 19+ ── -->
@@ -900,9 +901,10 @@
           </div>
         </div>
 
-        <h3 class="font-display text-2xl mb-2 text-[var(--ink)]">
+        <h3 class="font-display text-2xl mb-1 text-[var(--ink)]">
           궁합 분석 성인용 <span class="font-shilla text-[var(--wine)] text-base font-medium">Couple+</span>
         </h3>
+        <span class="inline-block text-[11px] font-shilla font-bold px-2 py-0.5 rounded-full mb-2" style="background:rgba(138,58,77,0.15);color:var(--wine2)">🍷 19+ 연인·부부의 솔직한 케미가 궁금한 분</span>
         <p class="text-sm text-[var(--ink3)] mb-2 leading-relaxed">
           연인·부부 — 솜사탕 말고 매운탕 🌶
         </p>
@@ -918,7 +920,6 @@
 
         <button data-product="couple_plus" class="product-btn btn-base btn-wine">시작하기 →</button>
         <button data-add-cart="couple_plus" class="add-cart-btn block w-full mt-2 py-2 text-xs text-[var(--ink3)] hover:text-[var(--vermil)] font-shilla transition">+ 장바구니에 담기</button>
-        <p class="text-xs text-[var(--ink4)] mt-3 italic text-center">桃花는 어른의 꽃 — 19세 이상만 입장</p>
       </div>
 
     </div>
@@ -930,7 +931,7 @@
 
       <div class="text-center mb-14">
         <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">WHY 四柱日記</p>
-        <h2 class="font-display text-3xl md:text-4xl text-[var(--ink)]">
+        <h2 class="font-display text-2xl sm:text-3xl md:text-4xl text-[var(--ink)]">
           기계가 만들어준 결과가 아닙니다
         </h2>
         <p class="mt-3 text-[var(--ink3)] text-sm sm:text-base">
@@ -968,7 +969,7 @@
   <section id="reviews" class="max-w-6xl mx-auto px-6 py-24">
     <div class="text-center mb-12">
       <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">REVIEWS</p>
-      <h2 class="font-display text-3xl md:text-4xl mb-3 text-[var(--ink)]">실제 사용자들의 후기</h2>
+      <h2 class="font-display text-2xl sm:text-3xl md:text-4xl mb-3 text-[var(--ink)]">실제 사용자들의 후기</h2>
       <p id="reviews-subtitle" class="text-[var(--ink3)] mb-8">결제하신 분들이 직접 남긴 후기입니다</p>
 
       <!-- 평균 별점 박스 (리뷰 있을 때만) -->

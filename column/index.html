@@ -312,6 +312,31 @@
       </p>
     </div>
 
+    <!-- ━━━ 인라인 주제 요청 카드 (Hero 바로 아래) ━━━ -->
+    <div id="quick-request-card" style="background:linear-gradient(135deg, rgba(184,146,60,0.06), rgba(177,58,44,0.05));border:1.5px dashed var(--gold);border-radius:14px;padding:20px 22px;margin-bottom:32px">
+      <div class="flex items-start gap-3 flex-wrap">
+        <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--gold);color:var(--ink);font-family:'Shilla Culture',serif;font-weight:700;font-size:18px">問</div>
+        <div class="flex-1 min-w-[200px]">
+          <h3 class="font-display text-lg text-[var(--ink)] mb-1">알고싶은 주제가 있으신가요?</h3>
+          <p class="font-shilla text-xs text-[var(--ink3)] leading-relaxed">한 줄만 적어주세요 — <strong class="text-[var(--ink)]">사주다이어리를 만든 분석가</strong>가 직접 검토 후 칼럼으로 다뤄드려요. <strong class="text-[var(--vermil)]">AI가 아닌 사람이 읽습니다.</strong></p>
+        </div>
+      </div>
+      <textarea id="quick-req-text" maxlength="500" rows="2"
+        class="w-full mt-3 px-3 py-2.5 text-sm bg-white border border-[var(--paper-dk)] rounded-lg focus:outline-none focus:border-[var(--gold)]"
+        placeholder="예: 신유년의 흐름이 궁금해요 / 일주가 충 맞으면 어떻게 되나요?"></textarea>
+      <div class="flex items-center gap-2 mt-2 flex-wrap">
+        <input id="quick-req-nick" type="text" maxlength="20" placeholder="닉네임 (선택)"
+          class="flex-1 min-w-[120px] px-3 py-2 text-sm bg-white border border-[var(--paper-dk)] rounded-lg focus:outline-none focus:border-[var(--gold)]" />
+        <button id="quick-req-submit" class="px-5 py-2 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-shilla font-bold text-sm hover:bg-[var(--vermil)] transition">
+          요청 보내기 →
+        </button>
+      </div>
+      <p id="quick-req-msg" class="font-shilla text-xs mt-2" style="min-height:1em"></p>
+      <p class="font-shilla text-[11px] text-[var(--ink4)] mt-2 text-right">
+        <a href="#topic-request-section" class="hover:text-[var(--vermil)]">이미 요청된 주제 보기 ↓</a>
+      </p>
+    </div>
+
     <!-- 카테고리 탭 -->
     <div id="category-tabs" class="category-tabs">
       <button class="cat-tab active" data-cat="all">전체 <span class="cat-count" id="count-all">0</span></button>
@@ -624,6 +649,54 @@
   <script src="../assets/js/auth-guard.js"></script>
   <script src="../assets/js/supabase-client.js"></script>
   <script>
+    // ─── 빠른 요청 폼 ───
+    (function setupQuickRequest() {
+      const btn = document.getElementById('quick-req-submit');
+      const ta = document.getElementById('quick-req-text');
+      const nick = document.getElementById('quick-req-nick');
+      const msg = document.getElementById('quick-req-msg');
+      if (!btn) return;
+
+      function showMsg(text, type) {
+        msg.textContent = text;
+        msg.style.color = type === 'error' ? 'var(--vermil2)' : (type === 'success' ? 'var(--jade2)' : 'var(--ink3)');
+      }
+
+      btn.addEventListener('click', async () => {
+        const content = (ta.value || '').trim();
+        if (content.length < 5) {
+          showMsg('5자 이상 작성해주세요.', 'error');
+          return;
+        }
+        if (!SajuSupa.isEnabled()) {
+          showMsg('게시판 준비 중입니다. 곧 활성화돼요.', 'error');
+          return;
+        }
+        const customNickname = (nick.value || '').trim();
+        btn.disabled = true;
+        btn.textContent = '전송 중...';
+        const { error } = await SajuSupa.createInquiry({
+          category: 'topic_request',
+          content,
+          anonymous: !customNickname,
+          customNickname,
+          isPrivate: false,
+          attachedSaju: null
+        });
+        btn.disabled = false;
+        btn.textContent = '요청 보내기 →';
+        if (error) {
+          showMsg('전송 실패: ' + error.message, 'error');
+          return;
+        }
+        showMsg('✓ 요청이 등록되었어요. 운영자가 검토 후 칼럼에 반영합니다.', 'success');
+        ta.value = '';
+        nick.value = '';
+        // 하단 목록 새로고침
+        setTimeout(() => location.reload(), 1400);
+      });
+    })();
+
     (async function loadTopicRequests() {
       const listEl = document.getElementById('topic-request-list');
       if (!listEl) return;

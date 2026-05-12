@@ -413,15 +413,16 @@
       <a href="index.html" class="flex items-center gap-3">
         <span class="font-hanja text-xl sm:text-2xl text-[var(--vermil)]">四柱日記</span>
         <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
-        <span class="font-display text-base sm:text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
+        <span class="hidden sm:inline font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
       </a>
       <nav class="font-shilla flex items-center gap-1 sm:gap-3 text-sm">
         <a href="manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">만세력</a>
         <a href="today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘 운세</a>
         <a href="column/" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">칼럼</a>
-        <a href="qna.html" class="px-3 py-2 text-[var(--vermil)] font-bold">독자의 글</a>
-        <a href="index.html#products" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
-        <a href="mypage.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">마이</a>
+        <a href="qna.html" class="hidden md:inline px-3 py-2 text-[var(--vermil)] font-bold">독자의 글</a>
+        <a href="index.html#products" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="mypage.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">마이</a>
+        <a href="index.html" class="md:hidden text-sm px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
       </nav>
     </div>
   </header>
@@ -442,11 +443,11 @@
       <!-- ★ 신뢰 카피 강조 박스 ★ -->
       <div class="trust-banner mb-6">
         <div class="trust-seal">人<br/>直答</div>
-        <h2>모든 답변은 운영자가 직접 작성합니다</h2>
+        <h2>모든 답변은 분석가가 직접 작성합니다</h2>
         <p>
           이 게시판은 <strong>AI 자동응답을 사용하지 않습니다</strong>.
-          질문을 남기시면 운영자(손승한)가 칼럼과 동일한 톤으로 직접 답변드려요.
-          <br/>사주 정보를 첨부하시면 더 정확하고 개인화된 답변을 받으실 수 있습니다.
+          <strong>사주다이어리를 만든 분석가</strong>가 칼럼과 동일한 톤으로 직접 답변드려요.
+          <br/>10년 데이터, 3,000건 누적 풀이를 바탕으로 ─ 사주 정보를 첨부하시면 더 정확한 답변을 받으실 수 있습니다.
         </p>
       </div>
 
@@ -795,7 +796,7 @@
       if (reply) {
         replyHtml = `
           <div class="reply-wrap">
-            <span class="reply-author">운영자 직답</span>
+            <span class="reply-author">분석가 직답</span>
             <span class="inq-meta">${SajuSupa.formatTime(reply.created_at)}</span>
             <div class="reply-content">${SajuSupa.escapeHtml(reply.content)}</div>
             ${isMaster ? `<div class="mt-2 text-right"><button class="text-[11px] text-[var(--vermil)] hover:underline" data-del-reply="${reply.id}">답글 삭제</button></div>` : ''}
