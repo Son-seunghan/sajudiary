@@ -74,6 +74,82 @@
     box-shadow: 0 6px 24px rgba(64, 104, 120, 0.10);
   }
 
+  /* ━━━━ Hook 카드 (일간/신살/흐름) ━━━━ */
+  .hook-card {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-top: 14px;
+    position: relative;
+  }
+  .hook-card .hook-label {
+    font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hook-card .hook-title {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .hook-card .hook-body {
+    font-size: 14px;
+    color: var(--ink2);
+    line-height: 1.8;
+  }
+  .hook-card .hook-sub {
+    font-size: 12px;
+    color: var(--ink3);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--paper-dk);
+    line-height: 1.6;
+  }
+  .hook-jade   { border-left: 4px solid var(--jade); }
+  .hook-jade   .hook-label { color: var(--jade2); }
+  .hook-gold   { border-left: 4px solid var(--gold); }
+  .hook-gold   .hook-label { color: var(--gold2); }
+  .hook-vermil { border-left: 4px solid var(--vermil); }
+  .hook-vermil .hook-label { color: var(--vermil); }
+
+  .hook-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 14px;
+    background: linear-gradient(180deg, var(--vermil3), var(--vermil));
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Shilla Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    transition: all .2s ease;
+    border: 1px solid var(--gold);
+  }
+  .hook-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(177,58,44,0.25);
+    color: #fff;
+  }
+  .hook-flow-tag {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'Shilla Gothic', sans-serif;
+    letter-spacing: 0.05em;
+  }
+
   /* 페이지 상단 큰 한자 장식 */
   .page-hanja {
     position: absolute;
@@ -395,13 +471,42 @@
           </div>
         </div>
 
-        <div class="bg-[var(--paper3)] rounded-lg p-4 text-sm text-[var(--ink2)] leading-relaxed mt-4 border-l-4 border-[var(--jade)]">
-          <p class="font-shilla font-bold text-[var(--jade2)] mb-2">📚 일주(日柱) 풀이</p>
-          <p id="dayMeaning" class="text-[var(--ink2)]"></p>
+        <!-- ━━━ Hook 카드 3종 ━━━ -->
+        <div class="mt-6 space-y-0">
+
+          <!-- 카드 1: 일간의 기운 -->
+          <div class="hook-card hook-jade">
+            <div class="hook-label">✦ 일간(日干)의 기운</div>
+            <div class="hook-title" id="hookStemTitle">—</div>
+            <p class="hook-body" id="hookStemBody"></p>
+            <p class="hook-sub" id="hookDaySub"></p>
+          </div>
+
+          <!-- 카드 2: 사주에 새겨진 기운 (신살) -->
+          <div class="hook-card hook-gold">
+            <div class="hook-label">⚡ 사주에 새겨진 기운</div>
+            <div class="hook-title" id="hookShinsalTitle">—</div>
+            <p class="hook-body" id="hookShinsalBody"></p>
+            <p class="hook-sub">
+              ⓘ 신살(神殺)은 사주의 지지 조합에서 발현되는 기운이에요. 전문가용에서 이 사주의 12신살 전체와 귀인(貴人)까지 분석됩니다.
+            </p>
+          </div>
+
+          <!-- 카드 3: 사주의 흐름 (유료 후크) -->
+          <div class="hook-card hook-vermil">
+            <div class="hook-label">📈 사주의 흐름</div>
+            <div class="mb-2"><span class="hook-flow-tag" id="hookFlowTag">—</span></div>
+            <p class="hook-body" id="hookFlowBody"></p>
+            <p class="hook-sub">
+              ※ 정확한 시기·연도·대운 사이클은 무료에서 보여드릴 수 없어요.
+            </p>
+            <a href="index.html?product=deep#products" class="hook-cta">전문가용에서 자세히 보기 →</a>
+          </div>
+
         </div>
 
-        <div class="text-xs text-[var(--ink4)] mt-4 italic text-center">
-          ※ 본 무료 만세력은 사주팔자(8글자)만 표시합니다. 십신·신살·대운·격국 분석은 아래 전문가용을 이용하세요.
+        <div class="text-xs text-[var(--ink4)] mt-5 italic text-center">
+          ※ 본 무료 만세력은 사주팔자(8글자)와 간단 인상만 표시합니다. 십신·신살 전체·대운·격국 분석은 전문가용을 이용해주세요.
         </div>
       </div>
 
@@ -476,8 +581,151 @@
     const BRANS    = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
     const BRANS_H  = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
     const STEM_E   = [0,0,1,1,2,2,3,3,4,4]; // 오행 인덱스: 0=목 1=화 2=토 3=금 4=수
+    const STEM_Y   = [0,1,0,1,0,1,0,1,0,1]; // 0=양 1=음
     const BRAN_E   = [4,2,0,0,2,1,1,2,3,3,2,4];
     const ELEM_C   = ['wood','fire','earth','metal','water'];
+    const GEN      = [1,2,3,4,0];
+    const GEN_BY   = [4,0,1,2,3];
+    const CTRL     = [2,3,4,0,1];
+    const CTRL_BY  = [3,4,0,1,2];
+
+    // ── 일간(천간)별 시적 한 줄 (saju_letter.html에서 포팅) ──
+    const STEM_DESC = [
+      {short: '곧게 자라는 나무', long: '어떤 환경에도 휘지 않고 자기 방향으로 뻗어나가는 힘 — 그게 甲(갑)이에요.'},
+      {short: '유연하지만 절대 꺾이지 않는', long: '강하게 밀어붙이기보다, 흐르면서 길을 만드는 힘 — 그게 乙(을)이에요.'},
+      {short: '있는 곳의 분위기를 바꾸는 빛', long: '존재만으로 공기가 바뀌는 사람 — 그게 丙(병), 태양의 기운이에요.'},
+      {short: '조용하지만 절대 꺼지지 않는 불', long: '혼자 있을 때 가장 뜨겁게 타오르는 힘 — 그게 丁(정)의 기운이에요.'},
+      {short: '산처럼 넓고 무거운 기운', long: '많은 것을 받아주고 품어주는 힘 — 그게 戊(무)의 기운이에요.'},
+      {short: '씨앗을 뿌리내리게 하는 흙', long: '화려하지 않지만 모든 것을 자라게 하는 힘 — 그게 己(기)의 기운이에요.'},
+      {short: '다듬어질수록 빛나는 원석', long: '단련받을수록 더 값어치가 나오는 힘 — 그게 庚(경), 쇠붙이의 기운이에요.'},
+      {short: '차갑고 정밀한 보석', long: '한 번 빛을 본 사람은 절대 잊지 못하는 — 그게 辛(신)의 기운이에요.'},
+      {short: '깊은 강물처럼 흐르는 기운', long: '겉으로는 조용하지만 실제로는 모든 것을 담고 있는 힘 — 그게 壬(임)이에요.'},
+      {short: '소리 없이 스미는 빗물', long: '드러내지 않지만 깊은 곳까지 닿는 감수성 — 그게 癸(계)의 기운이에요.'}
+    ];
+
+    // ── 12신살 매핑 (saju.html에서 포팅) ──
+    // 년지 그룹: 0=寅午戌, 1=巳酉丑, 2=申子辰, 3=亥卯未
+    function getBrGroup(bi) {
+      if ([2,6,10].includes(bi)) return 0;
+      if ([5,9,1].includes(bi))  return 1;
+      if ([8,0,4].includes(bi))  return 2;
+      if ([11,3,7].includes(bi)) return 3;
+      return -1;
+    }
+
+    const SHINSAL_MAP = [
+      {key:'겁살',   arr:[11,2,5,8],  icon:'⚔️',  good:false, lbl:'겁살(劫殺)',
+       desc:'손실·경쟁·도전의 기운. 잘 다루면 강한 경쟁력과 생존력으로 발전해요.'},
+      {key:'재살',   arr:[0,3,6,9],   icon:'⚠️',  good:false, lbl:'재살(災殺)',
+       desc:'예기치 못한 사고·돌발 상황에 대한 대비가 중요한 기운이에요.'},
+      {key:'천살',   arr:[1,4,7,10],  icon:'🌩️', good:false, lbl:'천살(天殺)',
+       desc:'하늘의 뜻처럼 예상 밖의 변수가 따라붙는 기운. 유연성이 무기예요.'},
+      {key:'지살',   arr:[2,5,8,11],  icon:'🌏', good:false, lbl:'지살(地殺)',
+       desc:'이동·이주의 기운. 한 곳에 고정되기보다 움직임 속에서 빛나는 사주예요.'},
+      {key:'월살',   arr:[4,7,10,1],  icon:'🌾', good:false, lbl:'월살(月殺)',
+       desc:'주기적인 인내의 시기가 찾아오는 기운. 꾸준함이 성공의 열쇠예요.'},
+      {key:'망신살', arr:[5,8,11,2],  icon:'🔇', good:false, lbl:'망신살(亡身殺)',
+       desc:'명예·체면 면에서 신중함이 필요한 기운. 말과 판단의 무게를 의식하세요.'},
+      {key:'장성살', arr:[6,9,0,3],   icon:'🏅', good:true,  lbl:'장성살(將星殺)',
+       desc:'리더십과 통솔력의 기운. 조직에서 자연스럽게 두각을 나타내는 사주예요.'},
+      {key:'반안살', arr:[7,10,1,4],  icon:'🪜', good:true,  lbl:'반안살(攀鞍殺)',
+       desc:'단계적으로 높은 자리에 오르는 기운. 서두르지 않고 쌓을수록 빛나요.'},
+      {key:'역마살', arr:[8,11,2,5],  icon:'🌍', good:true,  lbl:'역마살(驛馬殺)',
+       desc:'이동·여행·변화의 기운. 외국·원거리·이동 직종에서 크게 성공하는 사주예요.'},
+      {key:'육해살', arr:[9,0,3,6],   icon:'💔', good:false, lbl:'육해살(六害殺)',
+       desc:'혈연보다 넓은 관계에서 더 강한 유대를 만드는 기운이에요.'},
+      {key:'도화살', arr:[3,6,9,0],   icon:'🌸', good:true,  lbl:'도화살(桃花殺)',
+       desc:'외모·매력·예술적 감각이 빛나며 사람을 끌어당기는 기운의 사주예요.'},
+      {key:'화개살', arr:[10,1,4,7],  icon:'🎨', good:true,  lbl:'화개살(華蓋殺)',
+       desc:'예술·철학·신비로운 분야에 깊이가 있는 사주. 혼자만의 시간에 창의성이 발현돼요.'}
+    ];
+
+    // 우선순위 — catchy + positive 우선
+    const SHINSAL_PRIORITY = ['도화살','화개살','장성살','역마살','반안살','지살','월살','육해살','망신살','겁살','재살','천살'];
+
+    function pickBestShinsal(yP, pillars) {
+      const yGroup = getBrGroup(yP.bi);
+      if (yGroup < 0) return null;
+      const allBi = pillars.filter(Boolean).map(p => p.bi);
+      const found = SHINSAL_MAP.filter(s => allBi.includes(s.arr[yGroup]));
+      if (found.length === 0) return null;
+      // 우선순위에 따라 정렬
+      found.sort((a, b) => SHINSAL_PRIORITY.indexOf(a.key) - SHINSAL_PRIORITY.indexOf(b.key));
+      return found[0];
+    }
+
+    // ── 십신 계산 (대운 흐름 판별용) ──
+    function getTG(daySi, tgtSi) {
+      const de = STEM_E[daySi], te = STEM_E[tgtSi];
+      const sy = STEM_Y[daySi] === STEM_Y[tgtSi];
+      if (de === te)           return sy ? 0 : 1;
+      if (te === GEN[de])      return sy ? 2 : 3;
+      if (te === CTRL[de])     return sy ? 4 : 5;
+      if (te === CTRL_BY[de])  return sy ? 6 : 7;
+      if (te === GEN_BY[de])   return sy ? 8 : 9;
+      return -1;
+    }
+
+    // ── 24절기 JDN 모음 (대운 계산용) ──
+    function getJieqiJDNs(year) {
+      const res = [];
+      for (let y = year - 1; y <= year + 1; y++) {
+        const ts = getSolarTerms(y);
+        for (const t of ts) {
+          const ty = (t.m === 1) ? y + 1 : y;
+          res.push(getJDN(ty, t.m, t.d));
+        }
+      }
+      return [...new Set(res)].sort((a, b) => a - b);
+    }
+
+    // ── 대운 10개 + 흐름 판별 ──
+    function calcDaewoon(year, month, day, gender, yearSi) {
+      const isYang = yearSi % 2 === 0;
+      const fwd = gender === 'male' ? isYang : !isYang;
+      const bJDN = getJDN(year, month, day);
+      const all = getJieqiJDNs(year);
+      let diff;
+      if (fwd) { const nxt = all.find(j => j > bJDN); diff = nxt ? nxt - bJDN : 30; }
+      else     { const sorted = [...all].reverse(); const prv = sorted.find(j => j < bJDN); diff = prv ? bJDN - prv : 30; }
+      const startAge = Math.round(diff / 3);
+      const mp = getMonthPillar(year, month, day, yearSi);
+      const list = [];
+      for (let i = 0; i < 10; i++) {
+        const off = fwd ? (i + 1) : -(i + 1);
+        const si = ((mp.si + off) % 10 + 10) % 10;
+        const bi = ((mp.bi + off) % 12 + 12) % 12;
+        list.push({ age: startAge + i * 10, si, bi });
+      }
+      return { startAge, fwd, list };
+    }
+
+    function detectFlow(dwList, daySi) {
+      // 대운 천간 십신을 early(<30대) vs late(30~70대)로 비교
+      const early = dwList.filter(d => d.age < 30);
+      const late  = dwList.filter(d => d.age >= 30 && d.age < 70);
+      const goodTgs = [5, 7, 4, 6]; // 정재·정관·편재·편관 (상대적 길신)
+      const earlyGood = early.filter(d => goodTgs.includes(getTG(daySi, d.si))).length;
+      const lateGood  = late.filter(d => goodTgs.includes(getTG(daySi, d.si))).length;
+      if (lateGood > earlyGood + 1)  return 'ascending';
+      if (earlyGood > lateGood + 1)  return 'descending';
+      return 'balanced';
+    }
+
+    const FLOW_COPY = {
+      ascending: {
+        tag: '후발 개화형',
+        body: '갈수록 더 좋아지는 흐름의 사주예요. 늦게 피는 꽃이 오래 가는 법 — 지금 쌓는 것이 후반의 도약을 위한 뿌리예요.'
+      },
+      descending: {
+        tag: '조기 전성형',
+        body: '전반 대운에 힘이 실리는 흐름이에요. 지금 이 시기에 적극적으로 움직이고 경험을 쌓는 것이 평생의 자산이 됩니다.'
+      },
+      balanced: {
+        tag: '꾸준한 안정형',
+        body: '큰 기복 없이 차곡차곡 쌓이는 흐름. 한 방의 폭발보다 긴 호흡 — 일관성과 지속력이 가장 큰 무기예요.'
+      }
+    };
 
     // 일주 의미 풀 (60갑자 전부)
     const DAY_MEANINGS = {
@@ -619,12 +867,38 @@
       setPillar('day',   dP);
       setPillar('hour',  hP);
 
-      // 일주 풀이
+      // ━━━ 일주 정보 (Hook 카드용) ━━━
       const dayKey = STEMS[dP.si] + BRANS[dP.bi];
       const dayKeyHan = STEMS_H[dP.si] + BRANS_H[dP.bi];
-      const meaning = DAY_MEANINGS[dayKey] || '본인을 상징하는 일주입니다. 자세한 풀이는 전문가용 분석을 이용해보세요.';
-      document.getElementById('dayMeaning').textContent =
-        `${name}님의 일주는 "${dayKeyHan} (${dayKey})"입니다. ${meaning}.`;
+      const dayMeaning = DAY_MEANINGS[dayKey] || '본인을 상징하는 일주입니다.';
+
+      // ━━━ Hook 카드 1: 일간의 기운 ━━━
+      const stemDesc = STEM_DESC[dP.si];
+      document.getElementById('hookStemTitle').textContent =
+        `${STEMS_H[dP.si]}(${STEMS[dP.si]}) — ${stemDesc.short}.`;
+      document.getElementById('hookStemBody').textContent = stemDesc.long;
+      document.getElementById('hookDaySub').innerHTML =
+        `일주 <strong>${dayKeyHan} (${dayKey})</strong> — ${dayMeaning}`;
+
+      // ━━━ Hook 카드 2: 신살 1개 (가장 catchy한 것) ━━━
+      const pillars = [yP, mP, dP].concat(hP ? [hP] : []);
+      const best = pickBestShinsal(yP, pillars);
+      const shTitle = document.getElementById('hookShinsalTitle');
+      const shBody = document.getElementById('hookShinsalBody');
+      if (best) {
+        shTitle.innerHTML = `${best.icon} ${best.lbl}`;
+        shBody.textContent = best.desc;
+      } else {
+        shTitle.textContent = '안정적인 구조의 사주';
+        shBody.textContent = '두드러진 신살 없이 오행과 십신의 흐름이 더 강하게 작용하는 사주예요. 균형감이 가장 큰 강점입니다.';
+      }
+
+      // ━━━ Hook 카드 3: 사주의 흐름 (유료 후크) ━━━
+      const dw = calcDaewoon(year, month, day, gender, yP.si);
+      const flow = detectFlow(dw.list, dP.si);
+      const flowCopy = FLOW_COPY[flow];
+      document.getElementById('hookFlowTag').textContent = flowCopy.tag;
+      document.getElementById('hookFlowBody').textContent = flowCopy.body;
 
       // 결과 헤더
       const hourLabel = hour < 0 ? '시간 미입력' : `${BRANS[hP.bi]}시 (${['23:30~01:30','01:30~03:30','03:30~05:30','05:30~07:30','07:30~09:30','09:30~11:30','11:30~13:30','13:30~15:30','15:30~17:30','17:30~19:30','19:30~21:30','21:30~23:30'][hP.bi]})`;
