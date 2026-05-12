@@ -248,7 +248,6 @@
         <a href="../manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
         <a href="../today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
         <a href="./" class="hidden md:inline px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
-        <a href="../qna.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">독자의 글</a>
         <a href="../index.html#products" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
         <a href="../index.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
 
@@ -649,6 +648,12 @@
   <script src="../assets/js/auth-guard.js"></script>
   <script src="../assets/js/supabase-client.js"></script>
   <script>
+    // Supabase 미설정 시 — 알고싶어요 섹션 통째 숨김
+    if (!SajuSupa.isEnabled()) {
+      document.getElementById('quick-request-card')?.remove();
+      document.getElementById('topic-request-section')?.remove();
+    }
+
     // ─── 빠른 요청 폼 ───
     (function setupQuickRequest() {
       const btn = document.getElementById('quick-req-submit');

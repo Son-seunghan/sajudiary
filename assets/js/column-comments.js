@@ -469,12 +469,14 @@
       console.warn('[column-comments] SajuSupa 또는 AuthGuard가 로드되지 않았습니다.');
       return;
     }
+    // Supabase 미설정 시 위젯 자체를 마운트하지 않음 (깔끔한 hide)
+    if (!SajuSupa.isEnabled()) return;
     SLUG = getSlug();
     injectCss();
     if (!mount()) return;
     renderForm();
     attachListEvents();
-    if (SajuSupa.isEnabled()) loadComments();
+    loadComments();
   }
 
   if (document.readyState === 'loading') {
