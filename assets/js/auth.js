@@ -54,9 +54,9 @@ const Auth = (function () {
     Kakao.Auth.authorize({
       redirectUri: window.location.origin + window.location.pathname,
       state: isCartMode ? '__cart__' : (productId || ''),
-      // birthday: 생일(MMDD) — 사주 자동입력용. 카카오 동의 항목 활성화 필요.
-      // gender / birthyear / age_range는 비즈니스 인증 필요 — 미사용.
-      scope: 'profile_nickname,profile_image,birthday'
+      // birthday/gender/birthyear/age_range — 카카오 동의항목 심사 승인 후 재추가
+      // 승인 받으면 scope에 'birthday,gender,birthyear' 추가
+      scope: 'profile_nickname,profile_image'
     });
   }
 
