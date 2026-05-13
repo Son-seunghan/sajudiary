@@ -103,8 +103,8 @@ window.SAJULOG_CONFIG = {
   //
   // 비어있는 상태(값 없음/placeholder)에서는 QNA·댓글 기능이 자동 비활성화됨.
   // (사이트는 정상 동작, 게시판만 "준비 중" 메시지 표시)
-  SUPABASE_URL:      '',  // 예: 'https://xxxxxxxxx.supabase.co'
-  SUPABASE_ANON_KEY: '',  // 예: 'eyJhbGc...' (anon key — 공개 OK, service_role X)
+  SUPABASE_URL:      'https://hlxttdvvwftiquzqxgxs.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_AdiQDdgZQpTwYonJTff7wg_rLgjPuBp',  // publishable key (anon key의 새 이름)
 
   get SUPABASE_ENABLED() {
     return !!(this.SUPABASE_URL && this.SUPABASE_ANON_KEY
