@@ -307,13 +307,13 @@
 
   <div class="top-stripe"></div>
 
-  <!-- Scripts -->
+  <!-- Scripts (순서: Supabase SDK → config → auth → supabase-client → reviews → cart) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/config.js"></script>
-  <script src="assets/js/cart.js"></script>
-  <script src="assets/js/reviews.js"></script>
   <script src="assets/js/auth-guard.js"></script>
   <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/reviews.js"></script>
+  <script src="assets/js/cart.js"></script>
 
   <script>
     const cfg = window.SAJULOG_CONFIG;
@@ -456,20 +456,27 @@
 
     renderAnalyses();
 
-    // ─── 4) 구매 내역 표시 ───
-    const purchases = AuthGuard.getPurchases();
-    document.getElementById('purchase-count').textContent = purchases.length;
+    // ─── 4) 구매 내역 표시 (async — Reviews를 Supabase로 가져옴) ───
+    (async function renderPurchases() {
+      const purchases = AuthGuard.getPurchases();
+      document.getElementById('purchase-count').textContent = purchases.length;
 
-    const listEl = document.getElementById('purchase-list');
-    if (purchases.length === 0) {
-      listEl.innerHTML = `
-        <div class="empty-state panel">
-          <div class="text-5xl mb-4 opacity-30">📜</div>
-          <p class="font-display text-lg mb-2 text-[var(--ink2)]">아직 구매한 분석이 없습니다</p>
-          <p class="font-shilla text-sm text-[var(--ink4)]">상품 페이지에서 마음에 드는 분석을 골라보세요</p>
-        </div>
-      `;
-    } else {
+      const listEl = document.getElementById('purchase-list');
+      if (purchases.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state panel">
+            <div class="text-5xl mb-4 opacity-30">📜</div>
+            <p class="font-display text-lg mb-2 text-[var(--ink2)]">아직 구매한 분석이 없습니다</p>
+            <p class="font-shilla text-sm text-[var(--ink4)]">상품 페이지에서 마음에 드는 분석을 골라보세요</p>
+          </div>
+        `;
+        return;
+      }
+
+      // 본인의 모든 리뷰 한 번에 fetch → Map으로 빠른 lookup
+      const myReviewsList = await Reviews.getByUser(user.id);
+      const myReviewByProduct = new Map(myReviewsList.map(r => [r.productId, r]));
+
       // 최신순 정렬
       const sorted = [...purchases].sort((a, b) =>
         new Date(b.purchasedAt) - new Date(a.purchasedAt)
@@ -487,11 +494,29 @@
         const date = new Date(p.purchasedAt);
         const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')}`;
 
-        // 이미 리뷰 작성했는지 체크
-        const existingReview = Reviews.getUserReviewForProduct(user.id, p.productId);
+        // 이미 리뷰 작성했는지 — pre-fetched Map에서 lookup
+        const existingReview = myReviewByProduct.get(p.productId);
         const reviewBtn = existingReview
           ? `<button class="btn-view flex-shrink-0" data-edit-review="${p.productId}" style="background:var(--gold)">후기 수정</button>`
           : `<button class="btn-view flex-shrink-0" data-write-review="${p.productId}" style="background:var(--vermil)">후기 쓰기</button>`;
+
+        // 기존 사진 배열 (최대 2장) — 슬롯별로 미리 표시
+        const existingUrls = (existingReview && existingReview.photoUrls) || [];
+        const slotHtml = (slot) => {
+          const url = existingUrls[slot - 1] || '';
+          const hidden = url ? '' : 'hidden';
+          return `<div>
+            <input type="file" id="review-photo-${slot}-${p.productId}" accept="image/jpeg,image/png,image/webp" class="text-xs text-[var(--ink2)] block w-full" />
+            <div id="review-photo-preview-${slot}-${p.productId}" class="mt-2 ${hidden}">
+              <img src="${url}" alt="후기 사진 ${slot}" class="w-full h-24 object-cover rounded-lg border border-[var(--paper-dk)]" />
+              <button type="button" data-remove-photo="${p.productId}|${slot}" class="text-[10px] text-[var(--vermil)] hover:underline mt-1 block">사진 제거</button>
+            </div>
+          </div>`;
+        };
+        const existingPhotoHtml = `<div class="grid grid-cols-2 gap-3">
+              ${slotHtml(1)}
+              ${slotHtml(2)}
+            </div>`;
 
         return `
           <div class="purchase-card">
@@ -521,6 +546,16 @@
                 rows="3"
                 maxlength="500"
                 placeholder="이 분석을 사용하신 솔직한 후기를 남겨주세요 (5자 이상, 500자 이내)"></textarea>
+
+              <!-- 사진 첨부 (최대 2장) -->
+              <div class="mt-3">
+                <label class="text-xs text-[var(--ink2)] block mb-2 font-shilla">
+                  📎 사진 첨부 (선택, 최대 2장 · 각 10MB)
+                </label>
+                ${existingPhotoHtml}
+                <p id="review-photo-status-${p.productId}" class="text-[10px] text-[var(--ink4)] mt-1"></p>
+              </div>
+
               <div class="flex justify-end gap-2 mt-3">
                 <button class="btn-logout" data-cancel-review="${p.productId}">취소</button>
                 <button class="btn-view" data-submit-review="${p.productId}" style="background:var(--vermil)">후기 등록</button>
@@ -529,7 +564,7 @@
           </div>
         `;
       }).join('');
-    }
+    })();
 
     // ─── 내가 남긴 글 (QNA·댓글) ───
     async function renderMyPosts() {
@@ -592,9 +627,9 @@
 
     renderMyPosts();
 
-    // ─── 내가 쓴 리뷰 표시 ───
-    function renderMyReviews() {
-      const myReviews = Reviews.getByUser(user.id);
+    // ─── 내가 쓴 리뷰 표시 (async — Supabase) ───
+    async function renderMyReviews() {
+      const myReviews = await Reviews.getByUser(user.id);
       const section = document.getElementById('my-reviews-section');
       if (myReviews.length === 0) {
         section.classList.add('hidden');
@@ -605,12 +640,21 @@
       document.getElementById('my-reviews-list').innerHTML = sorted.map(r => {
         const product = cfg.PRODUCTS[r.productId];
         if (!product) return '';
+        const urls = (r.photoUrls || []).filter(Boolean).slice(0, 2);
+        const photoHtml = urls.length === 0 ? '' :
+          urls.length === 1
+            ? `<img src="${urls[0]}" alt="후기 사진" class="max-w-[200px] rounded-lg border border-[var(--paper-dk)] mb-2" loading="lazy" />`
+            : `<div class="grid grid-cols-2 gap-2 mb-2">
+                <img src="${urls[0]}" alt="후기 사진 1" class="w-full h-32 object-cover rounded-lg border border-[var(--paper-dk)]" loading="lazy" />
+                <img src="${urls[1]}" alt="후기 사진 2" class="w-full h-32 object-cover rounded-lg border border-[var(--paper-dk)]" loading="lazy" />
+              </div>`;
         return `
           <div class="purchase-card">
             <div class="flex items-center justify-between mb-2">
               ${Reviews.renderStars(r.rating)}
               <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product.name.replace(/\s*\(.*?\)/, '')}</span>
             </div>
+            ${photoHtml}
             <p class="text-sm text-[var(--ink2)] leading-relaxed mb-2">${escapeHtml(r.content)}</p>
             <div class="flex items-center justify-between text-xs text-[var(--ink4)] font-shilla">
               <span>${Reviews.formatDate(r.createdAt)}${r.updatedAt ? ` (수정됨)` : ''}</span>
@@ -630,7 +674,7 @@
     // ─── 리뷰 폼 이벤트 처리 ───
     let currentRatings = {};  // 각 상품별 선택된 별점
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
       // 마스터 — 분석 슬롯 삭제
       const masterDel = e.target.dataset.masterDelete;
       if (masterDel) {
@@ -653,11 +697,13 @@
       if (writeId) {
         const form = document.getElementById('review-form-' + writeId);
         form.classList.toggle('hidden');
-        // 수정 모드면 기존 내용 채우기
-        const existing = Reviews.getUserReviewForProduct(user.id, writeId);
+        // 수정 모드면 기존 내용 채우기 (async)
+        const existing = await Reviews.getUserReviewForProduct(user.id, writeId);
         if (existing) {
           document.getElementById('review-text-' + writeId).value = existing.content;
           setStarRating(writeId, existing.rating);
+          // 기존 사진 URL 배열을 pending으로 보존 (사용자가 새로 안 올리면 그대로 저장)
+          pendingPhotoUrls[writeId] = (existing.photoUrls || []).slice(0, 2);
         }
         return;
       }
@@ -671,6 +717,21 @@
         return;
       }
 
+      // 사진 제거 — data-remove-photo="productId|slotNumber"
+      const removePhotoVal = e.target.dataset.removePhoto;
+      if (removePhotoVal) {
+        const [rmPid, rmSlotStr] = removePhotoVal.split('|');
+        const rmSlot = parseInt(rmSlotStr, 10);
+        if (!pendingPhotoUrls[rmPid]) pendingPhotoUrls[rmPid] = [];
+        // 슬롯 인덱스(0-based)의 URL을 비움
+        pendingPhotoUrls[rmPid][rmSlot - 1] = null;
+        const preview = document.getElementById(`review-photo-preview-${rmSlot}-${rmPid}`);
+        if (preview) { preview.classList.add('hidden'); const img = preview.querySelector('img'); if (img) img.src = ''; }
+        const input = document.getElementById(`review-photo-${rmSlot}-${rmPid}`);
+        if (input) input.value = '';
+        return;
+      }
+
       // 취소
       const cancelId = e.target.dataset.cancelReview;
       if (cancelId) {
@@ -678,35 +739,100 @@
         return;
       }
 
-      // 등록
+      // 등록 (async) — 사진 최대 2장
       const submitId = e.target.dataset.submitReview;
       if (submitId) {
         const rating = currentRatings[submitId];
         const content = document.getElementById('review-text-' + submitId).value;
         if (!rating) { alert('별점을 선택해주세요.'); return; }
-        const result = Reviews.write({
-          userId: user.id,
-          userNickname: user.nickname,
-          productId: submitId,
-          rating, content
-        });
-        if (result.success) {
-          alert('후기가 등록되었습니다. 감사합니다 🙏');
-          location.reload();
-        } else {
-          alert('등록 실패: ' + result.error);
+
+        const btn = e.target;
+        const origText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '업로드 중...';
+
+        const statusEl = document.getElementById('review-photo-status-' + submitId);
+        try {
+          // 각 슬롯(1, 2)에서 새 파일 업로드 또는 기존 URL 보존 → photoUrls 배열 구성
+          const photoUrls = [];
+          for (let slot = 1; slot <= 2; slot++) {
+            const fileInput = document.getElementById(`review-photo-${slot}-${submitId}`);
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+              if (statusEl) statusEl.textContent = `사진 ${slot} 업로드 중...`;
+              const upRes = await Reviews.uploadPhoto(fileInput.files[0], user.id);
+              if (upRes.error) {
+                alert(`사진 ${slot} 업로드 실패: ` + upRes.error);
+                btn.disabled = false; btn.textContent = origText;
+                if (statusEl) statusEl.textContent = '';
+                return;
+              }
+              photoUrls.push(upRes.url);
+            } else if (pendingPhotoUrls[submitId] && pendingPhotoUrls[submitId][slot - 1]) {
+              // 기존 URL 그대로 사용
+              photoUrls.push(pendingPhotoUrls[submitId][slot - 1]);
+            }
+            // 둘 다 없는 슬롯은 건너뜀
+          }
+          if (statusEl) statusEl.textContent = photoUrls.length > 0 ? `사진 ${photoUrls.length}장 준비 완료 ✓` : '';
+
+          // 후기 등록 (사진 URL 배열 포함)
+          btn.textContent = '등록 중...';
+          const result = await Reviews.write({
+            userId: user.id,
+            userNickname: user.nickname,
+            productId: submitId,
+            rating, content,
+            photoUrls
+          });
+          if (result.success) {
+            alert('후기가 등록되었습니다. 감사합니다 🙏');
+            location.reload();
+          } else {
+            alert('등록 실패: ' + result.error);
+            btn.disabled = false; btn.textContent = origText;
+          }
+        } catch (err) {
+          alert('오류: ' + (err.message || err));
+          btn.disabled = false; btn.textContent = origText;
         }
         return;
       }
 
-      // 삭제
+      // 삭제 (async)
       const deleteId = e.target.dataset.deleteReview;
       if (deleteId) {
         if (!confirm('이 후기를 삭제하시겠습니까?')) return;
-        Reviews.remove(deleteId, user.id);
-        location.reload();
+        const ok = await Reviews.remove(deleteId, user.id);
+        if (ok) {
+          location.reload();
+        } else {
+          alert('삭제 실패. 잠시 후 다시 시도해주세요.');
+        }
         return;
       }
+    });
+
+    // 후기 폼에서 새로 선택된 사진 또는 기존 URL을 추적
+    const pendingPhotoUrls = {};
+
+    // 파일 선택 시 미리보기 표시 — review-photo-{slot}-{productId}
+    document.addEventListener('change', (e) => {
+      if (e.target.type !== 'file' || !e.target.id) return;
+      const match = e.target.id.match(/^review-photo-(\d+)-(.+)$/);
+      if (!match) return;
+      const slot = match[1];
+      const productId = match[2];
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const preview = document.getElementById(`review-photo-preview-${slot}-${productId}`);
+      if (!preview) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = preview.querySelector('img');
+        if (img) img.src = ev.target.result;
+        preview.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
     });
 
     function setStarRating(productId, val) {

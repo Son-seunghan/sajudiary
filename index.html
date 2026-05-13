@@ -1150,10 +1150,12 @@
   </div>
 
   <!-- ━━━━━━━━━━━ Scripts ━━━━━━━━━━━ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/config.js"></script>
   <script src="assets/js/cart.js"></script>
-  <script src="assets/js/reviews.js"></script>
   <script src="assets/js/auth-guard.js"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/reviews.js"></script>
   <script>
     // ─── 마스터 모드 토글 (?master=on / ?master=off) ───
     (function () {
@@ -1170,9 +1172,8 @@
       }
     })();
 
-    // ─── 리뷰 동적 로딩 (자동 스크롤 마키) ───
-    (function () {
-      const reviews = Reviews.getAll();
+    // ─── 리뷰 동적 로딩 (Supabase, async) ───
+    (async function loadReviews() {
       const grid = document.getElementById('reviews-grid');
       const marquee = document.getElementById('reviews-marquee');
       const emptyEl = document.getElementById('reviews-empty');
@@ -1183,7 +1184,15 @@
         return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       }
 
-      if (reviews.length === 0) {
+      // Supabase 미설정 시 빈 상태
+      if (!Reviews.isEnabled()) {
+        marquee.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      const reviews = await Reviews.getAll();
+      if (!reviews || reviews.length === 0) {
         marquee.classList.add('hidden');
         emptyEl.classList.remove('hidden');
         return;
@@ -1196,13 +1205,22 @@
       const cardHtml = (r) => {
         const product = cfg.PRODUCTS[r.productId];
         if (!product) return '';
+        const urls = (r.photoUrls || []).filter(Boolean).slice(0, 2);
+        const photoHtml = urls.length === 0 ? '' :
+          urls.length === 1
+            ? `<img src="${urls[0]}" alt="후기 사진" class="w-full h-32 object-cover rounded-lg mb-3 border border-[var(--paper-dk)]" loading="lazy" />`
+            : `<div class="grid grid-cols-2 gap-2 mb-3">
+                <img src="${urls[0]}" alt="후기 사진 1" class="w-full h-24 object-cover rounded-lg border border-[var(--paper-dk)]" loading="lazy" />
+                <img src="${urls[1]}" alt="후기 사진 2" class="w-full h-24 object-cover rounded-lg border border-[var(--paper-dk)]" loading="lazy" />
+              </div>`;
         return `
           <div class="review-card">
             <div class="flex items-center justify-between mb-3">
               ${Reviews.renderStars(r.rating)}
               <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product.name.replace(/\s*\(.*?\)/, '')}</span>
             </div>
-            <p class="text-sm text-[var(--ink2)] leading-relaxed mb-4 min-h-[60px]">${escapeHtml(r.content)}</p>
+            ${photoHtml}
+            <p class="text-sm text-[var(--ink2)] leading-relaxed mb-4 ${urls.length > 0 ? '' : 'min-h-[60px]'}">${escapeHtml(r.content)}</p>
             <div class="flex items-center justify-between text-xs text-[var(--ink3)] font-shilla">
               <span>${escapeHtml(r.userNickname)}</span>
               <span>${Reviews.formatDate(r.createdAt)}</span>
@@ -1222,7 +1240,7 @@
       }
 
       // 평균 별점 박스
-      const summary = Reviews.getAverageRating();
+      const summary = await Reviews.getAverageRating();
       summaryBox.classList.remove('hidden');
       footerEl.classList.remove('hidden');
       document.getElementById('summary-stars').innerHTML = Reviews.renderStars(summary.average);
