@@ -332,9 +332,14 @@
         </button>
       </div>
       <p id="quick-req-msg" class="font-shilla text-xs mt-2" style="min-height:1em"></p>
-      <p class="font-shilla text-[11px] text-[var(--ink4)] mt-2 text-right">
-        <a href="#topic-request-section" class="hover:text-[var(--vermil)]">이미 요청된 주제 보기 ↓</a>
-      </p>
+
+      <!-- 이미 요청된 주제 목록 (카드 내 inline) -->
+      <div class="mt-5 pt-5" style="border-top: 1px dashed var(--paper-dk)">
+        <p class="font-shilla text-[11px] text-[var(--gold2)] tracking-[0.2em] mb-3">이미 요청된 주제</p>
+        <div id="topic-request-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="text-center text-xs text-[var(--ink4)] py-4 col-span-full font-shilla">불러오는 중...</div>
+        </div>
+      </div>
     </div>
 
     <!-- 카테고리 탭 -->
@@ -361,28 +366,6 @@
 
     <!-- 페이지네이션 -->
     <div id="pagination" class="pagination"></div>
-
-    <!-- ━━━ 알고싶어요 (독자 주제 요청) ━━━ -->
-    <section id="topic-request-section" class="mt-20">
-      <div class="text-center mb-8">
-        <p class="font-shilla text-sm text-[var(--gold2)] tracking-[0.3em] mb-3">READERS' WISHLIST</p>
-        <h2 class="font-display text-2xl md:text-3xl text-[var(--ink)] mb-3">알고싶어요</h2>
-        <p class="text-sm text-[var(--ink3)] leading-relaxed">
-          독자들이 칼럼으로 다뤄주길 요청한 주제예요. <br class="hidden sm:inline"/>
-          나도 궁금한 주제가 있다면 직접 요청해보세요 — <strong class="text-[var(--vermil)]">운영자가 직접 검토</strong>합니다.
-        </p>
-      </div>
-
-      <div id="topic-request-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div class="text-center text-sm text-[var(--ink4)] py-8 col-span-full font-shilla">불러오는 중...</div>
-      </div>
-
-      <div class="text-center mt-8">
-        <a href="../qna.html#write-form" class="inline-block px-6 py-3 rounded-lg bg-[var(--gold)] text-[var(--ink)] font-shilla font-bold hover:bg-[var(--gold2)] hover:text-white transition">
-          ✎ 내가 알고싶은 주제 요청하기
-        </a>
-      </div>
-    </section>
 
     <!-- 하단 CTA -->
     <div class="mt-16 p-8 rounded-2xl text-center" style="background: linear-gradient(135deg, rgba(177,58,44,0.05), rgba(184,146,60,0.05)); border: 1px solid var(--paper-dk);">
@@ -554,6 +537,30 @@
         date: '2026-05-11',
         readMin: 10,
         views: 0
+      },
+      {
+        slug: '2026-05-12-pyeongwan',
+        title: '편관은 정말 해로운가',
+        summary: '편관(偏官)은 명리에서 가장 무겁게 평가된 십신. "칠살(七殺)"이라는 흉성 이름이 어디서 왔고, 정관과 무엇이 다르며, 편관을 권위로 운영하는 3대 패턴(식신제살·살인상생·양인합살)까지 풀어드립니다.',
+        category: 'myeongri',
+        categoryLabel: '명리 입문',
+        hanja: '殺',
+        thumbClass: 'thumb-myeongri',
+        date: '2026-05-12',
+        readMin: 11,
+        views: 0
+      },
+      {
+        slug: '2026-05-13-sumyeong',
+        title: '사주에서 수명을 알 수 있을까',
+        summary: '사주로 수명을 본다는 통념. 옛 명리는 수명을 어떻게 봤고, 현대에서는 어디까지 알 수 있는지. 사주는 수명을 알려주지 않습니다 — 다만 건강의 약점과 고비 시기를 알려줄 뿐이에요.',
+        category: 'myeongri',
+        categoryLabel: '명리 입문',
+        hanja: '壽',
+        thumbClass: 'thumb-myeongri',
+        date: '2026-05-13',
+        readMin: 10,
+        views: 0
       }
       // ↓ 새 글 추가는 여기에 객체 추가
       // 카테고리: myeongri / ilju / wealth / couple / season / data
@@ -685,10 +692,9 @@
   <script src="../assets/js/auth-guard.js"></script>
   <script src="../assets/js/supabase-client.js"></script>
   <script>
-    // Supabase 미설정 시 — 알고싶어요 섹션 통째 숨김
+    // Supabase 미설정 시 — 알고싶어요 카드 통째 숨김
     if (!SajuSupa.isEnabled()) {
       document.getElementById('quick-request-card')?.remove();
-      document.getElementById('topic-request-section')?.remove();
     }
 
     // ─── 빠른 요청 폼 ───
@@ -744,23 +750,17 @@
       if (!listEl) return;
 
       if (!SajuSupa.isEnabled()) {
-        listEl.innerHTML = '<div class="text-center text-sm text-[var(--ink4)] py-8 col-span-full font-shilla">게시판 시스템 준비 중입니다. 곧 활성화돼요.</div>';
+        listEl.innerHTML = '<div class="text-center text-xs text-[var(--ink4)] py-3 col-span-full font-shilla">게시판 준비 중입니다.</div>';
         return;
       }
 
       const { data, error } = await SajuSupa.listInquiries({ category: 'topic_request', limit: 6 });
       if (error) {
-        listEl.innerHTML = '<div class="text-center text-sm text-[var(--ink4)] py-8 col-span-full font-shilla">불러오기 실패: ' + SajuSupa.escapeHtml(error.message) + '</div>';
+        listEl.innerHTML = '<div class="text-center text-xs text-[var(--ink4)] py-3 col-span-full font-shilla">불러오기 실패: ' + SajuSupa.escapeHtml(error.message) + '</div>';
         return;
       }
       if (!data || data.length === 0) {
-        listEl.innerHTML = `
-          <div class="text-center py-10 col-span-full" style="background:linear-gradient(135deg,rgba(184,146,60,0.05),rgba(184,146,60,0.02));border:1.5px dashed var(--gold);border-radius:14px">
-            <div class="text-3xl mb-3 opacity-50">✎</div>
-            <p class="font-display text-base text-[var(--ink2)] mb-1">아직 요청된 주제가 없어요</p>
-            <p class="font-shilla text-xs text-[var(--ink4)]">첫 번째 요청의 주인공이 되어주세요</p>
-          </div>
-        `;
+        listEl.innerHTML = '<div class="text-center text-xs text-[var(--ink4)] py-3 col-span-full font-shilla">아직 요청된 주제가 없어요. 첫 요청의 주인공이 되어주세요.</div>';
         return;
       }
 
