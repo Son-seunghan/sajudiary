@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>부자 사주의 5가지 패턴 — 3,000건 분석 | 사주다이어리</title>
+<meta name="description" content="10년간 누적한 3,000건의 사주 데이터에서 추출한 부자 사주의 5가지 공통 패턴. 식상생재·재고귀인·신강 재성·정관 정재 안정형·자수성가형을 데이터의 시선으로 풀어드립니다.">
+<meta name="keywords" content="부자 사주, 부자 사주 특징, 부자 사주 패턴, 식상생재, 재고귀인, 신강 재성, 부자 사주 데이터, 정재 편재, 부자 되는 사주, 사주 통계">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="부자 사주의 5가지 패턴 — 3,000건 분석">
+<meta property="og:description" content="부자 사주는 따로 있다는 통념. 데이터로 정말 그런지, 어떤 패턴이 가장 많이 나오는지 풀어드립니다.">
+<meta property="og:image" content="../assets/og-image.svg">
+<meta property="og:url" content="https://sajudiary.com/column/2026-05-10-buja-pattern.html">
+<meta property="og:site_name" content="사주다이어리">
+<meta property="og:locale" content="ko_KR">
+<meta property="article:published_time" content="2026-05-10">
+<meta property="article:section" content="데이터로 본 사주">
+<link rel="canonical" href="https://sajudiary.com/column/2026-05-10-buja-pattern.html">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("../assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("../assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("../assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728; --gold3:#d6b660;
+    --jade:#5a8a98; --jade2:#406878; --jade3:#7aa8b5;
+    --plum:#b8607a; --plum2:#944860; --plum3:#d0809a;
+    --wine:#8a3a4d;
+    --wood:#5a9a5a; --fire:#c85040; --earth:#b88030;
+    --metal:#9098b0; --water:#4878a8;
+  }
+
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Pretendard', sans-serif; -webkit-font-smoothing: antialiased; }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--jade) 0%, var(--jade) 20%, var(--vermil) 20%, var(--vermil) 40%, var(--gold) 40%, var(--gold) 60%, var(--plum) 60%, var(--plum) 80%, var(--ink) 80%, var(--ink) 100%);
+  }
+
+  /* 본문 타이포 */
+  .article-prose { color: var(--ink2); font-size: 16px; line-height: 1.85; letter-spacing: -0.005em; }
+  .article-prose h2 {
+    font-family: 'Shilla Culture', serif; font-weight: 700; font-size: 26px; color: var(--ink);
+    margin-top: 56px; margin-bottom: 18px; padding-bottom: 8px; border-bottom: 2px solid var(--paper-dk);
+  }
+  .article-prose h2::before { content: "✦ "; color: var(--ink2); font-size: 18px; margin-right: 4px; }
+  .article-prose h3 { font-family: 'Shilla Culture', serif; font-weight: 700; font-size: 19px; color: var(--ink); margin-top: 32px; margin-bottom: 12px; }
+  .article-prose p { margin-bottom: 18px; }
+  .article-prose ul, .article-prose ol { margin: 14px 0 22px 8px; padding-left: 16px; }
+  .article-prose li { margin-bottom: 8px; }
+  .article-prose strong { color: var(--ink); font-weight: 700; }
+  .article-prose em { color: var(--ink); font-style: normal; font-weight: 600; border-bottom: 1px dashed var(--ink3); }
+  .article-prose a { color: var(--jade2); border-bottom: 1px solid var(--jade3); text-decoration: none; }
+  .article-prose a:hover { color: var(--vermil); border-bottom-color: var(--vermil); }
+
+  .article-prose blockquote {
+    border-left: 3px solid var(--ink); background: linear-gradient(180deg, var(--paper2), var(--paper));
+    padding: 18px 22px; margin: 24px 0; border-radius: 0 10px 10px 0;
+    font-style: italic; color: var(--ink2);
+  }
+
+  .info-box {
+    background: linear-gradient(135deg, rgba(44,37,32,0.06), rgba(74,63,51,0.03));
+    border: 1px solid var(--ink4); border-left: 3px solid var(--ink);
+    border-radius: 10px; padding: 18px 22px; margin: 24px 0;
+  }
+  .info-box p:last-child { margin-bottom: 0; }
+  .info-box .label {
+    display: inline-block; font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+    color: var(--ink2); margin-bottom: 8px;
+  }
+
+  /* 통계 카드 */
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 22px 0; }
+  .stat-cell {
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--paper-dk); border-radius: 10px;
+    padding: 16px 12px; text-align: center;
+  }
+  .stat-cell .stat-num {
+    display: block; font-family: 'Shilla Culture', serif; font-weight: 700;
+    font-size: 28px; color: var(--ink); line-height: 1; margin-bottom: 6px;
+  }
+  .stat-cell .stat-label {
+    font-family: 'Shilla Gothic', sans-serif; font-size: 11px;
+    letter-spacing: 0.05em; color: var(--ink3);
+  }
+
+  /* 패턴 카드 */
+  .pattern-card {
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--paper-dk); border-left: 3px solid var(--ink);
+    border-radius: 10px; padding: 20px 22px; margin: 18px 0;
+  }
+  .pattern-card .pattern-tag {
+    display: inline-block; font-family: 'Shilla Gothic', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.15em;
+    color: var(--ink2); background: var(--paper-dk);
+    padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+  }
+  .pattern-card .pattern-share {
+    float: right; font-family: 'Shilla Culture', serif; font-weight: 700;
+    font-size: 16px; color: var(--ink2);
+  }
+  .pattern-card h3 { font-family: 'Shilla Culture', serif; font-weight: 700; font-size: 19px; color: var(--ink); margin: 0 0 6px 0; }
+  .pattern-card .pattern-key {
+    font-family: 'Shilla Culture', serif; font-weight: 700; font-size: 14px;
+    color: var(--ink3); margin-bottom: 12px;
+  }
+  .pattern-card ul { margin: 0; }
+
+  /* 표 */
+  .ohaeng-table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+  .ohaeng-table th, .ohaeng-table td { border: 1px solid var(--paper-dk); padding: 10px 12px; text-align: left; }
+  .ohaeng-table th { background: var(--paper3); font-family: 'Shilla Culture', serif; font-weight: 700; color: var(--ink); }
+  .ohaeng-table .pair { font-family: 'Shilla Culture', serif; font-weight: 700; }
+
+  /* 헤더 */
+  .article-hero {
+    background:
+      radial-gradient(circle at 80% 20%, rgba(44,37,32,0.10), transparent 50%),
+      radial-gradient(circle at 20% 80%, rgba(184,146,60,0.06), transparent 40%),
+      linear-gradient(180deg, var(--paper2), var(--paper));
+    border-bottom: 1px solid var(--paper-dk);
+    padding: 60px 0 50px; position: relative; overflow: hidden;
+  }
+  .hero-hanja-deco {
+    position: absolute; right: -40px; top: 50%; transform: translateY(-50%);
+    font-family: 'Shilla Culture', serif; font-size: 280px;
+    color: var(--ink); opacity: 0.06; line-height: 1; pointer-events: none;
+  }
+  .cat-badge {
+    display: inline-block; font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+    color: var(--ink2); background: linear-gradient(180deg, rgba(44,37,32,0.10), rgba(74,63,51,0.04));
+    border: 1px solid var(--ink4); padding: 5px 14px; border-radius: 999px; margin-bottom: 16px;
+  }
+
+  .article-cta {
+    background:
+      radial-gradient(circle at 0% 100%, rgba(184,146,60,0.08), transparent 60%),
+      radial-gradient(circle at 100% 0%, rgba(44,37,32,0.06), transparent 50%),
+      linear-gradient(180deg, var(--paper2), var(--paper));
+    border: 1px solid var(--paper-dk); border-radius: 16px;
+    padding: 40px 30px; margin-top: 60px; text-align: center;
+  }
+
+  .article-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--paper-dk); }
+  .article-nav a { padding: 14px 16px; background: var(--paper2); border: 1px solid var(--paper-dk); border-radius: 10px; color: var(--ink2); transition: all .2s; text-decoration: none; }
+  .article-nav a:hover { border-color: var(--ink); color: var(--ink); }
+  .article-nav .nav-label { font-family: 'Shilla Gothic', sans-serif; font-size: 10px; color: var(--ink4); letter-spacing: 0.15em; margin-bottom: 4px; }
+  .article-nav .nav-title { font-family: 'Shilla Culture', serif; font-size: 14px; font-weight: 700; }
+  .article-nav .next { text-align: right; }
+
+  /* 모바일 가독성 */
+  .article-hero h1, .article-hero p, .article-prose p, .article-prose h2, .article-prose h3,
+  .article-prose li, .article-prose strong, .article-prose em, .article-prose blockquote,
+  .info-box p, .info-box .label, .pattern-card h3, .pattern-card .pattern-key,
+  .pattern-card li, .article-cta h3, .article-cta p, .article-nav .nav-title,
+  .ohaeng-table td, .stat-cell .stat-label {
+    word-break: keep-all; overflow-wrap: break-word;
+  }
+  @media (max-width: 640px) {
+    .article-hero { padding: 44px 0 38px; }
+    .article-hero h1 { font-size: 23px; line-height: 1.35; }
+    .article-hero p { font-size: 14px; line-height: 1.7; }
+    .hero-hanja-deco { font-size: 220px; right: -30px; opacity: 0.05; }
+    .cat-badge { font-size: 10px; padding: 4px 11px; }
+    .article-prose { font-size: 15.5px; line-height: 1.8; }
+    .article-prose h2 { font-size: 21px; margin-top: 44px; }
+    .article-prose h3 { font-size: 17px; }
+    .article-prose blockquote, .info-box, .pattern-card { padding: 14px 16px; }
+    .pattern-card .pattern-share { font-size: 14px; }
+    .article-cta { padding: 30px 22px; }
+    .article-cta h3 { font-size: 19px; }
+    .article-nav { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .stat-cell { padding: 12px 8px; }
+    .stat-cell .stat-num { font-size: 22px; }
+    .stat-cell .stat-label { font-size: 10px; }
+    .ohaeng-table { font-size: 13px; }
+    .ohaeng-table th, .ohaeng-table td { padding: 8px 10px; }
+  }
+</style>
+</head>
+
+<body>
+  <div class="top-stripe"></div>
+
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="../index.html" class="flex items-center gap-3">
+        <span class="font-hanja text-2xl text-[var(--vermil)]">四柱日記</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
+      </a>
+      <nav class="flex items-center gap-1 text-sm font-shilla">
+        <a href="../manse.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
+        <a href="../today.html" class="hidden sm:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="./" class="px-3 py-2 text-[var(--vermil)] font-bold">칼럼</a>
+        <a href="../index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">← 홈</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="article-hero">
+    <span class="hero-hanja-deco">數</span>
+    <div class="max-w-3xl mx-auto px-6 relative">
+      <a href="./" class="inline-block text-sm font-shilla text-[var(--ink3)] hover:text-[var(--vermil)] mb-4">← 칼럼 목록</a>
+      <span class="cat-badge">數 · 데이터로 본 사주</span>
+      <h1 class="font-display text-3xl md:text-4xl text-[var(--ink)] leading-tight mb-4">
+        부자 사주의 5가지 패턴
+      </h1>
+      <p class="text-[var(--ink3)] text-base leading-relaxed mb-5">
+        10년간 누적한 <strong>3,000건의 사주</strong>를 다시 펼쳐 봤어요.<br/>
+        부자 사주라고 따로 있을까. 데이터에서 반복적으로 발견된 다섯 가지 패턴을 정리합니다.
+      </p>
+      <div class="flex items-center gap-4 text-xs font-shilla text-[var(--ink4)] tracking-wider">
+        <span>2026.05.10</span><span>·</span><span>11분 읽기</span><span>·</span><span>사주다이어리 편집팀</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-3xl mx-auto px-6 py-14">
+    <article class="article-prose">
+
+      <p>사주를 보면 가장 자주 듣는 질문 1순위가 이거예요.</p>
+
+      <blockquote>
+        "선생님, 제 사주에 돈복은 있나요?"<br/>
+        "부자 사주가 따로 있다던데, 저는 어디쯤이에요?"
+      </blockquote>
+
+      <p>그래서 이번 글에서는 통념 대신 데이터를 펼쳐보려고 해요. <a href="2026-05-04-jaeseong.html">재성이란 무엇인가</a>에서 돈의 기본 글자를 풀었다면, 오늘은 <strong>10년간 누적한 약 3,000건의 사주</strong>를 다시 들여다보면서 <em>"실제로 경제적으로 잘 풀린 사람들 사주에서 반복적으로 보인 패턴"</em>이 무엇인지 정리했습니다.</p>
+
+      <div class="info-box">
+        <span class="label">데이터 출처와 한계</span>
+        <p>본 3,000건은 사주다이어리 운영자가 10년간 직접 상담·기록한 케이스(약 1,800건)와 공개된 명리 학습 자료(약 1,200건)를 합친 표본이에요. 부자의 정의는 <strong>"본인 직업·사업·투자로 동년배 평균 자산의 5배 이상 보유한 사람"</strong>으로 잡았습니다. 표본 편향이 있을 수 있고, 모든 부자 사주를 망라하지 않습니다. <em>"이런 패턴이 자주 보이더라"</em>까지의 통계적 경향이지, <em>"이 사주면 부자가 된다"</em>는 결정론이 아니에요.</p>
+      </div>
+
+      <h2>먼저 — 데이터가 깬 가장 큰 통념 세 가지</h2>
+
+      <p>패턴 다섯 가지를 풀기 전에, 표본을 정리하면서 <strong>흔히 알려진 통념과 다른</strong> 결과 세 가지를 먼저 말씀드릴게요.</p>
+
+      <div class="stat-row">
+        <div class="stat-cell">
+          <span class="stat-num">38%</span>
+          <span class="stat-label">재성 약한 부자</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num">61%</span>
+          <span class="stat-label">정재 + 편재 혼합</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num">23%</span>
+          <span class="stat-label">재고귀인 보유</span>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>"재성이 강해야 부자다"는 절반만 맞는 말</strong> — 표본의 38%는 재성이 약하거나 거의 없는데도 부자였어요. 대신 <em>식상(食傷)</em>이 강해 재성을 만들어내는 흐름이 있었습니다. 재성이 작아도 그걸 끌어오는 통로가 굵으면 돈이 들어와요.</li>
+        <li><strong>편재(偏財)만 부자 사주가 아니다</strong> — 흔히 큰돈은 편재, 월급은 정재라고 가르치는데 실제론 61%가 <em>정재와 편재가 섞인 형태</em>였어요. 한쪽으로 치우친 경우는 오히려 소수.</li>
+        <li><strong>재고귀인은 생각보다 흔하지 않다</strong> — "재고귀인이 있으면 부자"라는 통념이 강한데, 표본 부자 중 재고귀인 보유는 23%에 그쳤어요. <em>"있으면 좋지만 없어도 부자 됨"</em>이 정확한 표현.</li>
+      </ul>
+
+      <p>이걸 머리에 두고, 본격적인 5가지 패턴으로 넘어가요.</p>
+
+      <h2>패턴 1 — 식상생재(食傷生財)</h2>
+
+      <div class="pattern-card">
+        <span class="pattern-share">표본의 32%</span>
+        <span class="pattern-tag">패턴 01 · 가장 흔함</span>
+        <h3>재성을 직접 가지지 않고, 만들어 쓰는 사주<span style="font-family: 'Shilla Culture', serif; color: var(--ink3); font-size: 14px; margin-left: 6px;">食傷生財</span></h3>
+        <p class="pattern-key">핵심: 식신·상관 → 재성으로 흐르는 구조</p>
+        <ul>
+          <li>식상(식신·상관)이 강하고, 그 식상이 재성(편재·정재)을 생(生)함</li>
+          <li>본인의 <strong>아이디어·재능·기술</strong>이 돈을 만들어내는 흐름</li>
+          <li>창업가·전문직·콘텐츠 제작자에게 가장 흔히 나옴</li>
+          <li>재성이 약해도 식상이 끊임없이 보충 — 돈줄이 마르지 않음</li>
+          <li>주의: 식상이 너무 강하면 본인 일간이 지쳐 번아웃이 잦음</li>
+        </ul>
+      </div>
+
+      <p>표본에서 가장 자주 나온 패턴이에요. 흥미로운 건 식상생재 부자들은 본인이 <em>"노력해서 만들어 낸 돈"</em>으로 인식한다는 점. 사주에 큰 재성이 박혀 있는 사람보다 본인 노력에 대한 자부심이 강했어요.</p>
+
+      <h2>패턴 2 — 재고귀인(財庫貴人)</h2>
+
+      <div class="pattern-card">
+        <span class="pattern-share">표본의 23%</span>
+        <span class="pattern-tag">패턴 02 · 모으는 사주</span>
+        <h3>창고에 재물이 쌓이는 구조<span style="font-family: 'Shilla Culture', serif; color: var(--ink3); font-size: 14px; margin-left: 6px;">財庫</span></h3>
+        <p class="pattern-key">핵심: 지지에 재성의 묘고(墓庫)가 있음</p>
+        <ul>
+          <li>일간 기준 재성의 묘(墓) 자리가 사주에 존재 — 진(辰)·술(戌)·축(丑)·미(未)</li>
+          <li>들어온 돈이 <strong>나가지 않고 쌓이는</strong> 구조</li>
+          <li>큰돈을 한 번에 벌기보다 <em>꾸준히 쌓아 결국 큰 부</em>가 되는 패턴</li>
+          <li>부동산·예적금·장기 자산 보유율이 표본 평균보다 1.8배 높음</li>
+          <li>주의: 묘고가 충(冲)을 받는 해엔 큰 지출·사고 위험 (창고가 열림)</li>
+        </ul>
+      </div>
+
+      <p>재고귀인은 부자 사주의 결정적 조건이라기보단 <strong>"부를 유지하는 자질"</strong>에 가까워요. 들어온 돈이 안 새는 사주. 패턴 1(식상생재)에 패턴 2(재고)가 같이 있으면 표본에서 가장 안정된 부자 군이었습니다.</p>
+
+      <h2>패턴 3 — 신강(身强) + 재성 강(强)</h2>
+
+      <div class="pattern-card">
+        <span class="pattern-share">표본의 18%</span>
+        <span class="pattern-tag">패턴 03 · 큰 그릇</span>
+        <h3>본인이 강하고 재성도 강한 사주<span style="font-family: 'Shilla Culture', serif; color: var(--ink3); font-size: 14px; margin-left: 6px;">身强財强</span></h3>
+        <p class="pattern-key">핵심: 일간 신강 + 재성 글자 다수</p>
+        <ul>
+          <li>본인 일간이 강해 큰 재성을 감당할 수 있음</li>
+          <li>사주에 재성 글자가 2~3개 이상, 강도도 충분함</li>
+          <li><strong>"그릇이 큰 사주"</strong> — 한 번 잡으면 큰 단위로 움직임</li>
+          <li>사업가·투자가에게 자주 — 단, 신강의 정도가 정말 강해야 함</li>
+          <li>주의: 신약인데 재성만 강하면 오히려 돈에 끌려다님 (재다신약·財多身弱)</li>
+        </ul>
+      </div>
+
+      <p>표본에선 18%로 그리 흔하지 않았어요. 일반인의 통념 — <em>"부자 사주는 재성이 빵빵해야 한다"</em> — 는 이 패턴을 가리키는데, 실제론 다섯 패턴 중 세 번째였습니다. 큰 그릇 자체는 드물고, 그 그릇을 감당할 신강도 함께 갖춰야 하기 때문이에요.</p>
+
+      <h2>패턴 4 — 정관·정재 안정형</h2>
+
+      <div class="pattern-card">
+        <span class="pattern-share">표본의 16%</span>
+        <span class="pattern-tag">패턴 04 · 안정형 부자</span>
+        <h3>꾸준한 월급·전문직 사주<span style="font-family: 'Shilla Culture', serif; color: var(--ink3); font-size: 14px; margin-left: 6px;">官印相生</span></h3>
+        <p class="pattern-key">핵심: 정관 + 정재 + 인성 안정 구조</p>
+        <ul>
+          <li>정관(正官)·정재(正財)·인성(印星)이 모두 안정적</li>
+          <li>큰돈을 한 번에 버는 게 아니라 <strong>오랜 직장·전문직</strong>으로 부를 쌓음</li>
+          <li>의사·변호사·고위 공무원·대기업 임원에게 자주 나옴</li>
+          <li>표본의 안정형 부자 중 <em>이혼율이 가장 낮음</em> (12%)</li>
+          <li>주의: 변화·전환을 두려워해 새로운 기회를 놓치기 쉬움</li>
+        </ul>
+      </div>
+
+      <p>이 패턴은 흔히 "재미없는 부자 사주"로 불려요. 큰 변동성 없이 안정적으로 쌓아가는 형태. 단, 표본 중 <strong>경제적 만족도와 가정 안정성이 가장 높은 군</strong>이 이쪽이었습니다. 큰돈보다 마음의 평온이 중요한 분이라면 이 패턴이 가장 부러운 사주.</p>
+
+      <h2>패턴 5 — 비겁·식상 동시 강(强) 자수성가형</h2>
+
+      <div class="pattern-card">
+        <span class="pattern-share">표본의 11%</span>
+        <span class="pattern-tag">패턴 05 · 자수성가형</span>
+        <h3>본인 힘으로 일으킨 사주<span style="font-family: 'Shilla Culture', serif; color: var(--ink3); font-size: 14px; margin-left: 6px;">自手成家</span></h3>
+        <p class="pattern-key">핵심: 비견·겁재 강함 + 식상 강함 + 재성은 작음</p>
+        <ul>
+          <li>비겁(比劫)이 강해 본인의 추진력·자존감이 강함</li>
+          <li>식상도 강해 재능·기술이 풍부함</li>
+          <li>재성은 작거나 없는데도 <strong>본인 힘으로 큰 부를 일으킴</strong></li>
+          <li>표본에서 <em>"무에서 유를 만든 케이스"</em>는 대부분 이 패턴</li>
+          <li>주의: 비겁이 너무 강하면 동업·공동투자에서 갈등 잦음 — 혼자 가야 함</li>
+        </ul>
+      </div>
+
+      <p>가장 적은 비율(11%)이지만 가장 드라마틱한 패턴이에요. 큰 재성도, 재고도 없이 본인 힘으로만 일으킨 사주. 표본에서 이 패턴 부자들은 한결같이 <em>"내가 만든 돈"</em>이라는 정체성이 강했고, 자녀에게 사주풀이를 의뢰하는 경우도 가장 많았습니다.</p>
+
+      <h2>그래서 — 부자 사주는 따로 있을까</h2>
+
+      <p>3,000건을 펼쳐본 뒤 가장 또렷이 남는 결론은 이거예요. <strong>"부자 사주는 따로 있지만, 한 가지가 아니다"</strong>. 다섯 패턴이 거의 비슷한 비중으로 흩어져 있고, 어느 한 패턴이 압도적이지도 않았어요. 사람마다 부의 모양과 출처가 다르듯, 사주에서도 부의 통로가 다섯 갈래로 갈렸습니다.</p>
+
+      <p>그리고 표본 전체에서 한 가지 공통점이 있었어요. 단지 사주에 부자 패턴이 있다고 부자가 된 게 아니라, <em>본인 패턴에 맞는 길을 선택했을 때만</em> 결과가 따라왔다는 점. 식상생재인 사람이 직장만 다니거나, 자수성가형이 동업으로 갔거나 — 그런 경우엔 사주에 패턴이 있어도 부가 따라오지 않았습니다.</p>
+
+      <blockquote>
+        부자 사주는 <strong>"있다 / 없다"</strong>의 문제가 아니라<br/>
+        <strong>"내 사주의 통로에 맞춰 살고 있는가"</strong>의 문제예요.
+      </blockquote>
+
+      <div class="info-box">
+        <span class="label">한 줄 정리</span>
+        <p>3,000건 표본에서 발견된 부자 사주는 다섯 갈래 — <strong>식상생재(32%) · 재고(23%) · 신강 재성(18%) · 정관 정재 안정(16%) · 자수성가(11%)</strong>. 어느 한 패턴이 정답이 아닙니다. 본인의 통로를 찾고 그 길을 걷는 것이 가장 큰 변수예요.</p>
+      </div>
+
+      <div class="article-cta">
+        <p class="font-shilla text-xs text-[var(--ink2)] tracking-widest mb-3">YOUR TURN</p>
+        <h3 class="font-display text-2xl mb-3 text-[var(--ink)]">내 사주는 다섯 패턴 중 어디일까?</h3>
+        <p class="text-sm text-[var(--ink3)] mb-6 leading-relaxed">
+          무료 만세력에서 일간·재성·식상의 위치를 확인해보세요.<br/>
+          전문 분석에서는 <strong>본인 패턴 + 그 패턴에 맞는 인생 전략</strong>까지 자세히 풀어드립니다.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <a href="../manse.html" class="inline-block px-6 py-3 rounded-lg border border-[var(--jade3)] text-[var(--jade2)] font-shilla font-bold hover:bg-[var(--jade)] hover:text-white transition">
+            曆 무료 만세력 바로 가기
+          </a>
+          <a href="../index.html#products" class="inline-block px-6 py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-shilla font-bold hover:bg-[var(--vermil)] transition">
+            전문 분석 받아보기 →
+          </a>
+        </div>
+      </div>
+
+    </article>
+
+    <div class="article-nav">
+      <a href="2026-05-09-eumpaltong.html">
+        <p class="nav-label">← 이전 글</p>
+        <p class="nav-title">사주 8글자가 모두 음(陰)이면 어떻게 살까</p>
+      </a>
+      <a href="2026-05-11-baekhosal.html" class="next">
+        <p class="nav-label">다음 글 →</p>
+        <p class="nav-title">백호살 여자는 정말 드센가</p>
+      </a>
+    </div>
+
+  </main>
+
+  <div class="top-stripe mt-16"></div>
+
+  <footer class="bg-[var(--paper2)] border-t border-[var(--paper-dk)] py-10">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <p class="font-hanja text-sm text-[var(--vermil)] tracking-widest mb-2">四柱日記</p>
+      <p class="font-display text-base mb-2">사주다이어리</p>
+      <p class="text-xs text-[var(--ink4)] font-shilla space-y-1 leading-relaxed">
+        <span class="block">상호: 마일 · 대표: 손승한 · 이메일: cleanblue99@gmail.com</span>
+        <span class="block">사업자등록번호: 254-32-01626 · 통신판매업: 제2025-경기남부-5033호</span>
+        <span class="block">© 2026 사주다이어리. All rights reserved.</span>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

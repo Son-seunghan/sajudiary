@@ -243,6 +243,32 @@
   @media (max-width: 480px) {
     .article-nav { grid-template-columns: 1fr; }
   }
+
+  /* 모바일 가독성 패치 — 한국어 단어 줄바꿈 방지 + 폰트 축소 */
+  .article-hero h1, .article-hero p, .article-prose p, .article-prose h2, .article-prose h3,
+  .article-prose li, .article-prose strong, .article-prose em, .article-prose blockquote,
+  .info-box p, .info-box .label, .case-card h3, .case-card p, .case-card li,
+  .article-cta h3, .article-cta p, .article-nav .nav-title, .ohaeng-table td,
+  .compare-card .compare-title, .compare-list li, .palja-cell .col-label {
+    word-break: keep-all; overflow-wrap: break-word;
+  }
+  @media (max-width: 640px) {
+    .article-hero { padding: 44px 0 38px !important; }
+    .article-hero h1 { font-size: 23px !important; line-height: 1.35 !important; }
+    .article-hero p { font-size: 14px !important; line-height: 1.7 !important; }
+    .hero-hanja-deco { font-size: 220px !important; right: -30px !important; }
+    .cat-badge { font-size: 10px !important; padding: 4px 11px !important; }
+    .article-prose { font-size: 15.5px !important; line-height: 1.8 !important; }
+    .article-prose h2 { font-size: 21px !important; margin-top: 44px !important; }
+    .article-prose h3 { font-size: 17px !important; }
+    .article-prose blockquote, .info-box, .case-card { padding: 14px 16px !important; }
+    .article-cta { padding: 30px 22px !important; }
+    .article-cta h3 { font-size: 19px !important; }
+    .article-nav { grid-template-columns: 1fr !important; }
+    .ohaeng-table { font-size: 13px !important; }
+    .ohaeng-table th, .ohaeng-table td { padding: 8px 10px !important; }
+  }
+
 </style>
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
