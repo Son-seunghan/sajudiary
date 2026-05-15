@@ -312,36 +312,6 @@
       </p>
     </div>
 
-    <!-- ━━━ 인라인 주제 요청 카드 (Hero 바로 아래) ━━━ -->
-    <div id="quick-request-card" style="background:linear-gradient(135deg, rgba(184,146,60,0.06), rgba(177,58,44,0.05));border:1.5px dashed var(--gold);border-radius:14px;padding:20px 22px;margin-bottom:32px">
-      <div class="flex items-start gap-3 flex-wrap">
-        <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style="background:var(--gold);color:var(--ink);font-family:'Shilla Culture',serif;font-weight:700;font-size:18px">問</div>
-        <div class="flex-1 min-w-[200px]">
-          <h3 class="font-display text-lg text-[var(--ink)] mb-1">알고싶은 주제가 있으신가요?</h3>
-          <p class="font-shilla text-xs text-[var(--ink3)] leading-relaxed">한 줄만 적어주세요 — <strong class="text-[var(--ink)]">사주다이어리를 만든 분석가</strong>가 직접 검토 후 칼럼으로 다뤄드려요. <strong class="text-[var(--vermil)]">AI가 아닌 사람이 읽습니다.</strong></p>
-        </div>
-      </div>
-      <textarea id="quick-req-text" maxlength="500" rows="2"
-        class="w-full mt-3 px-3 py-2.5 text-sm bg-white border border-[var(--paper-dk)] rounded-lg focus:outline-none focus:border-[var(--gold)]"
-        placeholder="예: 신유년의 흐름이 궁금해요 / 일주가 충 맞으면 어떻게 되나요?"></textarea>
-      <div class="flex items-center gap-2 mt-2 flex-wrap">
-        <input id="quick-req-nick" type="text" maxlength="20" placeholder="닉네임 (선택)"
-          class="flex-1 min-w-[120px] px-3 py-2 text-sm bg-white border border-[var(--paper-dk)] rounded-lg focus:outline-none focus:border-[var(--gold)]" />
-        <button id="quick-req-submit" class="px-5 py-2 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-shilla font-bold text-sm hover:bg-[var(--vermil)] transition">
-          요청 보내기 →
-        </button>
-      </div>
-      <p id="quick-req-msg" class="font-shilla text-xs mt-2" style="min-height:1em"></p>
-
-      <!-- 이미 요청된 주제 목록 (카드 내 inline) -->
-      <div class="mt-5 pt-5" style="border-top: 1px dashed var(--paper-dk)">
-        <p class="font-shilla text-[11px] text-[var(--gold2)] tracking-[0.2em] mb-3">이미 요청된 주제</p>
-        <div id="topic-request-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="text-center text-xs text-[var(--ink4)] py-4 col-span-full font-shilla">불러오는 중...</div>
-        </div>
-      </div>
-    </div>
-
     <!-- 카테고리 탭 -->
     <div id="category-tabs" class="category-tabs">
       <button class="cat-tab active" data-cat="all">전체 <span class="cat-count" id="count-all">0</span></button>
@@ -366,6 +336,34 @@
 
     <!-- 페이지네이션 -->
     <div id="pagination" class="pagination"></div>
+
+    <!-- ━━━ 알고싶어요 (form + 이미 요청된 목록 통합) ━━━ -->
+    <div id="quick-request-card" style="background:linear-gradient(135deg, rgba(184,146,60,0.06), rgba(177,58,44,0.05));border:1.5px dashed var(--gold);border-radius:14px;padding:24px 26px;margin-top:48px">
+      <div class="text-center mb-5">
+        <p class="font-shilla text-sm text-[var(--gold2)] tracking-[0.3em] mb-3">READERS' WISHLIST</p>
+        <h2 class="font-display text-2xl md:text-3xl text-[var(--ink)] mb-3">알고싶어요</h2>
+        <p class="font-shilla text-xs text-[var(--ink3)] leading-relaxed">한 줄만 적어주세요 — <strong class="text-[var(--ink)]">사주다이어리를 만든 분석가</strong>가 직접 검토 후 칼럼으로 다뤄드려요. <strong class="text-[var(--vermil)]">AI가 아닌 사람이 읽습니다.</strong></p>
+      </div>
+      <textarea id="quick-req-text" maxlength="500" rows="2"
+        class="w-full mt-1 px-3 py-2.5 text-sm bg-white border border-[var(--paper-dk)] rounded-lg focus:outline-none focus:border-[var(--gold)]"
+        placeholder="예: 신유년의 흐름이 궁금해요 / 일주가 충 맞으면 어떻게 되나요?"></textarea>
+      <div class="flex items-center gap-2 mt-2 flex-wrap">
+        <input id="quick-req-nick" type="text" maxlength="20" placeholder="닉네임 (선택)"
+          class="flex-1 min-w-[120px] px-3 py-2 text-sm bg-white border border-[var(--paper-dk)] rounded-lg focus:outline-none focus:border-[var(--gold)]" />
+        <button id="quick-req-submit" class="px-5 py-2 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-shilla font-bold text-sm hover:bg-[var(--vermil)] transition">
+          요청 보내기 →
+        </button>
+      </div>
+      <p id="quick-req-msg" class="font-shilla text-xs mt-2" style="min-height:1em"></p>
+
+      <!-- 이미 요청된 주제 목록 (카드 내 inline) -->
+      <div class="mt-5 pt-5" style="border-top: 1px dashed var(--paper-dk)">
+        <p class="font-shilla text-[11px] text-[var(--gold2)] tracking-[0.2em] mb-3">이미 요청된 주제</p>
+        <div id="topic-request-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="text-center text-xs text-[var(--ink4)] py-4 col-span-full font-shilla">불러오는 중...</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 하단 CTA -->
     <div class="mt-16 p-8 rounded-2xl text-center" style="background: linear-gradient(135deg, rgba(177,58,44,0.05), rgba(184,146,60,0.05)); border: 1px solid var(--paper-dk);">
@@ -559,6 +557,18 @@
         hanja: '壽',
         thumbClass: 'thumb-myeongri',
         date: '2026-05-13',
+        readMin: 10,
+        views: 0
+      },
+      {
+        slug: '2026-05-14-ijik',
+        title: '이번 달 이직해도 될까',
+        summary: '5~6월 인사이동기에 가장 많이 듣는 질문. 사주에서 이직 시기를 어떻게 보는지, 가는 신호 4가지와 미루는 신호 4가지, 2026 병오년에 움직이기 좋은 사주와 정착이 좋은 사주까지 풀어드립니다.',
+        category: 'season',
+        categoryLabel: '운세 시즌',
+        hanja: '動',
+        thumbClass: 'thumb-season',
+        date: '2026-05-14',
         readMin: 10,
         views: 0
       }
