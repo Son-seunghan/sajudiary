@@ -28,7 +28,7 @@
   <!-- 칼럼 인덱스 -->
   <url>
     <loc>https://sajudiary.com/column/</loc>
-    <lastmod>2026-05-14</lastmod>
+    <lastmod>2026-05-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
@@ -128,6 +128,13 @@
   <url>
     <loc>https://sajudiary.com/column/2026-05-14-ijik.html</loc>
     <lastmod>2026-05-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://sajudiary.com/column/2026-05-15-gateun-saju.html</loc>
+    <lastmod>2026-05-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
