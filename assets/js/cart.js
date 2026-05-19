@@ -65,7 +65,8 @@ const Cart = (function () {
   }
   function getAvailableCoupons() {
     const now = Date.now();
-    return getMyCoupons().filter(c => !c.used && c.expiresAt > now);
+    // cfg.COUPONS에 정의가 없는 쿠폰은 노출하지 않음 (심사 기간 임시 비활성화 대응)
+    return getMyCoupons().filter(c => !c.used && c.expiresAt > now && cfg.COUPONS[c.id]);
   }
   function useCoupon(couponId) {
     const my = getMyCoupons();

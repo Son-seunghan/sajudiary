@@ -128,27 +128,31 @@ window.SAJULOG_CONFIG = {
   // ─────────────────────────────────────────
   // 4. 쿠폰 정의
   // ─────────────────────────────────────────
+  // ★ 토스 카드사 심사 기간 동안 임시 비활성화 (2026-05-19)
+  //   "상품 금액과 결제 금액이 같아야" 정책 충돌 회피
+  //   심사 통과 후 아래 두 블록 주석 해제하면 즉시 복구
+  //   (auto-issue 호출은 cfg.COUPONS[id]가 없으면 silently null 반환 → 안전)
   COUPONS: {
-    WELCOME3000: {
-      id: 'WELCOME3000',
-      name: '신규 환영 쿠폰',
-      description: '카카오 첫 로그인 감사 쿠폰',
-      discountType: 'fixed',  // 'fixed' (정액) | 'percent' (정률)
-      discountValue: 3000,    // 3,000원
-      minOrderAmount: 9900,   // 9,900원 이상 주문 시 사용 가능
-      autoIssue: 'first_login',  // 'first_login' | 'manual' | 'after_purchase'
-      validDays: 30           // 발급 후 30일
-    },
-    REPEAT5: {
-      id: 'REPEAT5',
-      name: '재구매 감사 쿠폰',
-      description: '다음 구매 시 5% 할인',
-      discountType: 'percent',
-      discountValue: 5,       // 5% 할인
-      minOrderAmount: 9900,
-      autoIssue: 'after_purchase',
-      validDays: 90           // 90일 동안 사용 가능
-    }
+    // WELCOME3000: {
+    //   id: 'WELCOME3000',
+    //   name: '신규 환영 쿠폰',
+    //   description: '카카오 첫 로그인 감사 쿠폰',
+    //   discountType: 'fixed',  // 'fixed' (정액) | 'percent' (정률)
+    //   discountValue: 3000,    // 3,000원
+    //   minOrderAmount: 9900,   // 9,900원 이상 주문 시 사용 가능
+    //   autoIssue: 'first_login',  // 'first_login' | 'manual' | 'after_purchase'
+    //   validDays: 30           // 발급 후 30일
+    // },
+    // REPEAT5: {
+    //   id: 'REPEAT5',
+    //   name: '재구매 감사 쿠폰',
+    //   description: '다음 구매 시 5% 할인',
+    //   discountType: 'percent',
+    //   discountValue: 5,       // 5% 할인
+    //   minOrderAmount: 9900,
+    //   autoIssue: 'after_purchase',
+    //   validDays: 90           // 90일 동안 사용 가능
+    // }
   },
 
   // ─────────────────────────────────────────
