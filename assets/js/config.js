@@ -46,7 +46,7 @@ window.SAJULOG_CONFIG = {
   // ⚠️ 아래는 토스가 공식 문서에서 제공하는 데모용 테스트 키입니다.
   //    누구나 쓸 수 있고, 실제 돈이 빠지지 않습니다.
   //    본인 계정 가입 후에는 본인 키로 교체하세요.
-  TOSS_CLIENT_KEY: 'test_ck_docs_Ovk5rk1EwkEbP0W43n07xlzm',  // 토스 데모 테스트 키
+  TOSS_CLIENT_KEY: 'test_ck_Z61JOxRQVEoRwDoO7qzQ8W0X9bAq',  // 마일(사주다이어리) 본인 테스트 키 — API 개별 연동
 
   // 결제 성공/실패 시 돌아올 URL (자동 계산)
   get TOSS_SUCCESS_URL() { return window.location.origin + '/success.html'; },
