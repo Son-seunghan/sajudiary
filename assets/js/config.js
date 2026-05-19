@@ -155,10 +155,13 @@ window.SAJULOG_CONFIG = {
   // 5. 동적 묶음 할인 규칙 (구매 상품 수에 따라)
   // ─────────────────────────────────────────
   // [최소 상품 수, 할인율(%)] — 상품 수 많을수록 큰 할인 적용
+  // ★ 토스 카드사 심사 기간 동안 임시 비활성화 (2026-05-18)
+  //   "상품 금액과 결제 금액이 같아야" 정책 충돌 회피
+  //   심사 통과 후 아래 3줄 주석 해제하면 즉시 복구
   BUNDLE_DISCOUNTS: [
-    { minItems: 4, percent: 30, label: '🎁 전상품 패키지 30% OFF' },
-    { minItems: 3, percent: 20, label: '✨ 3종 묶음 20% OFF' },
-    { minItems: 2, percent: 10, label: '💫 2종 묶음 10% OFF' }
+    // { minItems: 4, percent: 30, label: '🎁 전상품 패키지 30% OFF' },
+    // { minItems: 3, percent: 20, label: '✨ 3종 묶음 20% OFF' },
+    // { minItems: 2, percent: 10, label: '💫 2종 묶음 10% OFF' }
     // 1개는 할인 없음
   ],
 

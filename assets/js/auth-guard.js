@@ -216,6 +216,28 @@ const AuthGuard = (function () {
     return !!(user && user.isMaster);
   }
 
+  // ─── 게스트 모드 (카드사 심사관용 우회 접근) ───
+  // ?guest=on URL → 카카오 로그인 없이 사이트 흐름 확인 가능
+  // 결제 페이지·결제창까지 진입 가능 (실제 결제는 테스트 키로만)
+  function setGuest() {
+    const guestUser = {
+      id: 'guest_demo_' + Date.now(),
+      nickname: '심사용 데모',
+      profile_image: '',
+      provider: 'guest',
+      isMaster: false,
+      birthMM: null,
+      birthDD: null
+    };
+    localStorage.setItem(USER_KEY, JSON.stringify(guestUser));
+    console.log('[AuthGuard] 게스트 데모 모드 활성화');
+    return true;
+  }
+  function isGuest() {
+    const user = getUser();
+    return !!(user && user.provider === 'guest');
+  }
+
   // ─── 로그인만 필요한 경우 (구매 무관) ───
   function requireLogin() {
     if (!isLoggedIn()) {
@@ -232,6 +254,7 @@ const AuthGuard = (function () {
     getRemainingSlots, canAnalyze,
     redeemCoupon,
     requirePurchase, requireLogin,
-    setMaster, isMaster
+    setMaster, isMaster,
+    setGuest, isGuest
   };
 })();

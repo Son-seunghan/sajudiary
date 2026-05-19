@@ -1254,9 +1254,10 @@
 
       <!-- 사업자 정보 -->
       <div class="text-xs text-[var(--ink4)] font-shilla space-y-1.5 leading-relaxed">
-        <p><strong class="text-[var(--ink3)]">사주다이어리 (四柱日記)</strong> &nbsp;·&nbsp; 상호: 마일 &nbsp;·&nbsp; 대표: 손승한 &nbsp;·&nbsp; 이메일: cleanblue99@gmail.com</p>
+        <p><strong class="text-[var(--ink3)]">사주다이어리 (四柱日記)</strong> &nbsp;·&nbsp; 상호: 마일 &nbsp;·&nbsp; 대표: 손승한</p>
+        <p>이메일: cleanblue99@gmail.com &nbsp;·&nbsp; 전화: 010-8451-2715</p>
         <p>사업자등록번호: 254-32-01626 &nbsp;·&nbsp; 통신판매업신고: 제2025-경기남부-5033호</p>
-        <p>주소: 경기도 양주시 부흥로 1936, 406호 (광사동, 다온프라자)</p>
+        <p>주소: 경기도 양주시 부흥로 1936, 406호 255111(광사동, 다온프라자)</p>
         <p class="text-[var(--ink4)] mt-3">© 2026 사주다이어리. All rights reserved.</p>
         <p class="text-[var(--ink4)] italic">※ 본 서비스는 인생의 가이드를 제공하며, 절대적 결정론이 아닙니다. 의학·법률·재무 조언으로 사용할 수 없습니다.</p>
       </div>
@@ -1321,6 +1322,21 @@
         AuthGuard.setMaster(masterParam === 'on');
         alert(`✦ 마스터 권한이 ${masterParam === 'on' ? '활성화' : '해제'}되었습니다.\n이제 모든 분석 페이지를 결제 없이 열람할 수 있습니다.`);
         // URL에서 파라미터 제거
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+      }
+    })();
+
+    // ─── 게스트 데모 모드 (?guest=on) — 카드사 심사관용 ───
+    // 카카오 로그인 없이 결제 페이지까지 진입 가능 (실제 결제는 테스트 키로만)
+    (function () {
+      const guestParam = new URLSearchParams(window.location.search).get('guest');
+      if (guestParam === 'on') {
+        AuthGuard.setGuest();
+        alert('✦ 심사용 데모 모드가 활성화되었습니다.\n카카오 로그인 없이 사이트 흐름 확인이 가능합니다.\n(상품 페이지·결제 흐름까지 확인 가능)');
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+      } else if (guestParam === 'off') {
+        localStorage.removeItem('sajudiary_user');
+        alert('데모 모드가 해제되었습니다.');
         window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
       }
     })();
