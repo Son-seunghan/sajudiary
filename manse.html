@@ -759,6 +759,8 @@
     const STEM_E   = [0,0,1,1,2,2,3,3,4,4]; // 오행 인덱스: 0=목 1=화 2=토 3=금 4=수
     const STEM_Y   = [0,1,0,1,0,1,0,1,0,1]; // 0=양 1=음
     const BRAN_E   = [4,2,0,0,2,1,1,2,3,3,2,4];
+    // 지장간 (本氣·中氣·餘氣 천간 인덱스) — saju.html과 동일
+    const HIDDEN   = [[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[8,6,4],[6,7],[7,3,4],[0,8]];
     const ELEM_C   = ['wood','fire','earth','metal','water'];
     const GEN      = [1,2,3,4,0];
     const GEN_BY   = [4,0,1,2,3];
@@ -830,122 +832,255 @@
       return found[0];
     }
 
-    // ── 사주로 본 MBTI 예상 ──
-    // 4축을 사주 8글자의 오행·십신·일간 양음으로 추정
-    // - E/I: 일간 양음 + 식상·재성 vs 인성·비겁
-    // - S/N: 토·금 (현실) vs 화·수·인성·식상 (직관)
-    // - T/F: 금·관성 (논리) vs 화·식상 (감정)
-    // - J/P: 토·관성 (계획) vs 식상·재성 (즉흥)
-    const BRAN_MAIN_GAN = [9,5,0,1,4,2,3,5,6,7,4,8]; // 지지 본기 천간 (子=계 등)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 사주로 본 MBTI 예상 — 정밀 버전 (v2)
+    //
+    // 개선사항:
+    // - 지장간 본기(0.7) · 중기(0.3) · 여기(0.1) 가중치 적용
+    // - 4주 위치별 가중치: 일주·월주 ×1.5, 시주 ×0.8, 연주 ×0.6
+    // - 신강·신약(getDayStrength) 기반 십신 부호 보정
+    // - 격국(월지 본기 → 일간 십신) 추정 후 J/P·S/N 강화
+    // - 일지 합·충 보정 (E/I)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    // 지지 합·충 (E/I, J/P 보정용)
+    const BRANCH_LIU_HE = {0:1,1:0, 2:11,11:2, 3:10,10:3, 4:9,9:4, 5:8,8:5, 6:7,7:6};
+    const BRANCH_CHUNG  = {0:6,6:0, 1:7,7:1, 2:8,8:2, 3:9,9:3, 4:10,10:4, 5:11,11:5};
+
+    // 신강·신약 판정 (saju.html 포팅)
+    function getDayStrength_(yP, mP, dP, hP) {
+      const de = STEM_E[dP.si];
+      let s = 0;
+      const rest = [yP, mP, hP].filter(Boolean);
+      for (const p of rest) {
+        const se = STEM_E[p.si], be = BRAN_E[p.bi];
+        if (se === de || se === GEN_BY[de]) s += 1;
+        if (be === de || be === GEN_BY[de]) s += 0.7;
+        if (se === GEN[de] || se === CTRL[de] || se === CTRL_BY[de]) s -= 0.5;
+      }
+      const mbe = BRAN_E[mP.bi];
+      if (mbe === de || mbe === GEN_BY[de]) s += 1.5;
+      else s -= 0.5;
+      if (s >= 1.5) return '신강';
+      if (s >= 0)   return '중화';
+      return '신약';
+    }
+
+    // 격국 추정 (단순 버전 — 월지 본기 천간이 일간에 대한 십신)
+    // 결과: '정관격','편관격','정인격','편인격','정재격','편재격','식신격','상관격','비견격','양인격'
+    function inferGyeok(dP, mP) {
+      const monthMainGan = HIDDEN[mP.bi][0];
+      // 월지 본기가 일간과 같으면 → 비견격 (양일간) 또는 양인격 (음일간 + 양지지)
+      if (monthMainGan === dP.si) {
+        // 양인격: 월지가 일간의 양인 위치 (갑목→묘, 병화→오, 무토→오, 경금→유, 임수→자)
+        // 단순화: 일간 양간일 때만 양인격 가능, 그 외 비견격
+        return STEM_Y[dP.si] === 0 ? '비견격' : '비견격';
+      }
+      const t = getTG(dP.si, monthMainGan);
+      switch (t) {
+        case 0: return '비견격';
+        case 1: return '양인격';      // 겁재격 = 양인격 (전통적)
+        case 2: return '식신격';
+        case 3: return '상관격';
+        case 4: return '편재격';
+        case 5: return '정재격';
+        case 6: return '편관격';
+        case 7: return '정관격';
+        case 8: return '편인격';
+        case 9: return '정인격';
+      }
+      return '비견격';
+    }
+
+    // 격국별 MBTI 4축 보정 (양수 = E/N/T/J 쪽)
+    const GYEOK_MBTI_BIAS = {
+      '정관격': { EI: 0,   NS: 0,    TF: +0.8, JP: +1.5 },
+      '편관격': { EI: +0.5,NS: 0,    TF: +1.2, JP: +1.0 },
+      '정인격': { EI: -1.0,NS: +1.5, TF: 0,    JP: +0.5 },
+      '편인격': { EI: -1.2,NS: +1.5, TF: -0.3, JP: 0    },
+      '정재격': { EI: +0.3,NS: -1.0, TF: +0.5, JP: +1.0 },
+      '편재격': { EI: +1.2,NS: -0.8, TF: 0,    JP: -1.0 },
+      '식신격': { EI: +0.8,NS: +0.3, TF: -0.8, JP: -0.8 },
+      '상관격': { EI: +1.0,NS: +1.0, TF: -0.5, JP: -1.5 },
+      '비견격': { EI: -0.3,NS: 0,    TF: +0.5, JP: +0.3 },
+      '양인격': { EI: +1.0,NS: 0,    TF: +1.5, JP: +1.0 }
+    };
 
     function predictMBTI(yP, mP, dP, hP) {
-      // 1) 오행 카운트 (천간 + 지지 본기)
-      const fEl = [0,0,0,0,0]; // 목 화 토 금 수
-      const pillars = [yP, mP, dP, hP].filter(Boolean);
-      pillars.forEach(p => {
-        fEl[STEM_E[p.si]]++;
-        fEl[BRAN_E[p.bi]]++;
+      // 4주 위치별 가중치 (일·월 강조)
+      const PILLAR_W = { day: 1.5, month: 1.5, hour: 0.8, year: 0.6 };
+      const HID_W = [0.7, 0.3, 0.1]; // 지장간 본기·중기·여기
+
+      // 1) 오행 분포 (위치별 가중 + 지장간 가중)
+      const fEl = [0,0,0,0,0];
+      const pillarList = [
+        { p: yP, w: PILLAR_W.year },
+        { p: mP, w: PILLAR_W.month },
+        { p: dP, w: PILLAR_W.day },
+        { p: hP, w: PILLAR_W.hour }
+      ].filter(x => x.p);
+      pillarList.forEach(({ p, w }) => {
+        fEl[STEM_E[p.si]] += w * 1.0;        // 천간
+        fEl[BRAN_E[p.bi]] += w * 0.5;        // 지지 글자
+        HIDDEN[p.bi].forEach((h, i) => {     // 지장간 본기·중기·여기
+          fEl[STEM_E[h]] += w * HID_W[i];
+        });
       });
 
-      // 2) 십신 카운트 (일간 제외 천간 + 지지 본기)
+      // 2) 십신 분포 (위치별 가중 + 지장간 가중, 일간 본인 제외)
       const tS = [0,0,0,0,0,0,0,0,0,0];
-      // 0/1 비겁 · 2/3 식상 · 4/5 재성 · 6/7 관성 · 8/9 인성
-      const otherStems = pillars.filter(p => p !== dP).map(p => p.si);
-      otherStems.forEach(s => {
-        const t = getTG(dP.si, s);
-        if (t >= 0) tS[t]++;
-      });
-      pillars.forEach(p => {
-        const g = BRAN_MAIN_GAN[p.bi];
-        if (g === dP.si) return; // 일간 본인은 제외
-        const t = getTG(dP.si, g);
-        if (t >= 0) tS[t]++;
+      pillarList.forEach(({ p, w }) => {
+        // 천간 (단, 일간은 본인이라 제외)
+        if (p !== dP) {
+          const t = getTG(dP.si, p.si);
+          if (t >= 0) tS[t] += w * 1.0;
+        }
+        // 지장간 (모든 위치)
+        HIDDEN[p.bi].forEach((h, i) => {
+          if (p === dP && i === 0 && h === dP.si) return; // 일지 본기가 일간이면 비견 중복 방지
+          const t = getTG(dP.si, h);
+          if (t >= 0) tS[t] += w * HID_W[i];
+        });
       });
 
-      const bigeop = tS[0]+tS[1];
-      const sikSang = tS[2]+tS[3];
-      const jaeSeong = tS[4]+tS[5];
+      const bigeop    = tS[0]+tS[1];
+      const sikSang   = tS[2]+tS[3];
+      const jaeSeong  = tS[4]+tS[5];
       const gwanSeong = tS[6]+tS[7];
-      const inSeong = tS[8]+tS[9];
+      const inSeong   = tS[8]+tS[9];
 
       const isYang = STEM_Y[dP.si] === 0;
       const isYin  = !isYang;
 
-      // 3) 4축 점수 (양수 = E/N/T/J 쪽)
-      const EI = (isYang ? 2 : -2) + sikSang*1.0 + jaeSeong*0.5 - inSeong*1.0 - bigeop*0.3;
-      const NS = fEl[1]*0.8 + fEl[4]*0.8 + inSeong*1.5 + sikSang*0.5
-               - fEl[2]*1.0 - fEl[3]*0.5 - gwanSeong*0.5;
-      const TF = fEl[3]*1.0 + gwanSeong*1.2 + jaeSeong*0.5
-               - fEl[1]*1.0 - (isYin ? 0.5 : 0) - sikSang*0.3;
-      const JP = fEl[2]*1.0 + gwanSeong*1.5 + inSeong*0.3
-               - sikSang*1.0 - jaeSeong*0.5 - fEl[4]*0.3;
+      // 3) 신강·신약 판정
+      const strength = getDayStrength_(yP, mP, dP, hP); // '신강' / '중화' / '신약'
+      const isStrong = strength === '신강';
+      const isWeak   = strength === '신약';
+
+      // 4) 격국 추정
+      const gyeok = inferGyeok(dP, mP);
+
+      // 5) 일지 합·충 (E/I, J/P 보정)
+      // 다른 주의 지지와 일지가 합/충 관계인가
+      const otherBi = [yP.bi, mP.bi, hP ? hP.bi : null].filter(b => b !== null);
+      let lihe = 0, chung = 0;
+      otherBi.forEach(b => {
+        if (BRANCH_LIU_HE[dP.bi] === b) lihe++;
+        if (BRANCH_CHUNG[dP.bi] === b) chung++;
+      });
+
+      // 6) 4축 점수 계산 (양수 = E/N/T/J)
+
+      // ─── E vs I ───
+      let EI =
+        (isYang ? 1.8 : -1.8)
+        + sikSang * 0.6
+        + jaeSeong * 0.4
+        - inSeong * 0.7
+        - bigeop * 0.2
+        + lihe * (-0.6)      // 일지 합 = 안정·내향
+        + chung * (+0.8);    // 일지 충 = 활동·외향
+      if (isStrong) EI += 0.5;
+      if (isWeak)   EI -= 0.5;
+
+      // ─── N vs S ─── (양수 = N)
+      let NS =
+        fEl[1] * 0.6           // 화 (직관·통찰)
+        + fEl[4] * 0.7         // 수 (깊이·추상)
+        + inSeong * 1.2        // 인성 (학습·통찰) — 강화
+        + sikSang * 0.5        // 식상 (아이디어)
+        - fEl[2] * 0.9         // 토 (현실·안정) — 강화
+        - fEl[3] * 0.7         // 금 (정밀·구조) — 강화
+        - jaeSeong * 0.6;      // 재성 (실용·계산) — 추가
+      // 격국 보정
+      NS += (GYEOK_MBTI_BIAS[gyeok]?.NS || 0);
+
+      // ─── T vs F ─── (양수 = T)
+      let TF =
+        fEl[3] * 0.9           // 금 (논리·결단)
+        + gwanSeong * 1.0      // 관성 (체계·통제)
+        + jaeSeong * 0.4       // 재성 (계산)
+        - fEl[1] * 0.9         // 화 (감정·열정)
+        - (isYin ? 0.4 : 0)    // 음간 = F 경향
+        - sikSang * 0.3;       // 식상 (감정 표현)
+      TF += (GYEOK_MBTI_BIAS[gyeok]?.TF || 0);
+
+      // ─── J vs P ─── (양수 = J) — 가장 정밀화
+      let JP =
+        fEl[2] * 0.8           // 토 (안정·계획)
+        + gwanSeong * 1.0      // 관성 (규범·체계) — 강화
+        + inSeong * 0.3        // 인성 (학습 체계)
+        - sikSang * 1.2        // 식상 (즉흥) — 강화
+        - jaeSeong * 0.6       // 재성 (기회 활용) — 강화
+        - fEl[4] * 0.5         // 수 (흐름·유연) — 강화
+        + lihe * (+0.7)        // 합 많음 = 안정·계획
+        + chung * (-0.7);      // 충 많음 = 변화·즉흥
+      JP += (GYEOK_MBTI_BIAS[gyeok]?.JP || 0);
+      // 신강 + 식상 → P (자기표현 자유)
+      if (isStrong && sikSang >= 2) JP -= 0.5;
+      // 신약 + 관성 → J (외부 규범 따름)
+      if (isWeak && gwanSeong >= 2) JP += 0.5;
+
+      // 7) E/I 격국 보정 (마지막에 적용)
+      EI += (GYEOK_MBTI_BIAS[gyeok]?.EI || 0);
 
       const type = (EI > 0 ? 'E' : 'I')
                  + (NS > 0 ? 'N' : 'S')
                  + (TF > 0 ? 'T' : 'F')
                  + (JP > 0 ? 'J' : 'P');
 
-      // 4) 마커 위치 (좌측 0% ~ 우측 100%, 50%가 중립)
-      // 좌측 라벨 = E/S/T/J (양수)
-      // 점수가 양수면 좌측, 음수면 우측
-      // 단, MBTI HTML에서 좌측 라벨이 E/S/T/J인지 확인
-      // 우리 HTML: E~I (좌E 우I) / S~N (좌S 우N) / T~F (좌T 우F) / J~P (좌J 우P)
-      // EI 양수 = E 우세 = 마커 좌측에
-      // NS 양수 = N 우세 = 마커 우측에 (S=좌, N=우)
-      // TF 양수 = T 우세 = 마커 좌측에
-      // JP 양수 = J 우세 = 마커 좌측에
+      // 8) 마커 위치 % 변환
       function scoreToPct(score, inverted) {
-        // score 범위 약 -6 ~ +6, 이를 0~100%로 매핑 (10~90% clamp)
-        let pct = 50 + score * 6;
+        let pct = 50 + score * 5;
         if (inverted) pct = 100 - pct;
         return Math.max(10, Math.min(90, pct));
       }
-      const pctEI = scoreToPct(-EI); // E 우세(양수) → 좌측(낮은 %)
-      const pctSN = scoreToPct(NS);  // N 우세(양수) → 우측(높은 %)
-      const pctTF = scoreToPct(-TF); // T 우세(양수) → 좌측
-      const pctJP = scoreToPct(-JP); // J 우세(양수) → 좌측
+      const pctEI = scoreToPct(-EI);
+      const pctSN = scoreToPct(NS);
+      const pctTF = scoreToPct(-TF);
+      const pctJP = scoreToPct(-JP);
 
-      // 5) 양가적 판정 (점수 절대값 < 1.5)
+      // 9) 양가적 판정 (점수 절대값 < 1.2 — 임계값 약간 낮춤)
       const ambig = {
-        EI: Math.abs(EI) < 1.5,
-        NS: Math.abs(NS) < 1.5,
-        TF: Math.abs(TF) < 1.5,
-        JP: Math.abs(JP) < 1.5
+        EI: Math.abs(EI) < 1.2,
+        NS: Math.abs(NS) < 1.2,
+        TF: Math.abs(TF) < 1.2,
+        JP: Math.abs(JP) < 1.2
       };
 
-      // 6) 캡션 (한 줄 설명)
+      // 10) 캡션
       function caption(score, leftLabel, rightLabel, ambiguous) {
         if (ambiguous) {
           return `${leftLabel}·${rightLabel} 양가적 — 환경에 따라 다르게 발현`;
         }
         const dom = score > 0 ? leftLabel : rightLabel;
-        const pct = Math.round(50 + Math.abs(score) * 6);
-        const clamped = Math.max(55, Math.min(90, pct));
+        const pct = Math.round(50 + Math.abs(score) * 5);
+        const clamped = Math.max(55, Math.min(92, pct));
         return `${dom} 경향 <span class="pct">${clamped}%</span>`;
       }
       const capEI = caption(EI, 'E', 'I', ambig.EI);
-      const capSN = caption(-NS, 'S', 'N', ambig.NS); // 좌측 라벨이 S라서 부호 반전
+      const capSN = caption(-NS, 'S', 'N', ambig.NS);
       const capTF = caption(TF, 'T', 'F', ambig.TF);
       const capJP = caption(JP, 'J', 'P', ambig.JP);
 
-      // 7) 근거 (사주 기반 한 줄)
-      const basisParts = [];
-      basisParts.push(isYang ? '양간(陽干) 일간' : '음간(陰干) 일간');
+      // 11) 근거 (격국·신강·강한 오행 표시)
       const maxEl = ['목','화','토','금','수'][fEl.indexOf(Math.max(...fEl))];
-      basisParts.push(`${maxEl} 강세`);
-      if (inSeong >= 3) basisParts.push('인성 우세');
-      else if (sikSang >= 3) basisParts.push('식상 우세');
-      else if (gwanSeong >= 3) basisParts.push('관성 우세');
-      else if (jaeSeong >= 3) basisParts.push('재성 우세');
-      else if (bigeop >= 3) basisParts.push('비겁 우세');
-      const basis = `근거: ${basisParts.join(' · ')}`;
+      const dominantStar =
+        inSeong > Math.max(sikSang, jaeSeong, gwanSeong, bigeop) ? '인성 우세' :
+        sikSang > Math.max(jaeSeong, gwanSeong, bigeop) ? '식상 우세' :
+        gwanSeong > Math.max(jaeSeong, bigeop) ? '관성 우세' :
+        jaeSeong > bigeop ? '재성 우세' : '비겁 우세';
+      const basis = `근거: ${gyeok} · ${strength} · ${maxEl} 강세 · ${dominantStar}`
+                  + (lihe > 0 ? ` · 일지 合${lihe}` : '')
+                  + (chung > 0 ? ` · 일지 沖${chung}` : '');
 
       return {
         type,
         pctEI, pctSN, pctTF, pctJP,
         capEI, capSN, capTF, capJP,
         ambig, basis,
-        scores: { EI, NS, TF, JP }
+        scores: { EI, NS, TF, JP },
+        meta: { gyeok, strength, dominantStar, lihe, chung }
       };
     }
 
