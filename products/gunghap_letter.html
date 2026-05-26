@@ -1314,12 +1314,13 @@ function renderElemComplement(A,B,pair,mode){
 
 function analyzeFate(A,B,pair){
   const r={};
-  const countBy=(S,key)=>{const m={};S.pillars.forEach(p=>m[p[key]]=(m[p[key]]||0)+1);return m;};
-  const pairs=(S,key)=>{const m=countBy(S,key);return Object.entries(m).filter(([k,c])=>c>=2).map(([k])=>+k);};
-  r.aStemPair=pairs(A,'si');r.bStemPair=pairs(B,'si');
-  r.aBranPair=pairs(A,'bi');r.bBranPair=pairs(B,'bi');
-  // 만나서 새로 생긴 병존
-  const combine=(key)=>{const m={};[...A.pillars,...B.pillars].forEach(p=>m[p[key]]=(m[p[key]]||0)+1);return Object.entries(m).filter(([k,c])=>c>=2).map(([k])=>+k);};
+  // 첩신 원칙: 인접한 기둥끼리만 병존 성립
+  const adjPairs=(S,key)=>{const ps=S.pillars;const r=[];for(let i=0;i<ps.length-1;i++)if(ps[i][key]===ps[i+1][key])r.push(ps[i][key]);return r;};
+  r.aStemPair=adjPairs(A,'si');r.bStemPair=adjPairs(B,'si');
+  r.aBranPair=adjPairs(A,'bi');r.bBranPair=adjPairs(B,'bi');
+  // 만나서 새로 생긴 병존 (두 사람 합산 기둥에서 인접한 경우)
+  const combinedPillars=[...A.pillars,...B.pillars];
+  const combine=(key)=>{const r=[];for(let i=0;i<combinedPillars.length-1;i++)if(combinedPillars[i][key]===combinedPillars[i+1][key])r.push(combinedPillars[i][key]);return r;};
   const allSP=combine('si'),allBP=combine('bi');
   r.newStemPair=allSP.filter(si=>!r.aStemPair.includes(si)&&!r.bStemPair.includes(si));
   r.newBranPair=allBP.filter(bi=>!r.aBranPair.includes(bi)&&!r.bBranPair.includes(bi));

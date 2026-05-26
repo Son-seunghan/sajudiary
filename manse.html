@@ -154,6 +154,90 @@
   .hook-gold   .hook-label { color: var(--gold2); }
   .hook-vermil { border-left: 4px solid var(--vermil); }
   .hook-vermil .hook-label { color: var(--vermil); }
+  .hook-plum   { border-left: 4px solid var(--plum); }
+  .hook-plum   .hook-label { color: var(--wine); }
+
+  /* ━━━━ MBTI 게이지 ━━━━ */
+  .mbti-type {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 38px;
+    letter-spacing: 0.08em;
+    color: var(--wine);
+    text-align: center;
+    margin: 8px 0 4px;
+    line-height: 1;
+  }
+  .mbti-type-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink3);
+    font-family: 'Shilla Gothic', sans-serif;
+    letter-spacing: 0.06em;
+    margin-bottom: 18px;
+  }
+  .mbti-axes { margin-top: 6px; }
+  .mbti-axis {
+    display: grid;
+    grid-template-columns: 28px 1fr 28px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .mbti-pole {
+    font-family: 'Shilla Culture', serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink4);
+    text-align: center;
+    transition: color 0.2s;
+  }
+  .mbti-pole.active {
+    color: var(--wine);
+    font-size: 19px;
+  }
+  .mbti-bar {
+    position: relative;
+    height: 6px;
+    background: linear-gradient(90deg,
+      var(--jade) 0%,
+      var(--paper-dk) 45%,
+      var(--paper-dk) 55%,
+      var(--plum) 100%);
+    border-radius: 3px;
+    opacity: 0.55;
+  }
+  .mbti-marker {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  }
+  .mbti-axis-caption {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--ink3);
+    font-family: 'Shilla Gothic', sans-serif;
+    margin-top: -2px;
+    letter-spacing: 0.04em;
+  }
+  .mbti-axis-caption .pct { color: var(--wine); font-weight: 700; }
+  .mbti-axis-caption.ambiguous { color: var(--ink4); font-style: italic; }
+
+  @media (max-width: 480px) {
+    .mbti-type { font-size: 32px; }
+    .mbti-type-sub { font-size: 11px; margin-bottom: 14px; }
+    .mbti-axis { gap: 10px; grid-template-columns: 24px 1fr 24px; margin-bottom: 8px; }
+    .mbti-pole { font-size: 15px; }
+    .mbti-pole.active { font-size: 17px; }
+    .mbti-axis-caption { font-size: 11px; }
+  }
 
   .hook-cta {
     display: inline-flex; align-items: center; gap: 6px;
@@ -540,6 +624,45 @@
             <a href="index.html?product=deep#products" class="hook-cta">전문가용에서 자세히 보기 →</a>
           </div>
 
+          <!-- 카드 4: 사주로 본 성향 (MBTI 예상) -->
+          <div class="hook-card hook-plum">
+            <div class="hook-label">🎭 사주로 본 성향 (MBTI 예상)</div>
+            <div class="mbti-type" id="mbtiType">—</div>
+            <div class="mbti-type-sub" id="mbtiTypeSub">사주 8글자의 오행·십신·일간 양음으로 추정한 성격 경향이에요.</div>
+
+            <div class="mbti-axes">
+              <div class="mbti-axis">
+                <span class="mbti-pole" id="mbtiE">E</span>
+                <div class="mbti-bar"><div class="mbti-marker" id="mbtiMarkerEI"></div></div>
+                <span class="mbti-pole" id="mbtiI">I</span>
+                <div class="mbti-axis-caption" id="mbtiCapEI">—</div>
+              </div>
+              <div class="mbti-axis">
+                <span class="mbti-pole" id="mbtiS">S</span>
+                <div class="mbti-bar"><div class="mbti-marker" id="mbtiMarkerSN"></div></div>
+                <span class="mbti-pole" id="mbtiN">N</span>
+                <div class="mbti-axis-caption" id="mbtiCapSN">—</div>
+              </div>
+              <div class="mbti-axis">
+                <span class="mbti-pole" id="mbtiT">T</span>
+                <div class="mbti-bar"><div class="mbti-marker" id="mbtiMarkerTF"></div></div>
+                <span class="mbti-pole" id="mbtiF">F</span>
+                <div class="mbti-axis-caption" id="mbtiCapTF">—</div>
+              </div>
+              <div class="mbti-axis">
+                <span class="mbti-pole" id="mbtiJ">J</span>
+                <div class="mbti-bar"><div class="mbti-marker" id="mbtiMarkerJP"></div></div>
+                <span class="mbti-pole" id="mbtiP">P</span>
+                <div class="mbti-axis-caption" id="mbtiCapJP">—</div>
+              </div>
+            </div>
+
+            <p class="hook-sub" id="mbtiBasis">—</p>
+            <p class="hook-sub" style="border-top:none; padding-top:0; margin-top:6px; font-size:11.5px; opacity:0.75;">
+              ⚠️ 사주 기반 추정치예요. 본인이 알고 계신 MBTI 검사 결과와 다를 수 있고, 환경·경험에 따라 다른 측면이 강해질 수 있습니다. 재미로 비교해보세요.
+            </p>
+          </div>
+
         </div>
 
         <div class="text-xs text-[var(--ink4)] mt-5 italic text-center">
@@ -705,6 +828,125 @@
       // 우선순위에 따라 정렬
       found.sort((a, b) => SHINSAL_PRIORITY.indexOf(a.key) - SHINSAL_PRIORITY.indexOf(b.key));
       return found[0];
+    }
+
+    // ── 사주로 본 MBTI 예상 ──
+    // 4축을 사주 8글자의 오행·십신·일간 양음으로 추정
+    // - E/I: 일간 양음 + 식상·재성 vs 인성·비겁
+    // - S/N: 토·금 (현실) vs 화·수·인성·식상 (직관)
+    // - T/F: 금·관성 (논리) vs 화·식상 (감정)
+    // - J/P: 토·관성 (계획) vs 식상·재성 (즉흥)
+    const BRAN_MAIN_GAN = [9,5,0,1,4,2,3,5,6,7,4,8]; // 지지 본기 천간 (子=계 등)
+
+    function predictMBTI(yP, mP, dP, hP) {
+      // 1) 오행 카운트 (천간 + 지지 본기)
+      const fEl = [0,0,0,0,0]; // 목 화 토 금 수
+      const pillars = [yP, mP, dP, hP].filter(Boolean);
+      pillars.forEach(p => {
+        fEl[STEM_E[p.si]]++;
+        fEl[BRAN_E[p.bi]]++;
+      });
+
+      // 2) 십신 카운트 (일간 제외 천간 + 지지 본기)
+      const tS = [0,0,0,0,0,0,0,0,0,0];
+      // 0/1 비겁 · 2/3 식상 · 4/5 재성 · 6/7 관성 · 8/9 인성
+      const otherStems = pillars.filter(p => p !== dP).map(p => p.si);
+      otherStems.forEach(s => {
+        const t = getTG(dP.si, s);
+        if (t >= 0) tS[t]++;
+      });
+      pillars.forEach(p => {
+        const g = BRAN_MAIN_GAN[p.bi];
+        if (g === dP.si) return; // 일간 본인은 제외
+        const t = getTG(dP.si, g);
+        if (t >= 0) tS[t]++;
+      });
+
+      const bigeop = tS[0]+tS[1];
+      const sikSang = tS[2]+tS[3];
+      const jaeSeong = tS[4]+tS[5];
+      const gwanSeong = tS[6]+tS[7];
+      const inSeong = tS[8]+tS[9];
+
+      const isYang = STEM_Y[dP.si] === 0;
+      const isYin  = !isYang;
+
+      // 3) 4축 점수 (양수 = E/N/T/J 쪽)
+      const EI = (isYang ? 2 : -2) + sikSang*1.0 + jaeSeong*0.5 - inSeong*1.0 - bigeop*0.3;
+      const NS = fEl[1]*0.8 + fEl[4]*0.8 + inSeong*1.5 + sikSang*0.5
+               - fEl[2]*1.0 - fEl[3]*0.5 - gwanSeong*0.5;
+      const TF = fEl[3]*1.0 + gwanSeong*1.2 + jaeSeong*0.5
+               - fEl[1]*1.0 - (isYin ? 0.5 : 0) - sikSang*0.3;
+      const JP = fEl[2]*1.0 + gwanSeong*1.5 + inSeong*0.3
+               - sikSang*1.0 - jaeSeong*0.5 - fEl[4]*0.3;
+
+      const type = (EI > 0 ? 'E' : 'I')
+                 + (NS > 0 ? 'N' : 'S')
+                 + (TF > 0 ? 'T' : 'F')
+                 + (JP > 0 ? 'J' : 'P');
+
+      // 4) 마커 위치 (좌측 0% ~ 우측 100%, 50%가 중립)
+      // 좌측 라벨 = E/S/T/J (양수)
+      // 점수가 양수면 좌측, 음수면 우측
+      // 단, MBTI HTML에서 좌측 라벨이 E/S/T/J인지 확인
+      // 우리 HTML: E~I (좌E 우I) / S~N (좌S 우N) / T~F (좌T 우F) / J~P (좌J 우P)
+      // EI 양수 = E 우세 = 마커 좌측에
+      // NS 양수 = N 우세 = 마커 우측에 (S=좌, N=우)
+      // TF 양수 = T 우세 = 마커 좌측에
+      // JP 양수 = J 우세 = 마커 좌측에
+      function scoreToPct(score, inverted) {
+        // score 범위 약 -6 ~ +6, 이를 0~100%로 매핑 (10~90% clamp)
+        let pct = 50 + score * 6;
+        if (inverted) pct = 100 - pct;
+        return Math.max(10, Math.min(90, pct));
+      }
+      const pctEI = scoreToPct(-EI); // E 우세(양수) → 좌측(낮은 %)
+      const pctSN = scoreToPct(NS);  // N 우세(양수) → 우측(높은 %)
+      const pctTF = scoreToPct(-TF); // T 우세(양수) → 좌측
+      const pctJP = scoreToPct(-JP); // J 우세(양수) → 좌측
+
+      // 5) 양가적 판정 (점수 절대값 < 1.5)
+      const ambig = {
+        EI: Math.abs(EI) < 1.5,
+        NS: Math.abs(NS) < 1.5,
+        TF: Math.abs(TF) < 1.5,
+        JP: Math.abs(JP) < 1.5
+      };
+
+      // 6) 캡션 (한 줄 설명)
+      function caption(score, leftLabel, rightLabel, ambiguous) {
+        if (ambiguous) {
+          return `${leftLabel}·${rightLabel} 양가적 — 환경에 따라 다르게 발현`;
+        }
+        const dom = score > 0 ? leftLabel : rightLabel;
+        const pct = Math.round(50 + Math.abs(score) * 6);
+        const clamped = Math.max(55, Math.min(90, pct));
+        return `${dom} 경향 <span class="pct">${clamped}%</span>`;
+      }
+      const capEI = caption(EI, 'E', 'I', ambig.EI);
+      const capSN = caption(-NS, 'S', 'N', ambig.NS); // 좌측 라벨이 S라서 부호 반전
+      const capTF = caption(TF, 'T', 'F', ambig.TF);
+      const capJP = caption(JP, 'J', 'P', ambig.JP);
+
+      // 7) 근거 (사주 기반 한 줄)
+      const basisParts = [];
+      basisParts.push(isYang ? '양간(陽干) 일간' : '음간(陰干) 일간');
+      const maxEl = ['목','화','토','금','수'][fEl.indexOf(Math.max(...fEl))];
+      basisParts.push(`${maxEl} 강세`);
+      if (inSeong >= 3) basisParts.push('인성 우세');
+      else if (sikSang >= 3) basisParts.push('식상 우세');
+      else if (gwanSeong >= 3) basisParts.push('관성 우세');
+      else if (jaeSeong >= 3) basisParts.push('재성 우세');
+      else if (bigeop >= 3) basisParts.push('비겁 우세');
+      const basis = `근거: ${basisParts.join(' · ')}`;
+
+      return {
+        type,
+        pctEI, pctSN, pctTF, pctJP,
+        capEI, capSN, capTF, capJP,
+        ambig, basis,
+        scores: { EI, NS, TF, JP }
+      };
     }
 
     // ── 십신 계산 (대운 흐름 판별용) ──
@@ -952,6 +1194,39 @@
       const flowCopy = FLOW_COPY[flow];
       document.getElementById('hookFlowTag').textContent = flowCopy.tag;
       document.getElementById('hookFlowBody').textContent = flowCopy.body;
+
+      // ━━━ Hook 카드 4: 사주로 본 MBTI 예상 ━━━
+      const mbti = predictMBTI(yP, mP, dP, hP);
+      document.getElementById('mbtiType').textContent = mbti.type;
+
+      // 게이지 마커 위치
+      document.getElementById('mbtiMarkerEI').style.left = mbti.pctEI + '%';
+      document.getElementById('mbtiMarkerSN').style.left = mbti.pctSN + '%';
+      document.getElementById('mbtiMarkerTF').style.left = mbti.pctTF + '%';
+      document.getElementById('mbtiMarkerJP').style.left = mbti.pctJP + '%';
+
+      // 활성 극(라벨 강조)
+      ['mbtiE','mbtiI','mbtiS','mbtiN','mbtiT','mbtiF','mbtiJ','mbtiP'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      document.getElementById('mbti' + mbti.type[0]).classList.add('active');
+      document.getElementById('mbti' + mbti.type[1]).classList.add('active');
+      document.getElementById('mbti' + mbti.type[2]).classList.add('active');
+      document.getElementById('mbti' + mbti.type[3]).classList.add('active');
+
+      // 캡션 (양가적이면 회색 + italic)
+      const setCap = (id, html, isAmb) => {
+        const el = document.getElementById(id);
+        el.innerHTML = html;
+        el.classList.toggle('ambiguous', isAmb);
+      };
+      setCap('mbtiCapEI', mbti.capEI, mbti.ambig.EI);
+      setCap('mbtiCapSN', mbti.capSN, mbti.ambig.NS);
+      setCap('mbtiCapTF', mbti.capTF, mbti.ambig.TF);
+      setCap('mbtiCapJP', mbti.capJP, mbti.ambig.JP);
+
+      // 근거
+      document.getElementById('mbtiBasis').textContent = mbti.basis;
 
       // 결과 헤더
       const hourLabel = hour < 0 ? '시간 미입력' : `${BRANS[hP.bi]}시 (${['23:30~01:30','01:30~03:30','03:30~05:30','05:30~07:30','07:30~09:30','09:30~11:30','11:30~13:30','13:30~15:30','15:30~17:30','17:30~19:30','19:30~21:30','21:30~23:30'][hP.bi]})`;

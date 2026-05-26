@@ -763,20 +763,28 @@ function getBanghap(bArr){const g=[[2,3,4,'목'],[5,6,7,'화'],[8,9,10,'금'],[1
 function analyzeOnguk(pillars){
   const bs=pillars.map(p=>p.bi);const ss=pillars.map(p=>p.si);
   const r={hap:[],chung:[],hyung:[],stemHap:[],samhap:null,banghap:null};
-  for(let i=0;i<bs.length;i++){for(let j=i+1;j<bs.length;j++){
+  // 첩신(貼身) 원칙: 인접한 기둥끼리만 작용
+  for(let i=0;i<bs.length-1;i++){const j=i+1;
     if(isChung(bs[i],bs[j])) r.chung.push(`${BRANS[bs[i]]}${BRANS[bs[j]]}충`);
     const yh=getYukhap(bs[i],bs[j]);if(yh) r.hap.push(`${BRANS[bs[i]]}${BRANS[bs[j]]}합(${yh})`);
-  }}
-  for(let i=0;i<ss.length;i++){for(let j=i+1;j<ss.length;j++){
+  }
+  for(let i=0;i<ss.length-1;i++){const j=i+1;
     const h=getStemHap(ss[i],ss[j]);if(h) r.stemHap.push(`${STEMS[ss[i]]}${STEMS[ss[j]]}합(${h})`);
-  }}
-  r.samhap=getSamhap(bs);r.banghap=getBanghap(bs);
-  // 형
-  if(bs.filter(b=>[2,5,8].includes(b)).length>=2) r.hyung.push('인사신삼형');
-  if(bs.filter(b=>[1,10,7].includes(b)).length>=2) r.hyung.push('축술미삼형');
-  if(bs.includes(0)&&bs.includes(3)) r.hyung.push('자묘형');
-  const cnt={};for(const b of bs) cnt[b]=(cnt[b]||0)+1;
-  for(const[b,c] of Object.entries(cnt)) if(c>=2&&[0,3,6,9,4].includes(+b)) r.hyung.push(`${BRANS[+b]}자형`);
+  }
+  // 삼합·방합: 연속된 3기둥에서만 성립
+  const trips=[[bs[0],bs[1],bs[2]],[bs[1],bs[2],bs[3]]];
+  for(const t of trips){
+    if(!r.samhap){const s=getSamhap(t);if(s)r.samhap=s;}
+    if(!r.banghap){const b=getBanghap(t);if(b)r.banghap=b;}
+  }
+  // 형: 첩신 기준 (인접 쌍에서만)
+  const inSaSin=new Set([2,5,8]),chukSulMi=new Set([1,10,7]);
+  for(let i=0;i<bs.length-1;i++){const a=bs[i],b=bs[i+1];
+    if(inSaSin.has(a)&&inSaSin.has(b)&&!r.hyung.includes('인사신삼형')) r.hyung.push('인사신삼형');
+    if(chukSulMi.has(a)&&chukSulMi.has(b)&&!r.hyung.includes('축술미삼형')) r.hyung.push('축술미삼형');
+    if((a===0&&b===3)||(a===3&&b===0)) r.hyung.push('자묘형');
+    if(a===b&&[0,3,6,9,4].includes(a)) r.hyung.push(`${BRANS[a]}자형`);
+  }
   return r;
 }
 
