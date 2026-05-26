@@ -4592,11 +4592,10 @@ function downloadHTML(){
   });
   // script 태그 제거
   clone.querySelectorAll('script').forEach(el=>el.remove());
-  // 네비게이션 + 툴팁 스크립트 주입
+  // 네비게이션 스크립트 주입
   const navScript=clone.ownerDocument?clone.ownerDocument.createElement('script'):document.createElement('script');
   navScript.textContent=`
 var lastReadSecId='';
-function showTip(w,d,e){var p=document.getElementById('tipPopup');document.getElementById('tipWord').textContent=w;document.getElementById('tipDef').textContent=d;p.style.display='block';p.style.pointerEvents='all';if(e){var rect=p.getBoundingClientRect(),x=e.clientX-rect.width/2,y=e.clientY+20;x=Math.max(8,Math.min(x,window.innerWidth-rect.width-8));y=Math.max(8,Math.min(y,window.innerHeight-rect.height-8));p.style.left=x+'px';p.style.top=y+'px';p.style.bottom='';p.style.right='';}}
 function hideTocPanel(){var p=document.getElementById('floatTocPanel');if(p)p.style.display='none';}
 function toggleFloatToc(){var p=document.getElementById('floatTocPanel');if(p)p.style.display=(p.style.display==='block')?'none':'block';}
 function scrollToSec(secId){var el=document.getElementById(secId);if(!el)return;var y=el.getBoundingClientRect().top+window.pageYOffset-60;window.scrollTo({top:y,behavior:'smooth'});hideTocPanel();}
@@ -4604,10 +4603,6 @@ function updateNavLabel(){var label=document.getElementById('fbarSecLabel');if(!
 function navSection(dir){var secs=Array.from(document.querySelectorAll('.sec[id]')).filter(function(el){return el.id!=='sec부록';});if(!secs.length)return;var cur=secs.findIndex(function(el){return el.id===lastReadSecId;});var next=Math.max(0,Math.min(secs.length-1,(cur<0?0:cur)+dir));scrollToSec(secs[next].id);}
 function savePDF(){window.print();}
 document.addEventListener('DOMContentLoaded',function(){
-  document.querySelectorAll('.tip-term[data-tip-word]').forEach(function(s){
-    s.onclick=function(e){e.preventDefault();showTip(this.dataset.tipWord,this.dataset.tipDef,e);};
-    s.ontouchend=function(e){e.preventDefault();showTip(this.dataset.tipWord,this.dataset.tipDef,e.changedTouches?e.changedTouches[0]:e);};
-  });
   var obs=new IntersectionObserver(function(entries){entries.forEach(function(en){if(en.isIntersecting){var id=en.target.id;if(id&&id!=='sec부록'){lastReadSecId=id;updateNavLabel();}}});},{threshold:0.1});
   document.querySelectorAll('.sec[id]').forEach(function(el){if(el.id!=='sec부록')obs.observe(el);});
   updateNavLabel();

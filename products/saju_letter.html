@@ -5061,11 +5061,7 @@ function downloadHTML(){
   // 저장 시점의 파일 저장 버튼도 제거
   clone.querySelectorAll('.no-print,.pdf-btn').forEach(el=>el.remove());
   // script 태그 제거 (저장 파일은 정적 HTML — 버튼 기능 불필요)
-  clone.querySelectorAll('script').forEach(el=>el.remove());
-  // 툴팁 최소 스크립트 주입 — onclick="showTip(...)" 이 동작하도록
-  const tipScript=clone.ownerDocument?clone.ownerDocument.createElement('script'):document.createElement('script');
-  tipScript.textContent=`function showTip(w,d,e){var p=document.getElementById('tipPopup');document.getElementById('tipWord').textContent=w;document.getElementById('tipDef').textContent=d;p.style.display='block';p.style.pointerEvents='all';if(e){var r=p.getBoundingClientRect(),x=e.clientX-r.width/2,y=e.clientY+20;x=Math.max(8,Math.min(x,window.innerWidth-r.width-8));y=Math.max(8,Math.min(y,window.innerHeight-r.height-8));p.style.left=x+'px';p.style.top=y+'px';p.style.bottom='';p.style.right='';}}  clone.querySelector('body').appendChild(tipScript);
-  const saveHtml='<!DOCTYPE html>\n'+clone.outerHTML;
+  clone.querySelectorAll('script').forEach(el=>el.remove());  const saveHtml='<!DOCTYPE html>\n'+clone.outerHTML;
   const blob=new Blob([saveHtml],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);

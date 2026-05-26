@@ -1420,9 +1420,9 @@ function renderFateChange(A,B,pair,mode){
   }, mode);
   if(f.bJaesungInA>=2){
     jt += byMode({
-      couple: `<b>${A.name}님도 ${f.bJaesung}을 충분히 품고 있어서 ${B.name}님의 재물운을 북돋아줘요.</b> 두 분이 서로에게 돈 복을 끌어오는 관계예요.`,
-      friend: `<b>${A.name}님이 ${f.bJaesung}을 갖고 있어서 ${B.name}님에게도 자원 측면에서 좋은 친구</b>예요. 양방향으로 챙겨주는 결이랍니다.`,
-      work:   `<b>${A.name}님이 ${f.bJaesung}을 충분히 갖고 있어서 ${B.name}님의 수익 라인도 뒷받침</b>해줘요. 양방향 자원 시너지가 가능한 동업이에요.`
+      couple: `<b>${A.name}님도 ${f.bJaesung}${josa(f.bJaesung,'eul')} 충분히 품고 있어서 ${B.name}님의 재물운을 북돋아줘요.</b> 두 분이 서로에게 돈 복을 끌어오는 관계예요.`,
+      friend: `<b>${A.name}님이 ${f.bJaesung}${josa(f.bJaesung,'eul')} 갖고 있어서 ${B.name}님에게도 자원 측면에서 좋은 친구</b>예요. 양방향으로 챙겨주는 결이랍니다.`,
+      work:   `<b>${A.name}님이 ${f.bJaesung}${josa(f.bJaesung,'eul')} 충분히 갖고 있어서 ${B.name}님의 수익 라인도 뒷받침</b>해줘요. 양방향 자원 시너지가 가능한 동업이에요.`
     }, mode);
   } else {
     jt += byMode({
@@ -1574,7 +1574,7 @@ function renderDaewoonSync(A,B,pair,mode){
     friend:`사주에는 10년마다 삶의 흐름이 바뀌는 <b>'대운'</b>이라는 리듬이 있어요. 친구 관계에서 이게 중요한 이유는, 두 분이 <b>같은 시기에 비슷한 고민을 하고 있는지</b>를 결정하기 때문이에요.`,
     work:`사주에는 10년 단위로 인생의 챕터가 바뀌는 <b>'대운'</b>이 있어요. 협업에서는 두 분이 <b>같은 시기에 같은 종류의 도전을 통과하고 있는지</b>가 호흡을 결정해요.`
   }, mode));
-  L.push(`<b>${A.name}님은 지금 ${aEl}의 기운이 덧입혀진 10년</b>을 지나고 있어요(${d.currDwA.age}세~${d.currDwA.endAge}세). ${aEl}과 관련된 경험·배움·변화가 이 시기에 유독 많이 찾아와요.`);
+  L.push(`<b>${A.name}님은 지금 ${aEl}의 기운이 덧입혀진 10년</b>을 지나고 있어요(${d.currDwA.age}세~${d.currDwA.endAge}세). ${aEl}${josa(aEl,'gwa')} 관련된 경험·배움·변화가 이 시기에 유독 많이 찾아와요.`);
   L.push(`<b>${B.name}님은 ${bEl}의 기운이 덧입혀진 10년</b>이에요(${d.currDwB.age}세~${d.currDwB.endAge}세).`);
   if(d.sameYearChange){
     L.push(byMode({
