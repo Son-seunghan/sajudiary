@@ -385,7 +385,6 @@ body{padding-bottom:80px;}
   /* 폼 라벨 가독성 */
   .fg label{font-size:13px;}
   /* 툴팁 좁은 화면 가로 넘침 방지 */
-  #tipPopup{max-width:calc(100vw - 16px)!important;}
 
   /* ── 확인 박스 ── */
   .confirm-box{padding:12px 10px;}
@@ -434,9 +433,6 @@ body{padding-bottom:80px;}
   .site-header { padding: 12px 0 8px !important; }
 }
 /* ── 툴팁 ─────────────────────────────────── */
-.tip-term{border-bottom:1px dotted var(--accent2);cursor:pointer;color:inherit;transition:color .15s;}
-.tip-term:hover,.tip-term.active{color:var(--accent);}
-#tipPopup{position:fixed;z-index:1200;background:#1e1e40;border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text);line-height:1.7;max-width:280px;box-shadow:0 4px 20px rgba(0,0,0,.6);display:none;pointer-events:none;}
 #tipPopup .tip-word{font-weight:bold;color:var(--accent);margin-bottom:4px;font-size:13px;display:block;}
 #tipPopup .tip-close{position:absolute;top:6px;right:10px;font-size:14px;color:var(--muted);cursor:pointer;pointer-events:all;}
 /* ── 플로팅 목차 버튼 ────────────────────── */
@@ -592,7 +588,7 @@ body{padding-bottom:80px;}
 </div>
 
 <!-- ─── 툴팁 팝업 ─── -->
-<div id="tipPopup"><span class="tip-close" onclick="hideTip()">✕</span><span class="tip-word" id="tipWord"></span><span id="tipDef"></span></div>
+
 <!-- ─── 플로팅 목차 ─── -->
 <button id="floatTocBtn" onclick="toggleFloatToc()">📋</button>
 <div id="floatTocPanel"></div>
@@ -4601,7 +4597,6 @@ function downloadHTML(){
   navScript.textContent=`
 var lastReadSecId='';
 function showTip(w,d,e){var p=document.getElementById('tipPopup');document.getElementById('tipWord').textContent=w;document.getElementById('tipDef').textContent=d;p.style.display='block';p.style.pointerEvents='all';if(e){var rect=p.getBoundingClientRect(),x=e.clientX-rect.width/2,y=e.clientY+20;x=Math.max(8,Math.min(x,window.innerWidth-rect.width-8));y=Math.max(8,Math.min(y,window.innerHeight-rect.height-8));p.style.left=x+'px';p.style.top=y+'px';p.style.bottom='';p.style.right='';}}
-function hideTip(){document.getElementById('tipPopup').style.display='none';}
 function hideTocPanel(){var p=document.getElementById('floatTocPanel');if(p)p.style.display='none';}
 function toggleFloatToc(){var p=document.getElementById('floatTocPanel');if(p)p.style.display=(p.style.display==='block')?'none':'block';}
 function scrollToSec(secId){var el=document.getElementById(secId);if(!el)return;var y=el.getBoundingClientRect().top+window.pageYOffset-60;window.scrollTo({top:y,behavior:'smooth'});hideTocPanel();}
@@ -4672,23 +4667,7 @@ function shareResult(){
   }
 }
 
-// ── 툴팁 ──
-function showTip(word,def,evt){
-  const popup=document.getElementById('tipPopup');
-  document.getElementById('tipWord').textContent=word;
-  document.getElementById('tipDef').textContent=def;
-  popup.style.display='block';
-  popup.style.pointerEvents='all';
-  if(evt){
-    const r=popup.getBoundingClientRect();
-    let x=evt.clientX-r.width/2,y=evt.clientY+20;
-    x=Math.max(8,Math.min(x,window.innerWidth-r.width-8));
-    y=Math.max(8,Math.min(y,window.innerHeight-r.height-8));
-    popup.style.left=x+'px'; popup.style.top=y+'px';
-    popup.style.bottom=''; popup.style.right='';
-  }
-}
-function hideTip(){document.getElementById('tipPopup').style.display='none';}
+
 
 // ── 플로팅 목차 ──
 function toggleFloatToc(){
@@ -5392,154 +5371,8 @@ function renderSections(sections){
 
 
 // ── 사주 용어 사전 (클릭 시 팝업) ──
-const TIP_DICT={
-  // ── 사주 기본 ──
-  '사주팔자':'사주(四柱)와 팔자(八字)의 합성어. 태어난 년·월·일·시 네 기둥 여덟 글자로 운명을 분석합니다.',
-  '사주':'태어난 년·월·일·시 네 기둥(四柱). 이 8글자 안에 성격·재능·운이 담겨 있어요.',
-  '천간':'하늘의 기운을 나타내는 10글자 (갑·을·병·정·무·기·경·신·임·계). 겉으로 드러나는 성격과 사회적 모습을 나타냅니다.',
-  '지지':'땅의 기운을 나타내는 12글자 (자·축·인·묘·진·사·오·미·신·유·술·해). 내면 기질과 실제 환경을 나타냅니다.',
-  '일간':'일주(日柱)의 천간. 나 자신을 나타내는 핵심 글자예요. 10개 중 어느 것인지에 따라 기본 성격이 결정됩니다.',
-  '일주':'태어난 날의 기둥(日柱). 나 자신의 성격과 배우자 인연을 나타냅니다.',
-  '년주':'태어난 해의 기둥. 조상·부모와의 인연, 초년 운을 나타냅니다.',
-  '월주':'태어난 달의 기둥. 부모·형제 인연과 30~50대 사회생활 운을 나타냅니다.',
-  '시주':'태어난 시각의 기둥. 자녀 인연과 말년 운을 나타냅니다.',
-  // ── 오행 ──
-  '오행':'목(木)·화(火)·토(土)·금(金)·수(水) 다섯 가지 기운. 사주의 모든 글자는 이 중 하나의 에너지를 갖고 있어요.',
-  '목기운':'오행 나무(木) 기운. 성장·창의·진취성을 상징합니다.',
-  '화기운':'오행 불(火) 기운. 열정·표현력·사교성을 상징합니다.',
-  '토기운':'오행 흙(土) 기운. 안정·포용·실용성을 상징합니다.',
-  '금기운':'오행 쇠(金) 기운. 결단력·냉철함·완벽주의를 상징합니다.',
-  '수기운':'오행 물(水) 기운. 지혜·적응력·감수성을 상징합니다.',
-  // ── 십성 ──
-  '십신':'십성(十星)과 같은 말. 일간과의 오행 관계로 돈·직업·성격 등을 분석합니다.',
-  '십성':'일간과 다른 글자의 관계를 나타내는 10가지 개념. 비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인.',
-  '비견':'일간과 같은 오행·같은 음양. 경쟁심·독립심·자존심을 나타냅니다.',
-  '겁재':'일간과 같은 오행·다른 음양. 추진력·승부욕이 강하나 독단적일 수 있어요.',
-  '식신':'일간이 생(生)하는 같은 음양. 표현력·재능·식복(食福)을 나타냅니다.',
-  '상관':'일간이 생하는 다른 음양. 창의력·개성이 강하나 반항적일 수 있어요.',
-  '편재':'일간이 극(克)하는 같은 음양. 사업 수완·재물 운·이성 인연을 나타냅니다.',
-  '정재':'일간이 극하는 다른 음양. 안정적인 수입·성실함·절약 정신을 나타냅니다.',
-  '편관':'일간을 극하는 같은 음양. 권위·도전·강한 추진력을 나타냅니다.',
-  '정관':'일간을 극하는 다른 음양. 명예·직업운·규범 준수를 나타냅니다.',
-  '편인':'일간을 생하는 같은 음양. 직관·특수 재능·철학적 사고를 나타냅니다.',
-  '정인':'일간을 생하는 다른 음양. 학문·모성애·안정 추구를 나타냅니다.',
-  // ── 운의 흐름 ──
-  '대운':'약 10년마다 바뀌는 큰 운의 흐름. 인생의 계절이라 할 수 있어요.',
-  '세운':'1년 단위로 바뀌는 운의 흐름. 대운이 계절이라면 세운은 날씨입니다.',
-  '월운':'한 달 단위의 운. 세운 안에서의 세부 흐름을 나타냅니다.',
-  // ── 신강·신약 ──
-  '신강':'일간의 에너지가 강한 상태(身强). 추진력은 있으나 독선 주의.',
-  '신약':'일간의 에너지가 약한 상태(身弱). 주변 도움이 중요하고 환경에 민감합니다.',
-  '중화':'신강과 신약의 중간, 균형 잡힌 상태. 가장 이상적인 구조예요.',
-  // ── 용신·기신 ──
-  '용신':'나에게 필요한 오행. 이 기운을 보강하면 운이 좋아집니다.',
-  '기신':'나에게 해로운 오행. 이 기운이 들어오면 어려워질 수 있어요.',
-  // ── 관계 ──
-  '천간합':'두 천간이 서로 결합해 새로운 오행 기운을 만드는 관계. 협력·인연을 의미합니다.',
-  '지지충':'두 지지가 서로 충돌하는 관계(六沖). 변화·이동·단절을 나타냅니다.',
-  '지지합':'두 지지가 짝을 이루어 합하는 관계. 서로 다른 기운이 하나로 융합됩니다.',
-  '삼합':'세 지지가 모여 강력한 오행 기운을 만드는 관계. 세 글자가 합쳐져 시너지를 냅니다.',
-  '방합':'같은 계절의 지지 세 개가 모이는 관계. 방향의 기운이 강화됩니다.',
-  '육합':'두 지지가 짝을 이루어 합하는 관계. 서로 다른 기운이 하나로 융합됩니다.',
-  // ── 12운성 ──
-  '12운성':'일간이 각 지지를 만날 때의 에너지 상태를 12단계로 나눈 것. 장생부터 묘까지.',
-  '지장간':'지지 안에 숨어있는 천간의 기운. 내면의 잠재적 에너지를 나타냅니다.',
-  '장생':'12운성 중 가장 활기찬 단계. 새 시작·활력이 넘치는 시기예요.',
-  '건록':'12운성 중 자립하는 전성기 단계. 능력을 최대로 발휘하는 시기입니다.',
-  '제왕':'12운성 중 정점 단계. 강한 에너지로 주도권을 잡는 시기예요.',
-  // ── 12신살 전체 ──
-  '12신살':'년지(年支)를 기준으로 12가지 에너지 기운을 분류한 것. 원국에 있으면 타고난 기질이 되고, 대운·세운에 들어올 때 실제 사건으로 나타납니다.',
-  '겁살':'겁살(劫殺) — 예기치 않은 손실·경쟁·도전의 기운. 이 에너지를 잘 활용하면 강한 경쟁력으로 발전해요.',
-  '재살':'재살(災殺) — 예기치 않은 사고·재난의 기운. 교통사고·수술·법적 분쟁 등 돌발 상황에 대한 대비가 필요합니다.',
-  '천살':'천살(天殺) — 하늘의 뜻처럼 예상 밖의 변수가 생기는 기운. 계획이 뜻밖의 이유로 변경되는 경험이 있어요.',
-  '지살':'지살(地殺) — 거주지 변화·이사·이주의 기운. 이동이 많은 직업에서 강점을 발휘해요.',
-  '월살':'월살(月殺) — 고초살(枯草殺)이라고도 해요. 일이 막히거나 지연되는 기운으로 꾸준한 인내가 중요합니다.',
-  '망신살':'망신살(亡身殺) — 명예·체면이 손상될 수 있는 기운. 신중한 언행이 중요하고 비밀 관리에 주의하세요.',
-  '장성살':'장성살(將星殺) — 리더십과 통솔력이 강한 기운. 조직에서 자연스럽게 두각을 나타내는 힘이 있어요.',
-  '반안살':'반안살(攀鞍殺) — 단계적으로 높은 자리에 올라가는 기운. 꾸준히 쌓아 나가면 반드시 승진·출세가 따라오는 사주.',
-  '육해살':'육해살(六害殺) — 가족·친족과 인연이 약해지거나 갈등이 생기는 기운. 피붙이보다 넓은 인간관계에서 더 강한 유대를 맺는 스타일이에요.',
-  '화개살':'화개살(華蓋殺) — 예술·철학·종교 방면의 재능이 깊은 기운. 고독 속에서 창의성이 발현되며 예술가·학자 기질이에요.',
-  '도화살':'도화살(桃花殺) — 매력과 예술적 감각이 뛰어난 기운. 이성에게 인기가 많고 표현력이 강점이에요.',
-  '역마살':'역마살(驛馬殺) — 이동·여행·변화의 기운. 외국·원거리 직종에서 크게 성공하는 기운이에요.',
-  // ── 귀인 ──
-  '귀인':'귀인(貴人) — 나를 돕는 하늘의 기운. 원국에 귀인이 있으면 결정적 순간에 도움의 손길이 나타납니다.',
-  '천을귀인':'천을귀인(天乙貴人) — 사주 최고의 귀인. 위기 순간마다 도움이 나타나고 인덕이 두터우며 귀한 인연을 만나는 기운이에요.',
-  '문창귀인':'문창귀인(文昌貴人) — 학문·글재주·예술의 귀인. 자격증·시험·논문 등 문서 운이 강하며 지식 분야에서 빛나는 기운.',
-  '학당귀인':'학당귀인(學堂貴人) — 배움과 교육의 귀인. 공부가 잘 되고 스승의 인연이 좋으며 전문 자격·학위 취득에 유리한 기운.',
-  '금여록':'금여록(金輿祿) — 배우자 복·아름다움의 귀인. 외모가 단정하고 이성에게 좋은 인상을 주며 삶의 품위와 풍요를 나타내요.',
-  // ── 기타 ──
-  '개운법':'운을 좋게 바꾸는 방법. 색깔·직업·환경·음식 선택으로 부족한 기운을 보완합니다.'
-};
-
 // ── 용어 클릭 팝업 적용 ──
 // 텍스트를 term 기준으로 분해 → DocumentFragment 반환
-function splitTextWithTerms(text, terms){
-  const frag=document.createDocumentFragment();
-  let remaining=text;
-  while(remaining.length>0){
-    // 긴 term부터 순서대로 가장 앞에 등장하는 것 탐색
-    let bestIdx=Infinity, bestTerm=null;
-    for(const term of terms){
-      const idx=remaining.indexOf(term);
-      if(idx!==-1 && idx<bestIdx){bestIdx=idx; bestTerm=term;}
-      // 같은 위치면 긴 term(앞 순서) 유지
-    }
-    if(!bestTerm){
-      frag.appendChild(document.createTextNode(remaining));
-      break;
-    }
-    if(bestIdx>0) frag.appendChild(document.createTextNode(remaining.slice(0,bestIdx)));
-    // term → span (onclick은 직접 함수 참조, 문자열 주입 없음)
-    const span=document.createElement('span');
-    span.className='tip-term';
-    span.style.cssText='cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;';
-    span.textContent=bestTerm;
-    const def=TIP_DICT[bestTerm];
-    span.dataset.tipWord=bestTerm;
-    span.dataset.tipDef=def||'';
-    // onclick 속성 방식 — cloneNode 직렬화(저장 HTML)에서도 작동
-    span.setAttribute('onclick','showTip(this.dataset.tipWord,this.dataset.tipDef,event)');
-    span.setAttribute('ontouchend','event.preventDefault();showTip(this.dataset.tipWord,this.dataset.tipDef,event.changedTouches?event.changedTouches[0]:event)');
-    frag.appendChild(span);
-    remaining=remaining.slice(bestIdx+bestTerm.length);
-  }
-  return frag;
-}
-
-function addTipTerms(){
-  const terms=Object.keys(TIP_DICT).sort((a,b)=>b.length-a.length);
-  const wrap=document.getElementById('analysisWrap');
-  if(!wrap) return;
-  // .sec-body (일반 텍스트 섹션) + .sec-body-html (HTML 섹션 내부 텍스트) 모두 처리
-  wrap.querySelectorAll('.sec-body,.sec-body-html,.summary-hook').forEach(container=>{
-    const walker=document.createTreeWalker(
-      container, NodeFilter.SHOW_TEXT,
-      {acceptNode(n){
-        const p=n.parentElement;
-        if(!p) return NodeFilter.FILTER_REJECT;
-        if(p.classList.contains('tip-term')) return NodeFilter.FILTER_REJECT;
-        const tag=p.tagName;
-        if(tag==='SCRIPT'||tag==='STYLE'||tag==='A') return NodeFilter.FILTER_REJECT;
-        // SVG 내부 텍스트는 건드리지 않음 — span 삽입 시 SVG 구조 파괴됨
-        if(p.namespaceURI&&p.namespaceURI.includes('svg')) return NodeFilter.FILTER_REJECT;
-        if(p.closest&&p.closest('svg')) return NodeFilter.FILTER_REJECT;
-        if(n.textContent.trim().length<2) return NodeFilter.FILTER_REJECT;
-        return NodeFilter.FILTER_ACCEPT;
-      }}
-    );
-    const nodes=[];
-    let n;
-    while((n=walker.nextNode())) nodes.push(n);
-    for(const textNode of nodes){
-      const text=textNode.textContent;
-      if(!terms.some(t=>text.includes(t))) continue;
-      const frag=splitTextWithTerms(text, terms);
-      textNode.parentNode.replaceChild(frag, textNode);
-    }
-  });
-}
-
-
 // ── 메인 계산 함수 ──
 function doCalc(skipConfirm){
   const year=parseInt(document.getElementById('bYear').value);
@@ -5620,8 +5453,6 @@ function doCalc(skipConfirm){
   document.getElementById('floatBar').classList.remove('hidden');
   document.getElementById('floatTocBtn').style.display='flex';
   window.scrollTo({top:0,behavior:'smooth'});
-  // 용어 팝업 활성화
-  setTimeout(addTipTerms, 100);
   // 부록 진입 추적: 마지막으로 본 섹션 기억
   setTimeout(()=>{
     const obs=new IntersectionObserver((entries)=>{
