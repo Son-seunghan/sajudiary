@@ -158,23 +158,62 @@
   .hook-plum   .hook-label { color: var(--wine); }
 
   /* ━━━━ MBTI 게이지 ━━━━ */
-  .mbti-type {
+  .mbti-cand-label {
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink3);
+    font-family: 'Shilla Gothic', sans-serif;
+    letter-spacing: 0.14em;
+    margin: 6px 0 8px;
+    font-weight: 700;
+  }
+  .mbti-cands {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin: 0 0 10px;
+  }
+  .mbti-cand {
     font-family: 'Shilla Culture', serif;
     font-weight: 700;
-    font-size: 38px;
-    letter-spacing: 0.08em;
-    color: var(--wine);
-    text-align: center;
-    margin: 8px 0 4px;
-    line-height: 1;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    color: var(--ink3);
+  }
+  .mbti-cand.best {
+    background: linear-gradient(180deg, var(--plum), var(--wine));
+    color: #fff;
+    border-color: var(--wine);
+    font-size: 19px;
+    padding: 6px 18px;
+    box-shadow: 0 2px 8px rgba(138, 58, 77, 0.25);
   }
   .mbti-type-sub {
     text-align: center;
     font-size: 12px;
     color: var(--ink3);
     font-family: 'Shilla Gothic', sans-serif;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
     margin-bottom: 18px;
+    line-height: 1.6;
+    padding: 0 8px;
+  }
+  .mbti-gyeok-tag {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+    font-family: 'Shilla Gothic', sans-serif;
+    letter-spacing: 0.04em;
+    margin: 0 4px;
   }
   .mbti-axes { margin-top: 6px; }
   .mbti-axis {
@@ -231,7 +270,9 @@
   .mbti-axis-caption.ambiguous { color: var(--ink4); font-style: italic; }
 
   @media (max-width: 480px) {
-    .mbti-type { font-size: 32px; }
+    .mbti-cand-label { font-size: 10px; letter-spacing: 0.1em; }
+    .mbti-cand { font-size: 14px; padding: 5px 11px; }
+    .mbti-cand.best { font-size: 16px; padding: 5px 14px; }
     .mbti-type-sub { font-size: 11px; margin-bottom: 14px; }
     .mbti-axis { gap: 10px; grid-template-columns: 24px 1fr 24px; margin-bottom: 8px; }
     .mbti-pole { font-size: 15px; }
@@ -626,9 +667,18 @@
 
           <!-- 카드 4: 사주로 본 성향 (MBTI 예상) -->
           <div class="hook-card hook-plum">
-            <div class="hook-label">🎭 사주로 본 성향 (MBTI 예상)</div>
-            <div class="mbti-type" id="mbtiType">—</div>
-            <div class="mbti-type-sub" id="mbtiTypeSub">사주 8글자의 오행·십신·일간 양음으로 추정한 성격 경향이에요.</div>
+            <div class="hook-label">🎭 사주로 본 성향 (MBTI 참고)</div>
+            <div class="mbti-cand-label">사주 구조상 가까운 4타입</div>
+            <div class="mbti-cands" id="mbtiCands">
+              <span class="mbti-cand best">—</span>
+              <span class="mbti-cand">—</span>
+              <span class="mbti-cand">—</span>
+              <span class="mbti-cand">—</span>
+            </div>
+            <div class="mbti-type-sub" id="mbtiTypeSub">
+              <span class="mbti-gyeok-tag" id="mbtiGyeokTag">—</span> 격국 기반 후보 — 단일 타입을 단정하지 않습니다.<br/>
+              아래 4축 강도로 본인에게 가장 가까운 타입을 골라보세요.
+            </div>
 
             <div class="mbti-axes">
               <div class="mbti-axis">
@@ -892,18 +942,32 @@
       return '비견격';
     }
 
-    // 격국별 MBTI 4축 보정 (양수 = E/N/T/J 쪽)
+    // 격국별 MBTI 4축 보정 (양수 = E/N/T/J 쪽) — v3 검증 후 조정
     const GYEOK_MBTI_BIAS = {
-      '정관격': { EI: 0,   NS: 0,    TF: +0.8, JP: +1.5 },
-      '편관격': { EI: +0.5,NS: 0,    TF: +1.2, JP: +1.0 },
-      '정인격': { EI: -1.0,NS: +1.5, TF: 0,    JP: +0.5 },
-      '편인격': { EI: -1.2,NS: +1.5, TF: -0.3, JP: 0    },
-      '정재격': { EI: +0.3,NS: -1.0, TF: +0.5, JP: +1.0 },
-      '편재격': { EI: +1.2,NS: -0.8, TF: 0,    JP: -1.0 },
-      '식신격': { EI: +0.8,NS: +0.3, TF: -0.8, JP: -0.8 },
-      '상관격': { EI: +1.0,NS: +1.0, TF: -0.5, JP: -1.5 },
-      '비견격': { EI: -0.3,NS: 0,    TF: +0.5, JP: +0.3 },
-      '양인격': { EI: +1.0,NS: 0,    TF: +1.5, JP: +1.0 }
+      '정관격': { EI: 0,    NS: -0.2, TF: +0.2, JP: +1.2 },
+      '편관격': { EI: +0.5, NS: 0,    TF: +0.4, JP: +0.8 },
+      '정인격': { EI: -0.8, NS: +0.6, TF: 0,    JP: 0    },
+      '편인격': { EI: -1.0, NS: +0.6, TF: -0.3, JP: 0    },
+      '정재격': { EI: +0.3, NS: -1.0, TF: +0.3, JP: +1.0 },
+      '편재격': { EI: +1.0, NS: -0.8, TF: 0,    JP: -1.0 },
+      '식신격': { EI: +0.8, NS: +0.3, TF: -0.8, JP: -0.8 },
+      '상관격': { EI: +1.0, NS: +0.6, TF: -0.6, JP: -1.5 },
+      '비견격': { EI: -0.3, NS: -0.2, TF: +0.3, JP: +0.3 },
+      '양인격': { EI: +1.0, NS: 0,    TF: +0.6, JP: +0.8 }
+    };
+
+    // 격국별 가장 가능성 높은 4타입 (사주 명리학 + MBTI 매핑)
+    const GYEOK_CANDIDATES = {
+      '정관격': ['ESTJ', 'ISTJ', 'ENTJ', 'INTJ'],   // 책임·체계·논리
+      '편관격': ['ENTJ', 'ESTJ', 'INTJ', 'ISTJ'],   // 강한 의지·결단
+      '정인격': ['INFJ', 'INFP', 'INTJ', 'INTP'],   // 학습·내면·통찰
+      '편인격': ['INFP', 'INTP', 'INFJ', 'INTJ'],   // 독창·신비
+      '정재격': ['ESTJ', 'ISTJ', 'ESFJ', 'ISFJ'],   // 실용·안정
+      '편재격': ['ESTP', 'ESFP', 'ISTP', 'ISFP'],   // 활동·기회
+      '식신격': ['ESFP', 'ENFP', 'ISFP', 'INFP'],   // 표현·낙천
+      '상관격': ['ENFP', 'ENTP', 'INFP', 'INTP'],   // 창의·반항
+      '비견격': ['ISTJ', 'INTJ', 'ESTJ', 'ENTJ'],   // 자기 중심·독립
+      '양인격': ['ENTJ', 'ESTJ', 'ENTP', 'ESTP']    // 강한 승부·통솔
     };
 
     function predictMBTI(yP, mP, dP, hP) {
@@ -983,38 +1047,40 @@
       if (isStrong) EI += 0.5;
       if (isWeak)   EI -= 0.5;
 
-      // ─── N vs S ─── (양수 = N)
+      // ─── N vs S ─── (양수 = N) v3 — 10샘플 검증 후 조정
       let NS =
-        fEl[1] * 0.6           // 화 (직관·통찰)
-        + fEl[4] * 0.7         // 수 (깊이·추상)
-        + inSeong * 1.2        // 인성 (학습·통찰) — 강화
-        + sikSang * 0.5        // 식상 (아이디어)
-        - fEl[2] * 0.9         // 토 (현실·안정) — 강화
-        - fEl[3] * 0.7         // 금 (정밀·구조) — 강화
-        - jaeSeong * 0.6;      // 재성 (실용·계산) — 추가
-      // 격국 보정
+        fEl[1] * 0.5
+        + fEl[4] * 0.7
+        + inSeong * 0.5         // 1.2→0.5 (인성=N 과다 보정)
+        + sikSang * 0.7
+        - fEl[2] * 0.5
+        - fEl[3] * 0.5
+        - jaeSeong * 0.7
+        - bigeop * 0.2
+        + (isYin ? 0.1 : 0);
       NS += (GYEOK_MBTI_BIAS[gyeok]?.NS || 0);
 
-      // ─── T vs F ─── (양수 = T)
+      // ─── T vs F ─── (양수 = T) v3
       let TF =
-        fEl[3] * 0.9           // 금 (논리·결단)
-        + gwanSeong * 1.0      // 관성 (체계·통제)
-        + jaeSeong * 0.4       // 재성 (계산)
-        - fEl[1] * 0.9         // 화 (감정·열정)
-        - (isYin ? 0.4 : 0)    // 음간 = F 경향
-        - sikSang * 0.3;       // 식상 (감정 표현)
+        fEl[3] * 0.6            // 0.9→0.6
+        + gwanSeong * 0.5       // 1.0→0.5 (관성=T 과다 보정)
+        + jaeSeong * 0.3
+        - fEl[1] * 0.9
+        - (isYin ? 0.7 : 0)     // 0.4→0.7 (음간=F 강화)
+        - sikSang * 0.7         // 0.3→0.7 (식상=F 강화)
+        - inSeong * 0.4;        // 인성도 F 약간 (감수성)
       TF += (GYEOK_MBTI_BIAS[gyeok]?.TF || 0);
 
-      // ─── J vs P ─── (양수 = J) — 가장 정밀화
+      // ─── J vs P ─── (양수 = J)
       let JP =
-        fEl[2] * 0.8           // 토 (안정·계획)
-        + gwanSeong * 1.0      // 관성 (규범·체계) — 강화
-        + inSeong * 0.3        // 인성 (학습 체계)
-        - sikSang * 1.2        // 식상 (즉흥) — 강화
-        - jaeSeong * 0.6       // 재성 (기회 활용) — 강화
-        - fEl[4] * 0.5         // 수 (흐름·유연) — 강화
-        + lihe * (+0.7)        // 합 많음 = 안정·계획
-        + chung * (-0.7);      // 충 많음 = 변화·즉흥
+        fEl[2] * 0.8
+        + gwanSeong * 0.8       // 1.0→0.8
+        - sikSang * 0.8         // 1.2→0.8
+        - jaeSeong * 0.5
+        - fEl[4] * 0.4
+        + lihe * (+0.7)
+        + chung * (-0.7)
+        + bigeop * 0.2;         // 비겁 = 자기 주관 → J
       JP += (GYEOK_MBTI_BIAS[gyeok]?.JP || 0);
       // 신강 + 식상 → P (자기표현 자유)
       if (isStrong && sikSang >= 2) JP -= 0.5;
@@ -1074,8 +1140,15 @@
                   + (lihe > 0 ? ` · 일지 合${lihe}` : '')
                   + (chung > 0 ? ` · 일지 沖${chung}` : '');
 
+      // 격국 기반 4타입 후보 + 점수 기반 best 정렬
+      const rawCandidates = GYEOK_CANDIDATES[gyeok] || ['ISTJ','ESTJ','INTJ','ENTJ'];
+      // best 타입(현재 4축 점수)이 후보에 있으면 맨 앞으로, 없으면 후보 그대로
+      const candidates = rawCandidates.includes(type)
+        ? [type, ...rawCandidates.filter(t => t !== type)]
+        : [...rawCandidates];
+
       return {
-        type,
+        type, candidates,
         pctEI, pctSN, pctTF, pctJP,
         capEI, capSN, capTF, capJP,
         ambig, basis,
@@ -1332,7 +1405,13 @@
 
       // ━━━ Hook 카드 4: 사주로 본 MBTI 예상 ━━━
       const mbti = predictMBTI(yP, mP, dP, hP);
-      document.getElementById('mbtiType').textContent = mbti.type;
+
+      // 후보 4타입 (best는 강조)
+      const candsEl = document.getElementById('mbtiCands');
+      candsEl.innerHTML = mbti.candidates.map((t, i) =>
+        `<span class="mbti-cand${i === 0 ? ' best' : ''}">${t}</span>`
+      ).join('');
+      document.getElementById('mbtiGyeokTag').textContent = mbti.meta.gyeok;
 
       // 게이지 마커 위치
       document.getElementById('mbtiMarkerEI').style.left = mbti.pctEI + '%';
