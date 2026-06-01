@@ -738,13 +738,13 @@
     const STEM_ELEMENT = ['wood','wood','fire','fire','earth','earth','metal','metal','water','water'];
     const BRANCH_ELEMENT = ['water','earth','wood','wood','earth','fire','fire','earth','metal','metal','earth','water'];
 
+    // ⚠️ 이전 코드 버그: 1900-01-31 = 甲辰(40)을 0으로 잘못 설정 → 지지만 어긋남
+    //   (천간은 si=idx%10 → 우연히 일치, 지지는 bi=idx%12 → 4 offset만큼 어긋남)
+    // ✅ JDN 기반 _getDayPillar 함수(line 833)는 정확하므로 그대로 재사용
     const today = new Date();
-    const ref = new Date(Date.UTC(1900, 0, 31)); // 1900-01-31 = 甲辰(0)
-    const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-    const diff = Math.floor((todayUTC - ref) / 86400000);
-    const dayIdx = ((diff % 60) + 60) % 60;
-    const stemIdx = dayIdx % 10;
-    const branchIdx = dayIdx % 12;
+    const _dP = _getDayPillar(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    const stemIdx = _dP.si;
+    const branchIdx = _dP.bi;
 
     const stemEl = STEM_ELEMENT[stemIdx];
     const branchEl = BRANCH_ELEMENT[branchIdx];
