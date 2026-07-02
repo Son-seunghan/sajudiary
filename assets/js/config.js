@@ -32,7 +32,9 @@ window.SAJULOG_CONFIG = {
   //   4) 출력되는 문자열 (예: 'kakao_fb_1747...' 또는 'kakao_12345678')을
   //      아래 배열에 따옴표로 감싸서 추가하고 push + 재배포
   MASTER_KAKAO_IDS: [
-    // 'kakao_fb_XXXXXXX',  // 손승한 (본인) — 콘솔에서 확인 후 여기에 추가
+    'kakao_fb_1779194706531_v4iqwre9',  // 손승한 (본인) — 메인 PC 브라우저 (2026-07-02 등록)
+    // ※ 폴백 ID는 브라우저별로 다름 — 휴대폰 등 다른 기기는 그 기기에서
+    //   콘솔로 ID 확인 후 여기에 추가: JSON.parse(localStorage.getItem('sajudiary_user')).id
   ],
 
   // ─────────────────────────────────────────
