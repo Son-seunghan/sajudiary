@@ -1311,20 +1311,10 @@
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/reviews.js"></script>
   <script>
-    // ─── 마스터 모드 토글 (?master=on / ?master=off) ───
-    (function () {
-      const masterParam = new URLSearchParams(window.location.search).get('master');
-      if (masterParam === 'on' || masterParam === 'off') {
-        if (!AuthGuard.isLoggedIn()) {
-          alert('마스터 권한 부여 전에 카카오 로그인이 필요합니다.\n로그인 후 다시 ?master=on URL로 접속해주세요.');
-          return;
-        }
-        AuthGuard.setMaster(masterParam === 'on');
-        alert(`✦ 마스터 권한이 ${masterParam === 'on' ? '활성화' : '해제'}되었습니다.\n이제 모든 분석 페이지를 결제 없이 열람할 수 있습니다.`);
-        // URL에서 파라미터 제거
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
-      }
-    })();
+    // ─── 마스터 모드 ───
+    // ※ 보안 강화 (2026-07-02): ?master=on URL 토글 제거.
+    //    마스터 권한은 config.js의 MASTER_KAKAO_IDS 화이트리스트로만 부여됨
+    //    (등록된 카카오 ID로 로그인하면 auth.js saveUser()가 자동 적용)
 
     // ─── 게스트 데모 모드 (?guest=on) — 카드사 심사관용 ───
     // 카카오 로그인 없이 결제 페이지까지 진입 가능 (실제 결제는 테스트 키로만)

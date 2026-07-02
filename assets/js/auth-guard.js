@@ -199,18 +199,9 @@ const AuthGuard = (function () {
     return true;
   }
 
-  // ─── 마스터 계정 토글 (콘솔 / URL용) ───
-  function setMaster(value = true) {
-    const user = getUser();
-    if (!user) {
-      console.warn('[AuthGuard] 마스터 권한을 부여하려면 먼저 로그인해주세요.');
-      return false;
-    }
-    user.isMaster = !!value;
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    console.log(`[AuthGuard] ✦ 마스터 권한 ${value ? '활성화' : '해제'}됨:`, user.nickname);
-    return true;
-  }
+  // ─── 마스터 여부 조회 ───
+  // ※ 보안 강화 (2026-07-02): setMaster() 공개 함수 제거.
+  //    마스터 부여는 config.js MASTER_KAKAO_IDS 화이트리스트로만 (auth.js saveUser 참조)
   function isMaster() {
     const user = getUser();
     return !!(user && user.isMaster);
@@ -254,7 +245,7 @@ const AuthGuard = (function () {
     getRemainingSlots, canAnalyze,
     redeemCoupon,
     requirePurchase, requireLogin,
-    setMaster, isMaster,
+    isMaster,
     setGuest, isGuest
   };
 })();

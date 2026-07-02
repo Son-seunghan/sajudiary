@@ -1,0 +1,26 @@
+name: Supabase Keep-Alive
+
+# 무료 플랜은 7일간 API 호출이 없으면 자동 일시정지됨 (2026-07-02 실제 발생)
+# → 3일마다 가벼운 REST 요청 하나로 활동 기록을 남겨 정지 방지
+# ※ apikey는 publishable(anon) 키 — 이미 config.js로 공개된 키라 노출 무해
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'   # 3일마다 03:00 UTC (한국 12:00)
+  workflow_dispatch:          # 수동 실행 버튼
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: sb_publishable_AdiQDdgZQpTwYonJTff7wg_rLgjPuBp" \
+            "https://hlxttdvvwftiquzqxgxs.supabase.co/rest/v1/")
+          echo "Supabase responded with HTTP $STATUS"
+          # 200(정상) 외에도 4xx면 프로젝트는 살아있는 것 — 5xx/000만 실패 처리
+          case "$STATUS" in
+            2*|4*) echo "✓ Project is awake" ;;
+            *) echo "✗ Project may be paused — check dashboard" && exit 1 ;;
+          esac
