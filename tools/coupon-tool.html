@@ -117,6 +117,42 @@
   }
   .toast.show { opacity: 1; }
   .note { font-size: 11px; color: var(--ink4); line-height: 1.6; margin-top: 14px; }
+
+  /* 새 코드 발급 플래시 */
+  @keyframes codeflash {
+    0% { background: var(--vermil); }
+    100% { background: var(--ink); }
+  }
+  .code-box.flash { animation: codeflash 0.7s ease; }
+
+  /* 발급 이력 */
+  .hist-item {
+    border: 1px solid var(--paper-dk);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+  .hist-code { font-family: monospace; font-size: 13px; font-weight: 700; word-break: break-all; }
+  .hist-meta { font-size: 11px; color: var(--ink4); margin: 4px 0 6px; }
+  .hist-row { display: flex; gap: 6px; }
+  .hist-memo {
+    flex: 1;
+    padding: 7px 10px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  .hist-btn {
+    padding: 7px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--paper-dk);
+    color: var(--ink2);
+  }
+  .hist-btn.copy { background: var(--jade); color: #fff; }
 </style>
 </head>
 <body>
@@ -152,9 +188,13 @@
   <button class="copy-btn" onclick="copyMsg()">메시지 전체 복사 → 카톡에 붙여넣기</button>
   <p class="note">
     · 이 코드는 <b>1회용</b>입니다 (사용한 기기에서 재사용 불가)<br>
-    · 같은 코드를 여러 명에게 보내지 마세요 — 한 명당 한 장씩 새로 발급<br>
-    · 발급 기록이 서버에 남지 않으니, 필요하면 누구에게 줬는지 메모해두세요
+    · 같은 코드를 여러 명에게 보내지 마세요 — 한 명당 한 장씩 새로 발급
   </p>
+</div>
+
+<div class="card" id="historyCard" style="display:none">
+  <label>📜 발급 이력 (이 기기에 저장됨)</label>
+  <div id="historyList"></div>
 </div>
 
 <div class="toast" id="toast">복사되었습니다</div>
@@ -207,7 +247,14 @@ async function generate() {
   const sig = await hmac8(secret, selectedKey + '-' + nonce);
   const code = 'gift-' + selectedKey + '-' + nonce + '-' + sig;
 
-  document.getElementById('codeBox').textContent = code;
+  const codeBox = document.getElementById('codeBox');
+  codeBox.textContent = code;
+  // 새 코드임을 시각적으로 표시 (플래시)
+  codeBox.classList.remove('flash');
+  void codeBox.offsetWidth;  // 애니메이션 재시작 트릭
+  codeBox.classList.add('flash');
+  // 발급 이력에 추가
+  addHistory({ code, key: selectedKey, time: Date.now(), memo: '' });
   document.getElementById('msgBox').value =
 `🎁 사주다이어리 선물 이용권
 
@@ -227,6 +274,56 @@ ${code}
   document.getElementById('result').classList.add('show');
   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
+
+// ─── 발급 이력 (localStorage — 이 기기에만 저장) ───
+const HIST_KEY = 'coupon_tool_history';
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch (e) { return []; }
+}
+function saveHistory(list) {
+  localStorage.setItem(HIST_KEY, JSON.stringify(list.slice(0, 50)));  // 최근 50건
+}
+function addHistory(entry) {
+  const list = getHistory();
+  list.unshift(entry);
+  saveHistory(list);
+  renderHistory();
+}
+function updateMemo(code, memo) {
+  const list = getHistory();
+  const item = list.find(e => e.code === code);
+  if (item) { item.memo = memo; saveHistory(list); }
+}
+function deleteHistory(code) {
+  saveHistory(getHistory().filter(e => e.code !== code));
+  renderHistory();
+}
+function copyHistCode(code) {
+  navigator.clipboard.writeText(code).then(showToast);
+}
+function renderHistory() {
+  const list = getHistory();
+  const card = document.getElementById('historyCard');
+  const box = document.getElementById('historyList');
+  if (!list.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const KEY_SHORT = { light: '입문', deep: '전문가', couple: '궁합', adult: '성인궁합', any: '만능' };
+  box.innerHTML = list.map(e => {
+    const d = new Date(e.time);
+    const t = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    const memoEsc = (e.memo || '').replace(/"/g, '&quot;');
+    return '<div class="hist-item">' +
+      '<div class="hist-code">' + e.code + '</div>' +
+      '<div class="hist-meta">' + (KEY_SHORT[e.key] || e.key) + ' · ' + t + '</div>' +
+      '<div class="hist-row">' +
+        '<input class="hist-memo" placeholder="누구에게 줬는지 메모" value="' + memoEsc + '" onchange="updateMemo(\'' + e.code + '\', this.value)">' +
+        '<button class="hist-btn copy" onclick="copyHistCode(\'' + e.code + '\')">복사</button>' +
+        '<button class="hist-btn" onclick="deleteHistory(\'' + e.code + '\')">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+renderHistory();
 
 function showToast() {
   const t = document.getElementById('toast');
