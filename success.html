@@ -208,105 +208,145 @@
   <div class="top-stripe"></div>
 
   <!-- Scripts -->
-  <script src="assets/js/config.js?v=20260702"></script>
-  <script src="assets/js/cart.js?v=20260702"></script>
-  <script src="assets/js/auth-guard.js?v=20260702"></script>
+  <script src="assets/js/config.js?v=20260718"></script>
+  <script src="assets/js/cart.js?v=20260718"></script>
+  <script src="assets/js/auth-guard.js?v=20260718"></script>
 
   <script>
     const cfg = window.SAJULOG_CONFIG;
     const params = new URLSearchParams(window.location.search);
 
-    // 토스에서 전달하는 파라미터들
-    const paymentKey = params.get('paymentKey');
-    const orderId    = params.get('orderId');
-    const amount     = parseInt(params.get('amount') || '0', 10);
+    // 결제사 구분: 토스(기본) | 카카오페이(provider=kakao)
+    const provider    = params.get('provider');
+    const paymentKey  = params.get('paymentKey');   // 토스가 전달
+    const pgToken     = params.get('pg_token');     // 카카오페이가 전달
+    const orderId     = params.get('orderId');
+    const amountParam = parseInt(params.get('amount') || '0', 10);
 
     // sessionStorage에 저장한 pending order 정보 가져오기
     const pending = JSON.parse(sessionStorage.getItem('pending_order') || '{}');
-    sessionStorage.removeItem('pending_order');
+    const amount = amountParam || pending.amount || 0;  // 카카오는 amount 쿼리 없음 → pending에서
 
-    // 검증
-    if (!paymentKey || !orderId || !pending.items || pending.items.length === 0) {
+    function invalidExit() {
       alert('결제 정보가 올바르지 않습니다.\n홈으로 이동합니다.');
       window.location.href = 'index.html';
       throw new Error('invalid payment params');
     }
 
-    // ⚠️ 실서비스: 백엔드에서 /v1/payments/confirm 호출 필요.
-    //    여기서는 테스트 모드 → 클라이언트에서 구매 기록 저장.
+    // ─── 주문 완료 처리 (등록 + 표시 + 자동 이동) ───
+    function completeOrder(payKey) {
+      sessionStorage.removeItem('pending_order');
+      sessionStorage.removeItem('kakao_tid');
 
-    // 모든 상품에 대해 구매 기록 저장
-    pending.items.forEach(productId => {
-      const p = cfg.PRODUCTS[productId];
-      if (p) {
-        AuthGuard.addPurchase({
-          productId,
-          orderId, paymentKey,
-          amount: p.price,  // 개별 상품의 정가
-          productName: p.name
-        });
+      // 모든 상품에 대해 구매 기록 저장
+      pending.items.forEach(productId => {
+        const p = cfg.PRODUCTS[productId];
+        if (p) {
+          AuthGuard.addPurchase({
+            productId,
+            orderId,
+            paymentKey: payKey,
+            amount: p.price,  // 개별 상품의 정가
+            productName: p.name
+          });
+        }
+      });
+
+      // 사용한 쿠폰 처리
+      if (pending.couponId) {
+        Cart.useCoupon(pending.couponId);
       }
-    });
 
-    // 사용한 쿠폰 처리
-    if (pending.couponId) {
-      Cart.useCoupon(pending.couponId);
-    }
+      // 🎁 결제 완료 감사 쿠폰 자동 발급 (다음 구매 5% 할인, 90일 유효)
+      const issuedCoupon = Cart.issueCoupon('REPEAT5');
+      if (issuedCoupon) {
+        console.log('[Success] 🎁 재구매 5% 할인 쿠폰 발급');
+        document.getElementById('repeat-coupon-banner').classList.remove('hidden');
+      }
 
-    // 🎁 결제 완료 감사 쿠폰 자동 발급 (다음 구매 5% 할인, 90일 유효)
-    const issuedCoupon = Cart.issueCoupon('REPEAT5');
-    if (issuedCoupon) {
-      console.log('[Success] 🎁 재구매 5% 할인 쿠폰 발급');
-      document.getElementById('repeat-coupon-banner').classList.remove('hidden');
-    }
+      // 결제 완료 → 장바구니 비우기
+      Cart.clear();
 
-    // 결제 완료 → 장바구니 비우기
-    Cart.clear();
+      // 첫 상품 = 메인 상품 (자동 이동 대상)
+      const mainProduct = cfg.PRODUCTS[pending.items[0]];
 
-    // 첫 상품 = 메인 상품 (자동 이동 대상)
-    const mainProduct = cfg.PRODUCTS[pending.items[0]];
-
-    // 주문 상세 표시
-    let detailHtml = '';
-    if (pending.items.length === 1) {
-      detailHtml = `
-        <div class="flex justify-between"><span class="text-[var(--ink3)]">상품</span><span class="font-medium text-[var(--ink)]">${mainProduct.name}</span></div>
-        <div class="flex justify-between"><span class="text-[var(--ink3)]">결제 금액</span><span class="font-medium text-[var(--ink)]">${amount.toLocaleString()}원</span></div>
-      `;
-    } else {
-      detailHtml = `
-        <div>
-          <p class="text-[var(--ink3)] mb-2">구매 상품 (${pending.items.length}개)</p>
-          ${pending.items.map(id => `
-            <p class="font-medium text-[var(--ink)] text-sm pl-2 py-0.5">· ${cfg.PRODUCTS[id]?.name || id}</p>
-          `).join('')}
-        </div>
-        ${pending.bundleDiscount > 0 ? `<div class="flex justify-between text-[var(--vermil)]"><span>묶음 할인</span><span>-${pending.bundleDiscount.toLocaleString()}원</span></div>` : ''}
-        ${pending.couponDiscount > 0 ? `<div class="flex justify-between text-[var(--vermil)]"><span>쿠폰 할인</span><span>-${pending.couponDiscount.toLocaleString()}원</span></div>` : ''}
-        <div class="flex justify-between pt-2 border-t border-[var(--paper-dk)]"><span class="text-[var(--ink3)]">최종 결제</span><span class="font-bold text-[var(--ink)]">${amount.toLocaleString()}원</span></div>
-      `;
-    }
-    detailHtml += `<div class="flex justify-between"><span class="text-[var(--ink3)]">주문번호</span><span class="text-xs text-[var(--ink4)] truncate ml-3" style="max-width:60%">${orderId}</span></div>`;
-    document.getElementById('order-detail').innerHTML = detailHtml;
-
-    // 분석 페이지 링크 설정 (메인 상품)
-    document.getElementById('goto-product').href = mainProduct.file;
-    if (pending.items.length > 1) {
-      document.getElementById('goto-product').textContent = `${mainProduct.name} 분석 결과 보기 →`;
-    }
-
-    // 카운트다운 후 자동 이동 (메인 상품으로)
-    let secs = 4;
-    const txt = document.getElementById('countdown-text');
-    const timer = setInterval(() => {
-      secs--;
-      if (secs <= 0) {
-        clearInterval(timer);
-        window.location.href = mainProduct.file;
+      // 주문 상세 표시
+      let detailHtml = '';
+      if (pending.items.length === 1) {
+        detailHtml = `
+          <div class="flex justify-between"><span class="text-[var(--ink3)]">상품</span><span class="font-medium text-[var(--ink)]">${mainProduct.name}</span></div>
+          <div class="flex justify-between"><span class="text-[var(--ink3)]">결제 금액</span><span class="font-medium text-[var(--ink)]">${amount.toLocaleString()}원</span></div>
+        `;
       } else {
-        txt.textContent = secs + '초';
+        detailHtml = `
+          <div>
+            <p class="text-[var(--ink3)] mb-2">구매 상품 (${pending.items.length}개)</p>
+            ${pending.items.map(id => `
+              <p class="font-medium text-[var(--ink)] text-sm pl-2 py-0.5">· ${cfg.PRODUCTS[id]?.name || id}</p>
+            `).join('')}
+          </div>
+          ${pending.bundleDiscount > 0 ? `<div class="flex justify-between text-[var(--vermil)]"><span>묶음 할인</span><span>-${pending.bundleDiscount.toLocaleString()}원</span></div>` : ''}
+          ${pending.couponDiscount > 0 ? `<div class="flex justify-between text-[var(--vermil)]"><span>쿠폰 할인</span><span>-${pending.couponDiscount.toLocaleString()}원</span></div>` : ''}
+          <div class="flex justify-between pt-2 border-t border-[var(--paper-dk)]"><span class="text-[var(--ink3)]">최종 결제</span><span class="font-bold text-[var(--ink)]">${amount.toLocaleString()}원</span></div>
+        `;
       }
-    }, 1000);
+      detailHtml += `<div class="flex justify-between"><span class="text-[var(--ink3)]">주문번호</span><span class="text-xs text-[var(--ink4)] truncate ml-3" style="max-width:60%">${orderId}</span></div>`;
+      document.getElementById('order-detail').innerHTML = detailHtml;
+
+      // 분석 페이지 링크 설정 (메인 상품)
+      document.getElementById('goto-product').href = mainProduct.file;
+      if (pending.items.length > 1) {
+        document.getElementById('goto-product').textContent = `${mainProduct.name} 분석 결과 보기 →`;
+      }
+
+      // 카운트다운 후 자동 이동 (메인 상품으로)
+      let secs = 4;
+      const txt = document.getElementById('countdown-text');
+      const timer = setInterval(() => {
+        secs--;
+        if (secs <= 0) {
+          clearInterval(timer);
+          window.location.href = mainProduct.file;
+        } else {
+          txt.textContent = secs + '초';
+        }
+      }, 1000);
+    }
+
+    // ─── 결제사별 분기 ───
+    if (provider === 'kakao') {
+      // 카카오페이: pg_token으로 서버 승인 후 주문 완료
+      const tid = sessionStorage.getItem('kakao_tid');
+      if (!pgToken || !tid || !orderId || !pending.items || pending.items.length === 0) invalidExit();
+
+      fetch('/api/kakaopay-approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tid,
+          pgToken,
+          orderId,
+          userId: pending.userId || 'unknown'
+        })
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (!d.ok) throw new Error(d.error || '승인 실패');
+          console.log('[Success] 카카오페이 승인 완료:', d.aid);
+          completeOrder('kakao_' + (d.aid || tid));
+        })
+        .catch(err => {
+          console.error('[Success] 카카오페이 승인 에러:', err);
+          alert('카카오페이 결제 승인에 실패했습니다.\n다시 시도해주세요.\n(이미 결제되었다면 카카오톡 결제 내역을 확인 후 문의해주세요)');
+          window.location.href = 'payment.html?' + (pending.items && pending.items.length > 1 ? 'fromCart=1' : 'product=' + (pending.items ? pending.items[0] : 'light'));
+        });
+    } else {
+      // 토스페이먼츠 (기존 흐름)
+      // ⚠️ 실서비스: 백엔드에서 /v1/payments/confirm 호출 필요.
+      //    여기서는 테스트 모드 → 클라이언트에서 구매 기록 저장.
+      if (!paymentKey || !orderId || !pending.items || pending.items.length === 0) invalidExit();
+      completeOrder(paymentKey);
+    }
   </script>
 </body>
 </html>
