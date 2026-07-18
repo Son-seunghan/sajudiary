@@ -3,6 +3,38 @@
    분석 페이지 우하단에 떠있는 플로팅 공유 바
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+// ─── 공용 헬퍼: 인앱 브라우저 감지 + 모바일 파일 저장 (제품 페이지에서 사용) ───
+window.SJ_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+window.SJ_INAPP  = /KAKAOTALK|Instagram|NAVER\(inapp|Line\/|FBAN|FBAV|DaumApps/i.test(navigator.userAgent);
+// 모바일 공유 시트로 파일 저장 시도 → 성공(또는 사용자가 시트 닫음) true
+window.sjShareFile = async function (blob, filename) {
+  try {
+    const file = new File([blob], filename, { type: blob.type || 'text/html' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: filename });
+      return true;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return true; // 사용자가 시트를 닫음 — 정상 처리로 간주
+  }
+  return false;
+};
+// 모바일=공유시트 우선 → 인앱=안내 → 그 외=일반 다운로드
+window.sjSmartSave = function (blob, anchor) {
+  if (window.SJ_MOBILE) {
+    window.sjShareFile(blob, anchor.download).then(function (ok) {
+      if (ok) return;
+      if (window.SJ_INAPP) {
+        alert('카카오톡 등 앱 내 브라우저에서는 파일 저장이 제한될 수 있어요.\n\n· 분석 결과는 이 브라우저의 마이페이지에 영구 보관되어 언제든 다시 볼 수 있습니다.\n· 파일로 소장하려면 크롬·사파리 등 일반 브라우저나 PC에서 이용해주세요.');
+      } else {
+        anchor.click();
+      }
+    });
+    return;
+  }
+  anchor.click();
+};
+
 (function () {
   // 분석 페이지에서만 동작 (products/ 아래 파일들)
   // 결과를 봐야 의미있으므로 페이지 로드 후 5초 뒤 표시
@@ -15,7 +47,8 @@
     bar.innerHTML = `
       <style>
         #sajudiary-share-bar {
-          position: fixed; right: 20px; bottom: 20px;
+          /* 하단 고정 액션바(#floatBar)와 겹치지 않도록 위로 배치 */
+          position: fixed; right: 20px; bottom: 78px;
           z-index: 9999;
           font-family: 'Pretendard', system-ui, sans-serif;
           opacity: 0; transform: translateY(20px);
