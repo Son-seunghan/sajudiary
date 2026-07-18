@@ -167,6 +167,56 @@ const AuthGuard = (function () {
     return { success: true, productId: coupon.productId, label: coupon.label };
   }
 
+  // ─── 서명형 일회용 선물 쿠폰 (gift-…) ───
+  // 코드 형식: gift-<light|deep|couple|adult|any>-<nonce>-<sig8>
+  // 서명 검증은 서버(/api/coupon-verify, COUPON_SECRET)에서 수행 — 클라이언트 위조 불가
+  // 'any'(만능 이용권)는 현재 결제하려는 상품(contextProductId)에 적용
+  const GIFT_PRODUCT_MAP = { light: 'light', deep: 'deep', couple: 'couple', adult: 'couple_plus' };
+  async function redeemGiftCoupon(rawCode, contextProductId) {
+    const code = String(rawCode || '').trim().toLowerCase();
+    if (!code.startsWith('gift-')) {
+      return { success: false, error: '유효하지 않은 쿠폰 코드입니다.' };
+    }
+    if (!getUser()) return { success: false, error: '쿠폰 사용 전 로그인이 필요합니다.' };
+    if (_getRedeemedCoupons().includes(code)) {
+      return { success: false, error: '이 쿠폰은 이미 사용되었습니다.' };
+    }
+
+    let r;
+    try {
+      const resp = await fetch('/api/coupon-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      r = await resp.json();
+      if (!resp.ok || !r.ok) {
+        return { success: false, error: r.error || '쿠폰 확인에 실패했습니다.' };
+      }
+    } catch (e) {
+      return { success: false, error: '쿠폰 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.' };
+    }
+
+    const cfg = window.SAJULOG_CONFIG;
+    const productId = r.productKey === 'any' ? contextProductId : GIFT_PRODUCT_MAP[r.productKey];
+    if (!productId || !cfg.PRODUCTS[productId]) {
+      return { success: false, error: '적용할 상품을 확인할 수 없습니다.' };
+    }
+
+    addPurchase({
+      productId,
+      orderId: 'gift_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      paymentKey: null,
+      amount: 0,
+      method: 'gift-coupon',
+      couponCode: code
+    });
+    _markCouponRedeemed(code);
+    console.log('[AuthGuard] 선물 쿠폰 사용 완료:', code, '→', productId);
+    const label = cfg.PRODUCTS[productId].name + ' 이용권';
+    return { success: true, productId, label };
+  }
+
   // ─── 페이지 접근 가드 ───
   // 사용 예: AuthGuard.requirePurchase('couple_plus')
   function requirePurchase(productId, options = {}) {
@@ -243,7 +293,7 @@ const AuthGuard = (function () {
     getPurchases, hasPurchased, addPurchase,
     getAnalyses, getAnalysis, hasAnalysis, saveAnalysis, clearAnalysis,
     getRemainingSlots, canAnalyze,
-    redeemCoupon,
+    redeemCoupon, redeemGiftCoupon,
     requirePurchase, requireLogin,
     isMaster,
     setGuest, isGuest

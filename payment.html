@@ -509,17 +509,7 @@
         if (type) msg.classList.add(type);
       }
 
-      function doApply() {
-        const code = (input.value || '').trim();
-        if (!code) {
-          showMsg('쿠폰 코드를 입력해주세요.', 'error');
-          return;
-        }
-        const r = AuthGuard.redeemCoupon(code);
-        if (!r.success) {
-          showMsg(r.error, 'error');
-          return;
-        }
+      function afterRedeem(r) {
         showMsg(`✓ ${r.label} — 분석 페이지로 이동합니다.`, 'success');
         apply.disabled = true;
         input.disabled = true;
@@ -527,6 +517,30 @@
         setTimeout(() => {
           window.location.href = productFile ? productFile : 'mypage.html';
         }, 900);
+      }
+
+      function doApply() {
+        const code = (input.value || '').trim();
+        if (!code) {
+          showMsg('쿠폰 코드를 입력해주세요.', 'error');
+          return;
+        }
+        // 서명형 선물 쿠폰 (gift-…) — 서버 검증, 만능(any)은 현재 상품에 적용
+        if (code.toLowerCase().startsWith('gift-')) {
+          showMsg('쿠폰 확인 중...', '');
+          AuthGuard.redeemGiftCoupon(code, items[0]).then(r => {
+            if (!r.success) { showMsg(r.error, 'error'); return; }
+            afterRedeem(r);
+          });
+          return;
+        }
+        // 기존 고정 쿠폰 (config.js FREE_COUPONS)
+        const r = AuthGuard.redeemCoupon(code);
+        if (!r.success) {
+          showMsg(r.error, 'error');
+          return;
+        }
+        afterRedeem(r);
       }
 
       apply.addEventListener('click', doApply);

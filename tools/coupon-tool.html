@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>선물 쿠폰 발급기 — 사주다이어리 (운영자 전용)</title>
+<style>
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418;
+    --gold:#b8923c; --jade:#5a8a98;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: var(--ink4); margin-bottom: 24px; }
+  .card {
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  label { display: block; font-size: 12px; color: var(--ink3); margin-bottom: 6px; font-weight: 600; }
+  input[type=password], input[type=text] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 8px;
+    font-size: 15px;
+    background: #fff;
+  }
+  .remember { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: var(--ink4); }
+  .products { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pbtn {
+    padding: 14px 8px;
+    border: 2px solid var(--paper-dk);
+    border-radius: 10px;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    color: var(--ink2);
+  }
+  .pbtn small { display: block; font-weight: 400; font-size: 11px; color: var(--ink4); margin-top: 2px; }
+  .pbtn.active { border-color: var(--vermil); background: #fff8f6; color: var(--vermil2); }
+  .pbtn.any { grid-column: 1 / -1; border-style: dashed; }
+  .pbtn.any.active { border-color: var(--gold); background: #fffbef; color: var(--ink); }
+  .gen-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(180deg, #d05848, var(--vermil));
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .gen-btn:disabled { opacity: 0.4; }
+  .result { display: none; }
+  .result.show { display: block; }
+  .code-box {
+    font-family: monospace;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    padding: 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 10px;
+    letter-spacing: 1px;
+    word-break: break-all;
+    margin-bottom: 10px;
+  }
+  textarea {
+    width: 100%;
+    height: 230px;
+    padding: 12px;
+    border: 1px solid var(--paper-dk);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    background: #fff;
+    resize: none;
+  }
+  .copy-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--jade);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .copy-btn.dark { background: var(--ink); }
+  .toast {
+    position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper);
+    padding: 10px 22px; border-radius: 999px; font-size: 13px;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .note { font-size: 11px; color: var(--ink4); line-height: 1.6; margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<h1>🎁 선물 쿠폰 발급기</h1>
+<p class="sub">운영자 전용 · 1회용 서명 코드 발급 (사주다이어리)</p>
+
+<div class="card">
+  <label>시크릿 (운영자 암호)</label>
+  <input type="password" id="secret" placeholder="시크릿 입력 (Vercel COUPON_SECRET과 동일)" autocomplete="off">
+  <label class="remember"><input type="checkbox" id="rememberSecret"> 이 기기에 기억하기</label>
+</div>
+
+<div class="card">
+  <label>선물할 상품</label>
+  <div class="products">
+    <button class="pbtn" data-key="light">입문용 Light<small>9,900원</small></button>
+    <button class="pbtn" data-key="deep">전문가용 Deep<small>29,900원</small></button>
+    <button class="pbtn" data-key="couple">궁합<small>14,900원</small></button>
+    <button class="pbtn" data-key="adult">궁합 성인용<small>17,900원</small></button>
+    <button class="pbtn any active" data-key="any">🎁 만능 이용권<small>원하는 상품 아무거나 1개</small></button>
+  </div>
+</div>
+
+<button class="gen-btn" id="genBtn" onclick="generate()">쿠폰 발급하기</button>
+
+<div class="card result" id="result">
+  <label>발급된 코드</label>
+  <div class="code-box" id="codeBox"></div>
+  <button class="copy-btn dark" onclick="copyCode()">코드만 복사</button>
+  <label style="margin-top:16px">카톡 전송용 메시지</label>
+  <textarea id="msgBox" readonly></textarea>
+  <button class="copy-btn" onclick="copyMsg()">메시지 전체 복사 → 카톡에 붙여넣기</button>
+  <p class="note">
+    · 이 코드는 <b>1회용</b>입니다 (사용한 기기에서 재사용 불가)<br>
+    · 같은 코드를 여러 명에게 보내지 마세요 — 한 명당 한 장씩 새로 발급<br>
+    · 발급 기록이 서버에 남지 않으니, 필요하면 누구에게 줬는지 메모해두세요
+  </p>
+</div>
+
+<div class="toast" id="toast">복사되었습니다</div>
+
+<script>
+const PRODUCT_LABEL = {
+  light: '입문용 (Light) 사주 분석',
+  deep: '전문가용 (Deep) 사주 분석',
+  couple: '궁합 분석',
+  adult: '궁합 분석 (성인용)',
+  any: '원하시는 분석 상품 1개 (자유 선택)'
+};
+let selectedKey = 'any';
+
+document.querySelectorAll('.pbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pbtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedKey = btn.dataset.key;
+  });
+});
+
+// 시크릿 기억하기
+const secretInput = document.getElementById('secret');
+const rememberChk = document.getElementById('rememberSecret');
+const saved = localStorage.getItem('coupon_tool_secret');
+if (saved) { secretInput.value = saved; rememberChk.checked = true; }
+
+async function hmac8(secret, msg) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
+  return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8);
+}
+
+function randNonce() {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  const arr = new Uint8Array(6);
+  crypto.getRandomValues(arr);
+  return [...arr].map(b => chars[b % chars.length]).join('');
+}
+
+async function generate() {
+  const secret = secretInput.value.trim();
+  if (!secret) { alert('시크릿을 입력해주세요.'); return; }
+  if (rememberChk.checked) localStorage.setItem('coupon_tool_secret', secret);
+  else localStorage.removeItem('coupon_tool_secret');
+
+  const nonce = randNonce();
+  const sig = await hmac8(secret, selectedKey + '-' + nonce);
+  const code = 'gift-' + selectedKey + '-' + nonce + '-' + sig;
+
+  document.getElementById('codeBox').textContent = code;
+  document.getElementById('msgBox').value =
+`🎁 사주다이어리 선물 이용권
+
+${PRODUCT_LABEL[selectedKey]}을(를) 선물로 드려요!
+
+[ 사용 방법 ]
+1. https://sajudiary.com 접속 → 카카오 로그인
+2. 원하는 상품 선택 → 결제 페이지로 이동
+3. "쿠폰 코드가 있어요" 클릭 → 아래 코드 입력
+
+${code}
+
+· 이 코드는 1회용이에요.
+· 분석 결과는 마이페이지에 영구 보관됩니다.
+
+읽어보시고 솔직한 후기 한 줄 부탁드려요 🙏`;
+  document.getElementById('result').classList.add('show');
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1500);
+}
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('codeBox').textContent).then(showToast);
+}
+function copyMsg() {
+  navigator.clipboard.writeText(document.getElementById('msgBox').value).then(showToast);
+}
+</script>
+</body>
+</html>
