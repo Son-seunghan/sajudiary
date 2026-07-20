@@ -772,33 +772,54 @@ function analyzeOnguk(pillars){
   //  육합·충 — ① 첩신(인접 기둥) ② 일지 포함 → 월-일·일-시 쌍에서만 성립
   //  형 — 일지 포함 필수, 첩신은 불필요
   //  삼합 — 월지 없어도 성립 (월지 포함 시 강함) / 방합 — 월지 포함 필수
-  // 육합 합화 오행 가변 (주변 글자 세력 기준): 자축=토/수 · 사신=수/금 · 오미=화/토/空
-  const hapSurround=(exA,exB)=>{ // 합 당사자 두 지지를 뺀 나머지 간지의 오행 세력
+  // ── 충 먼저 판정 (합화 세력 계산에서 충 맞은 글자는 반감되므로) ──
+  const chungIdx=new Set();
+  for(let i=0;i<bs.length-1;i++){const j=i+1;
+    if(i!==DAY&&j!==DAY) continue; // 일지 포함 + 첩신
+    if(isChung(bs[i],bs[j])){r.chung.push(`${BRANS[bs[i]]}${BRANS[bs[j]]}충`);chungIdx.add(i);chungIdx.add(j);}
+  }
+  // 육합 합화 오행 가변: 자축=토/수 · 사신=수/금 · 오미=화/토/空
+  //  세력 가중치: 월지 3 > 기타 지지 1.5 > 천간 1 (합 당사자 두 지지는 제외)
+  //  원국 충에 걸린 지지는 가중치 절반 — 충으로 온전치 못한 글자는 세력이 깎임
+  const hapSurround=(pi,pj)=>{
     const c=[0,0,0,0,0]; // 목화토금수
-    for(const s of ss) c[STEM_E[s]]++;
-    let skipA=true,skipB=true;
-    for(const b of bs){
-      if(skipA&&b===exA){skipA=false;continue;}
-      if(skipB&&b===exB){skipB=false;continue;}
-      c[BRAN_E[b]]++;
+    for(const s of ss) c[STEM_E[s]]+=1;
+    for(let k=0;k<bs.length;k++){
+      if(k===pi||k===pj) continue;
+      let w=(k===MONTH)?3:1.5;
+      if(chungIdx.has(k)) w/=2;
+      c[BRAN_E[bs[k]]]+=w;
     }
     return c;
   };
-  const resolveHapElem=(a,b,base)=>{
+  const resolveHapElem=(pi,pj,base)=>{
+    const a=bs[pi],b=bs[pj];
     const pk=[Math.min(a,b),Math.max(a,b)].join('-');
-    const c=hapSurround(a,b);
+    const c=hapSurround(pi,pj);
     if(pk==='0-1') return c[4]>c[2]?'수':'토';                       // 자축: 수 세력 우세 → 수
     if(pk==='5-8') return c[3]>c[4]?'금':'수';                       // 사신: 금 세력 우세 → 금
     if(pk==='6-7') return c[1]>c[2]?'화':(c[2]>c[1]?'토':'空');      // 오미: 화/토/비어있음(空)
     return base;
   };
+  r.hapTangled=[];
   for(let i=0;i<bs.length-1;i++){const j=i+1;
     if(i!==DAY&&j!==DAY) continue; // 일지 포함 + 첩신
-    if(isChung(bs[i],bs[j])) r.chung.push(`${BRANS[bs[i]]}${BRANS[bs[j]]}충`);
-    const yh=getYukhap(bs[i],bs[j]);if(yh) r.hap.push(`${BRANS[bs[i]]}${BRANS[bs[j]]}합(${resolveHapElem(bs[i],bs[j],yh)})`);
+    const yh=getYukhap(bs[i],bs[j]);
+    if(!yh) continue;
+    // 육합 차단: 일지가 반대편 첩신의 '같은 오행 왕지(子午卯酉)'와 결속해 있으면 합이 성립하지 못함
+    // (예: 巳일지-午월지의 화 결속이 우선 → 시지 申과의 사신합 불가)
+    const oIdx=(j===DAY)?DAY+1:DAY-1;
+    if(oIdx>=0&&oIdx<bs.length){
+      const o=bs[oIdx];
+      if([0,3,6,9].includes(o)&&BRAN_E[o]===BRAN_E[bs[DAY]]) continue;
+    }
+    r.hap.push(`${BRANS[bs[i]]}${BRANS[bs[j]]}합(${resolveHapElem(i,j,yh)})`);
+    r.hapTangled.push(chungIdx.has(i)||chungIdx.has(j)); // 합 글자가 충에도 걸림 → 온전치 못한 합
   }
+  r.stemHapDay=[];
   for(let i=0;i<ss.length-1;i++){const j=i+1; // 천간합: 첩신(인접)만
-    const h=getStemHap(ss[i],ss[j]);if(h) r.stemHap.push(`${STEMS[ss[i]]}${STEMS[ss[j]]}합(${h})`);
+    const h=getStemHap(ss[i],ss[j]);
+    if(h){r.stemHap.push(`${STEMS[ss[i]]}${STEMS[ss[j]]}합(${h})`);r.stemHapDay.push(i===DAY||j===DAY);} // 일간 참여 여부 (일간은 합화하지 않음)
   }
   // 삼합: 월지 포함하지 않아도 성립 — 월지 포함이면 강함
   const s3=getSamhap(bs);
@@ -2481,13 +2502,22 @@ function analyzeHCHP(pillars,inter,curDw,dP,mP,yP,sw){
       '정임':{name:'丁壬합',elem:'木',what:'丁(정화·촛불)과 壬(임수·강물)이 결합해요. 불꽃과 물이 만나 성장의 기운(목)을 만들어냅니다. 감성과 생명력이 합쳐지는 창조적인 합이에요.',pros:'감수성과 추진력이 함께 발현되어 창의적이고 낭만적인 기질이 강점이에요. 예술·창업·대인관계에서 빛나는 구조입니다.',caution:'정화 본래의 직관적 따뜻함이 묶일 수 있어요. 너무 이상적인 방향만 추구하다가 현실적인 실행을 놓치는 패턴을 주의하세요.'},
       '무계':{name:'戊癸합',elem:'火',what:'戊(무토·큰 산)과 癸(계수·빗물)이 결합해요. 안정적인 땅 기운이 섬세한 수기를 만나 열정적인 화(火)의 기운을 만들어냅니다. 잔잔한 것이 뜨거운 열정으로 전환되는 역동적인 합이에요.',pros:'겉으로는 차분해 보이지만 내면에 강한 열정이 숨어 있는 구조예요. 조용히 집중해서 결정적인 순간에 강하게 터지는 스타일이 강점입니다.',caution:'합거로 癸水의 부드러운 지혜가 묶일 수 있어요. 지나치게 열정에 휩쓸려 신중함을 잃는 상황을 주의하세요.'}
     };
-    for(const h of inter.stemHap){
+    for(let shIdx=0;shIdx<inter.stemHap.length;shIdx++){
+      const h=inter.stemHap[shIdx];
+      const dayInHap=inter.stemHapDay&&inter.stemHapDay[shIdx]; // 일간이 참여하는 합
       const key=Object.keys(shDetail).find(k=>h.startsWith(k[0])&&h.includes(k[1]));
       const det=shDetail[key]||{name:h,elem:'',what:'두 천간이 손을 잡아 새로운 기운으로 변화해요.',pros:'두 기운이 합쳐져 더 강화된 에너지가 생깁니다.',caution:'합이 된 천간의 본래 역할이 일시 묶이는 합거 효과가 있을 수 있어요.'};
       const hi=pillars.findIndex(p=>STEMS[p.si]===h[0]);
       const hj=pillars.findIndex(p=>STEMS[p.si]===h[1]);
-      const pos=(hi>=0&&hj>=0)?`${colNames[hi]}·${colNames[hj]} 천간 사이`:'';
-      html+=mkCard({type:'천간합',emoji:'🔗',name:`천간합 — ${det.name}`,hanja:det.elem?`→ ${det.elem} 기운 강화`:'',quality:'✅ 결합·변화',qColor:'rgba(212,175,106,.9)',qBg:'rgba(212,175,106,.1)',pos,what:det.what,pros:det.pros,caution:det.caution,use:'운(대운·세운)에서 충이 들어와 이 합을 깨면 합거됐던 기운이 갑자기 풀리며 큰 변화가 나타날 수 있어요.'});
+      let pos=(hi>=0&&hj>=0)?`${colNames[hi]}·${colNames[hj]} 천간 사이`:'';
+      if(dayInHap) pos+=(pos?' | ':'')+'✦ 일간이 참여하는 합';
+      const whatTxt=dayInHap
+        ?det.what+'\n이 합에는 일간(나)이 직접 참여하고 있어요. 일간은 사주의 주체라 합이 되어도 다른 오행으로 화(化)하지 않습니다 — 대신 상대 천간이 상징하는 기운과 마음이 깊이 이어지는 유정(有情)한 관계로 읽어요. 그 십성이 뜻하는 영역(재물·명예·사람 등)에 자연스럽게 마음이 끌리고 인연이 깊어지는 구조입니다.'
+        :det.what;
+      const cautionTxt=dayInHap
+        ?'일간 자체는 합거되지 않지만, 상대 천간의 본래 역할은 일간에게 묶여 제 기능이 약해질 수 있어요. 그 기운이 담당하는 영역이 나에게 강하게 끌려오는 만큼, 집착으로 흐르지 않도록 의식하는 것이 좋습니다.'
+        :det.caution;
+      html+=mkCard({type:'천간합',emoji:'🔗',name:`천간합 — ${det.name}`,hanja:dayInHap?'일간 합 — 합화하지 않음':(det.elem?`→ ${det.elem} 기운 강화`:''),quality:dayInHap?'✦ 일간의 유정한 합':'✅ 결합·변화',qColor:'rgba(212,175,106,.9)',qBg:'rgba(212,175,106,.1)',pos,what:whatTxt,pros:det.pros,caution:cautionTxt,use:'운(대운·세운)에서 충이 들어와 이 합을 깨면 묶였던 기운이 갑자기 풀리며 큰 변화가 나타날 수 있어요.'});
     }
   }
 
@@ -2502,16 +2532,20 @@ function analyzeHCHP(pillars,inter,curDw,dP,mP,yP,sw){
       '사신':{name:'巳申합',elem:'水/金',what:'巳(사화·뱀)와 申(신금·원숭이)가 결합해요. 사신은 반형(半刑)으로 보는 시각도 있지만, 간지작용론에서는 합으로 분류합니다. 합화 오행도 고정이 아니에요 — 기본은 수(水)로 화하지만, 주변 글자에 금(金) 세력이 강하면 금으로 화합니다. 이 사주에서 실제로 화한 오행은 위 표기를 확인하세요.',pros:'지혜와 통찰력이 강화되어 빠른 판단과 분석력이 탁월해지는 구조예요. 위기 상황에서 현명한 대처 능력이 빛납니다.',caution:'합으로 어우러지는 관계지만 뿌리에 긴장을 품은 조합이라, 가까워질수록 서로를 다듬는 마찰이 함께 자랄 수 있어요.'},
       '오미':{name:'午未합',elem:'火/土/空',what:'午(오화·말)와 未(미토·양)가 결합해요. 뜨거운 여름 기운 두 가지가 합쳐져 열정과 안정감이 공존하는 독특한 기운이 생겨요. 이 합은 합화 오행이 세 갈래예요 — 주변에 화(火) 세력이 강하면 화로, 토(土) 세력이 강하면 토로 화하고, 어느 쪽도 뚜렷하지 않으면 비어있는 상태(空)가 됩니다. 空이면 합의 끌림만 있고 특정 오행이 강화되지는 않아요.',pros:'열정과 안정감이 함께 작동하는 구조예요. 강하게 밀어붙이면서도 기반을 유지하는 균형잡힌 에너지가 강점이에요.',caution:'여름 기운이 과잉되면 조급함이나 감정적 과잉 반응이 나타날 수 있어요. 합화가 空인 경우에는 강화 효과를 기대하기보다 두 글자의 끌림 자체로 읽으세요.'}
     };
-    for(const h of inter.hap){
+    for(let hIdx=0;hIdx<inter.hap.length;hIdx++){
+      const h=inter.hap[hIdx];
+      const tangled=inter.hapTangled&&inter.hapTangled[hIdx]; // 합 글자가 원국 충에도 걸린 경우
       const chars=h.replace(/합\(.+\)$/,'');
       const resolved=(h.match(/합\((.+)\)$/)||[])[1]||''; // 주변 세력으로 결정된 실제 합화 오행
       const key=Object.keys(yhDetail).find(k=>chars.includes(k[0])&&chars.includes(k[1]));
       const det=yhDetail[key]||{name:h,elem:'',what:'두 지지가 결합해 해당 오행이 강화됩니다.',pros:'결합된 오행의 힘이 강화돼요.',caution:'합이 충에 의해 깨지면 관계 변화가 갑작스럽게 나타날 수 있어요.'};
       const bi1=chars[0]?BRANS.indexOf(chars[0]):-1,bi2=chars[1]?BRANS.indexOf(chars[1]):-1;
       const p1=bi1>=0?pillars.findIndex(p=>p.bi===bi1):-1,p2=bi2>=0?pillars.findIndex(p=>p.bi===bi2):-1;
-      const pos=(p1>=0&&p2>=0)?`${colNames[p1]}·${colNames[p2]} 지지 사이`:'';
+      let pos=(p1>=0&&p2>=0)?`${colNames[p1]}·${colNames[p2]} 지지 사이`:'';
+      if(tangled) pos+=(pos?' | ':'')+'⚠️ 충과 얽힌 합 — 온전치 못함';
       const elemTag=resolved==='空'?'→ 합화 空 — 오행 강화 없이 끌림만 작동':(resolved?`→ ${resolved} 기운 강화`:(det.elem?`→ ${det.elem} 기운 강화`:''));
-      html+=mkCard({type:'합',emoji:'🤝',name:`육합 — ${det.name}`,hanja:elemTag,quality:'✅ 결합·강화',qColor:'rgba(90,175,225,.9)',qBg:'rgba(90,175,225,.1)',pos,what:det.what,pros:det.pros,caution:det.caution,use:'합이 된 오행 관련 대운·세운에서 특히 강력하게 발현돼요. 운에서 충이 들어와 합을 깨면 그 기둥의 에너지가 급변할 수 있어요.'});
+      const whatTxt=tangled?det.what+'\n다만 이 합을 이루는 글자가 원국의 충(沖)에도 함께 걸려 있어요. 합의 끌림과 충의 흔들림이 같은 자리에서 일어나 합이 온전히 맺어지지 못하는 구조예요 — 관련 영역에서 맺어질 듯 흔들리는 패턴이 반복될 수 있습니다.':det.what;
+      html+=mkCard({type:'합',emoji:'🤝',name:`육합 — ${det.name}`,hanja:elemTag,quality:tangled?'✅ 결합 (충과 얽힘)':'✅ 결합·강화',qColor:'rgba(90,175,225,.9)',qBg:'rgba(90,175,225,.1)',pos,what:whatTxt,pros:det.pros,caution:det.caution,use:'합이 된 오행 관련 대운·세운에서 특히 강력하게 발현돼요. 운에서 충이 들어와 합을 깨면 그 기둥의 에너지가 급변할 수 있어요.'});
     }
     html+=tipBox('💡 육합은 두 지지가 첩신(바로 옆 기둥)하면서 일지를 포함할 때만 성립해요. 떨어져 있는 글자끼리는 합으로 보지 않습니다.');
   }
@@ -3602,7 +3636,8 @@ function getGlossary(){
 ▪ 합(合): 서로 다른 기운이 끌리고 연대하고 융합하여 변화하고자 하는 성질. '사연'에 가까운 작용입니다.
   종류: 천간합(갑기합=토, 을경합=금 등), 지지 육합(자축합, 인해합=목 등), 삼합(인오술=화국, 신자진=수국), 방합(인묘진=목국 등).
   성립 조건: 육합은 ①첩신(바로 옆 기둥) ②일지 포함일 때 성립합니다. 삼합은 월지가 없어도 성립하지만 월지를 포함하면 강해지고(힘↑ 본질↓), 방합은 월지를 포함해야 성립합니다.
-  합화 오행: 일부 육합은 주변 글자의 세력에 따라 화(化)하는 오행이 달라집니다 — 자축합=토/수, 사신합=수/금, 오미합=화/토/空(비어있음). 사신은 반형으로 보는 시각도 있으나 합으로 분류합니다.
+  합화 오행: 일부 육합은 주변 글자의 세력에 따라 화(化)하는 오행이 달라집니다 — 자축합=토/수, 사신합=수/금, 오미합=화/토/空(비어있음). 세력은 월지를 가장 무겁게, 지지를 천간보다 무겁게 봅니다. 사신은 반형으로 보는 시각도 있으나 합으로 분류합니다.
+  합의 제약: ①일지가 같은 오행의 왕지(子午卯酉)와 첩신해 그 세력에 결속돼 있으면 반대편과의 육합은 성립하지 못합니다(예: 巳일지-午월지 화 결속 → 사신합 불가). ②합을 이루는 글자가 충(沖)에도 걸려 있으면 합이 온전히 맺어지지 못합니다. ③일간이 참여하는 천간합은 일간이 합화하지 않고 유정(有情)한 관계로만 작용합니다.
   의미: 서로 끌어당기는 인연·결합의 신호입니다.
 
 ▪ 충(冲): 두 지지가 정반대로 강하게 부딪히는 것. '사건'에 가까운 작용입니다.
