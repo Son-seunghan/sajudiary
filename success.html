@@ -267,6 +267,22 @@
       // 결제 완료 → 장바구니 비우기
       Cart.clear();
 
+      // GA4: 구매 완료 (전자상거래 표준 이벤트)
+      if (typeof gtag === 'function') {
+        gtag('event', 'purchase', {
+          transaction_id: orderId,
+          currency: 'KRW',
+          value: amount,
+          payment_type: provider === 'kakao' ? 'kakaopay' : 'toss',
+          items: pending.items.map(id => ({
+            item_id: id,
+            item_name: (cfg.PRODUCTS[id] || {}).name || id,
+            price: (cfg.PRODUCTS[id] || {}).price || 0,
+            quantity: 1
+          }))
+        });
+      }
+
       // 첫 상품 = 메인 상품 (자동 이동 대상)
       const mainProduct = cfg.PRODUCTS[pending.items[0]];
 

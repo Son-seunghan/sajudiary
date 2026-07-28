@@ -205,6 +205,9 @@ const Auth = (function () {
       history.push(user.id);
       localStorage.setItem(histKey, JSON.stringify(history));
 
+      // GA4: 신규 가입
+      if (typeof gtag === 'function') gtag('event', 'sign_up', { method: 'kakao' });
+
       // 신규 가입 환영 쿠폰 자동 발급
       if (typeof Cart !== 'undefined' && Cart.issueCoupon) {
         const issued = Cart.issueCoupon('WELCOME3000');
@@ -214,6 +217,9 @@ const Auth = (function () {
         }
       }
     }
+
+    // GA4: 로그인 (신규·기존 공통)
+    if (typeof gtag === 'function') gtag('event', 'login', { method: 'kakao' });
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
     console.log('[Auth] 사용자 저장됨 — id:', user.id, '| 마스터:', !!user.isMaster);

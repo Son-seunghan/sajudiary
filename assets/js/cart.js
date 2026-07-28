@@ -22,6 +22,14 @@ const Cart = (function () {
     if (items.includes(productId)) return false;  // 중복 방지 (한 상품은 1개만)
     items.push(productId);
     setItems(items);
+    // GA4: 장바구니 담기
+    if (typeof gtag === 'function') {
+      const p = cfg.PRODUCTS[productId];
+      gtag('event', 'add_to_cart', {
+        currency: 'KRW', value: p.price,
+        items: [{ item_id: productId, item_name: p.name, price: p.price, quantity: 1 }]
+      });
+    }
     return true;
   }
   function removeItem(productId) {
