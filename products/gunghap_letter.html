@@ -389,6 +389,16 @@ body.has-fbar{padding-bottom:96px;}
     <div id="sections"></div>
     <div id="closingNote" class="closing"></div>
   </section>
+  <!-- ─── 리포트 질문 AS 안내 (구매자 혜택) ─── -->
+  <div id="asBanner" class="hidden" style="max-width:680px;margin:28px auto 90px;padding:22px 24px;background:#FFFAF8;border:1px solid #F5D5CE;border-left:4px solid #FEE500;border-radius:14px;font-family:'Pretendard',sans-serif;">
+    <div style="font-weight:700;font-size:16px;color:#6a4444;margin-bottom:8px;">📖 리포트 질문 AS — 구매자 혜택</div>
+    <p style="font-size:13.5px;line-height:1.7;color:#8a6060;margin:0 0 14px;">
+      읽다가 이해가 어렵거나 더 풀어 듣고 싶은 부분이 있나요?<br>
+      <b>결제일로부터 7일 이내, 최대 3개 질문</b>을 분석가가 카카오톡에서 직접 답변드려요.
+    </p>
+    <a href="http://pf.kakao.com/_FtxcxnX/chat" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:#FEE500;color:#191919;font-weight:700;font-size:14px;padding:11px 20px;border-radius:8px;text-decoration:none;">💬 카카오톡으로 질문하기</a>
+    <p style="font-size:11.5px;color:#b08888;margin:10px 0 0;">채팅창에 "구매" 입력 → 주문번호(또는 결제 캡처)와 궁금한 부분을 남겨주세요.</p>
+  </div>
   <div id="floatBar" class="fbar ui-only hidden"><button onclick="downloadHTML()">💾 HTML</button><button onclick="savePDF()">📄 PDF</button></div>
   <footer class="footer">福沙花 · 복사화　봄이 길기를</footer>
 </div>
@@ -2157,7 +2167,7 @@ function doCalc(skipConfirm){
     ];
     document.getElementById('sections').innerHTML=wrapSections(rawSections);
     document.getElementById('secNav').innerHTML=buildNav(rawSections);
-    document.getElementById('tocCard').innerHTML=buildToc(rawSections);document.getElementById('tocCard').classList.remove('hidden');document.getElementById('floatBar').classList.remove('hidden');
+    document.getElementById('tocCard').innerHTML=buildToc(rawSections);document.getElementById('tocCard').classList.remove('hidden');document.getElementById('floatBar').classList.remove('hidden');const asBanner=document.getElementById('asBanner');if(asBanner)asBanner.classList.remove('hidden');
     document.body.classList.add('has-fbar');
     setTimeout(activeNavObserver,100);
     document.getElementById('closingNote').textContent=renderClosing(A,B,pair,score,currentMode);
