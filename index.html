@@ -500,6 +500,7 @@
     flex-shrink: 0;
     width: 320px;
   }
+  .review-card { cursor: pointer; }
   .review-card:hover {
     transform: translateY(-3px);
     border-color: var(--gold);
@@ -1303,6 +1304,15 @@
     </div>
   </div>
 
+  <!-- ━━━━━━━━━━━ 후기 상세 모달 ━━━━━━━━━━━ -->
+  <div id="review-modal" class="hidden fixed inset-0 z-[1200] flex items-center justify-center p-4" style="background:rgba(30,24,18,.55);backdrop-filter:blur(2px);" onclick="if(event.target===this)closeReviewModal()">
+    <div class="panel w-full max-w-md max-h-[85vh] overflow-y-auto p-6 relative">
+      <button onclick="closeReviewModal()" class="absolute top-3 right-4 text-2xl text-[var(--ink4)] hover:text-[var(--vermil)]" aria-label="닫기">×</button>
+      <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-4">REVIEW</p>
+      <div id="review-modal-body"></div>
+    </div>
+  </div>
+
   <!-- ━━━━━━━━━━━ Scripts ━━━━━━━━━━━ -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/config.js?v=20260718"></script>
@@ -1361,7 +1371,7 @@
       const sorted = [...reviews].sort((a, b) => b.createdAt - a.createdAt);
 
       const cfg = window.SAJULOG_CONFIG;
-      const cardHtml = (r) => {
+      const cardHtml = (r, idx) => {
         const product = cfg.PRODUCTS[r.productId];
         if (!product) return '';
         const urls = (r.photoUrls || []).filter(Boolean).slice(0, 2);
@@ -1373,7 +1383,7 @@
                 <img src="${urls[1]}" alt="후기 사진 2" class="w-full h-24 object-cover rounded-lg border border-[var(--paper-dk)]" loading="lazy" />
               </div>`;
         return `
-          <div class="review-card">
+          <div class="review-card" data-idx="${idx}" role="button" tabindex="0">
             <div class="flex items-center justify-between mb-3">
               ${Reviews.renderStars(r.rating)}
               <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product.name.replace(/\s*\(.*?\)/, '')}</span>
@@ -1388,15 +1398,52 @@
         `;
       };
 
-      // 부드러운 무한 루프를 위해 카드 두 번 복제
-      const html = sorted.map(cardHtml).join('');
-      grid.innerHTML = html + html;
-
-      // 카드 수가 너무 적으면 애니메이션 비활성화 (3개 미만이면 멈춤)
+      const html = sorted.map((r, i) => cardHtml(r, i)).join('');
       if (sorted.length < 3) {
+        // 카드가 적으면 복제 없이 실제 개수만 표시 + 애니메이션 정지 (1건=1장)
+        grid.innerHTML = html;
         grid.style.animation = 'none';
         grid.style.justifyContent = 'center';
+      } else {
+        // 부드러운 무한 루프를 위해 카드 두 번 복제 (마퀴 애니메이션용)
+        grid.innerHTML = html + html;
       }
+
+      // ─── 후기 상세 모달 (카드 클릭 시) ───
+      grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.review-card');
+        if (!card) return;
+        const r = sorted[parseInt(card.dataset.idx, 10)];
+        if (r) openReviewModal(r);
+      });
+
+      function openReviewModal(r) {
+        const product = cfg.PRODUCTS[r.productId];
+        const urls = (r.photoUrls || []).filter(Boolean);
+        const photos = urls.map(u =>
+          `<img src="${u}" alt="후기 사진" class="w-full rounded-xl border border-[var(--paper-dk)] mb-3 cursor-zoom-in" onclick="window.open(this.src,'_blank')" loading="lazy" />`
+        ).join('');
+        document.getElementById('review-modal-body').innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            ${Reviews.renderStars(r.rating, 'text-lg')}
+            <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product ? product.name.replace(/\s*\(.*?\)/, '') : ''}</span>
+          </div>
+          ${photos}
+          <p class="text-[15px] text-[var(--ink2)] leading-relaxed whitespace-pre-wrap mb-5">${escapeHtml(r.content)}</p>
+          <div class="flex items-center justify-between text-xs text-[var(--ink3)] font-shilla pt-3 border-t border-[var(--paper-dk)]">
+            <span>${escapeHtml(r.userNickname)}</span>
+            <span>${Reviews.formatDate(r.createdAt)}</span>
+          </div>`;
+        document.getElementById('review-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+      window.closeReviewModal = function () {
+        document.getElementById('review-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+      };
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') window.closeReviewModal();
+      });
 
       // 평균 별점 박스
       const summary = await Reviews.getAverageRating();
