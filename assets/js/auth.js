@@ -81,46 +81,36 @@ const Auth = (function () {
 
     let tokenResponse, tokenData;
     try {
-      // ── 1) code → access_token 교환 ──
-      tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
+      // ── 서버리스에서 토큰 교환 + 프로필 조회 ──
+      // REST API 키는 서버(환경변수)에만 존재 — 실제 카카오 ID·닉네임 확보
+      tokenResponse = await fetch('/api/kakao-token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          client_id: cfg.KAKAO_JS_KEY,
-          redirect_uri: redirectUri,
-          code: code
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code, redirectUri: redirectUri })
       });
 
-      console.log('[Auth] 토큰 응답 상태:', tokenResponse.status);
+      console.log('[Auth] 토큰 교환 응답 상태:', tokenResponse.status);
       tokenData = await tokenResponse.json();
-      console.log('[Auth] 토큰 응답 데이터:', tokenData);
 
-      if (tokenData.error) {
-        throw new Error(`[${tokenData.error}] ${tokenData.error_description || ''}`);
+      if (!tokenResponse.ok || !tokenData.ok) {
+        throw new Error(tokenData.error || '토큰 교환 실패');
       }
 
-      // ── 2) access_token 으로 사용자 정보 조회 ──
-      Kakao.Auth.setAccessToken(tokenData.access_token);
-      const userResponse = await Kakao.API.request({ url: '/v2/user/me' });
-      console.log('[Auth] 사용자 정보:', userResponse);
-
-      // 카카오 생일 (MMDD) — 사주 자동입력용
-      const birthday = userResponse.kakao_account?.birthday || '';
+      // 카카오 생일 (MMDD) — 사주 자동입력용 (동의항목 승인 시)
+      const birthday = tokenData.birthday || '';
       const birthMM = birthday.length === 4 ? parseInt(birthday.substring(0, 2), 10) : null;
       const birthDD = birthday.length === 4 ? parseInt(birthday.substring(2, 4), 10) : null;
 
       const user = {
-        id: 'kakao_' + userResponse.id,
-        nickname: userResponse.kakao_account?.profile?.nickname || '회원',
-        profile_image: userResponse.kakao_account?.profile?.profile_image_url || '',
+        id: 'kakao_' + tokenData.id,
+        nickname: tokenData.nickname || '회원',
+        profile_image: tokenData.profileImage || '',
         provider: 'kakao',
         birthMM: birthMM,
         birthDD: birthDD
       };
       saveUser(user);
-      console.log('[Auth] 로그인 성공! 결제 페이지로 이동');
+      console.log('[Auth] 로그인 성공! (실제 카카오 계정:', user.nickname + ') 결제 페이지로 이동');
 
       if (product === '__cart__') {
         window.location.href = 'payment.html?fromCart=1';
