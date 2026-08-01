@@ -623,7 +623,7 @@
 
     // ─ 카드 HTML 생성 ─
     function cardHtml(a) {
-      const dateFormatted = a.date.replace(/-/g, '.');
+      // 발행일 비표시 (date 필드는 최신순 정렬용으로만 사용)
       return `
         <a href="${a.slug}.html" class="article-card">
           <div class="thumb ${a.thumbClass}">
@@ -634,7 +634,6 @@
             <h3 class="article-title">${a.title}</h3>
             <p class="article-summary">${a.summary}</p>
             <div class="article-meta">
-              <span>${dateFormatted}</span>
               <span>${a.readMin}분 읽기</span>
             </div>
           </div>
