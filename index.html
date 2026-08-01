@@ -1421,7 +1421,7 @@
         const product = cfg.PRODUCTS[r.productId];
         const urls = (r.photoUrls || []).filter(Boolean);
         const photos = urls.map(u =>
-          `<img src="${u}" alt="후기 사진" class="w-full rounded-xl border border-[var(--paper-dk)] mb-3 cursor-zoom-in" onclick="window.open(this.src,'_blank')" loading="lazy" />`
+          `<img src="${u}" alt="후기 사진" class="w-full rounded-xl border border-[var(--paper-dk)] mb-3 cursor-zoom-in" style="max-height:380px;object-fit:contain;background:var(--paper3);" onclick="window.open(this.src,'_blank')" loading="lazy" title="클릭하면 원본 크기로 볼 수 있어요" />`
         ).join('');
         document.getElementById('review-modal-body').innerHTML = `
           <div class="flex items-center justify-between mb-4">
