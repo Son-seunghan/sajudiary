@@ -1306,7 +1306,7 @@
 
   <!-- ━━━━━━━━━━━ 후기 상세 모달 ━━━━━━━━━━━ -->
   <div id="review-modal" class="hidden fixed inset-0 z-[1200] flex items-center justify-center p-4" style="background:rgba(30,24,18,.55);backdrop-filter:blur(2px);" onclick="if(event.target===this)closeReviewModal()">
-    <div class="panel w-full max-w-md max-h-[85vh] overflow-y-auto p-6 relative">
+    <div class="w-full max-w-md max-h-[85vh] overflow-y-auto p-6 relative" style="background:linear-gradient(180deg,var(--paper2) 0%,var(--paper) 100%);border:1px solid var(--paper-dk);border-radius:16px;box-shadow:0 24px 64px rgba(30,24,18,.35);">
       <button onclick="closeReviewModal()" class="absolute top-3 right-4 text-2xl text-[var(--ink4)] hover:text-[var(--vermil)]" aria-label="닫기">×</button>
       <p class="font-shilla text-xs text-[var(--ink4)] tracking-widest mb-4">REVIEW</p>
       <div id="review-modal-body"></div>
