@@ -46,5 +46,36 @@ module.exports = async (req, res) => {
     return res.status(400).json({ ok: false, error: '유효하지 않은 쿠폰 코드입니다.' });
   }
 
+  // ─── 쿠폰 사용 이메일 알림 (RESEND_API_KEY 설정 시에만) ───
+  const RESEND = process.env.RESEND_API_KEY;
+  const NOTIFY_TO = process.env.PAYMENT_NOTIFY_EMAIL || 'cleanblue99@gmail.com';
+  if (RESEND) {
+    const KEY_LABEL = { light: '입문용 (Light)', deep: '전문가용 (Deep)', couple: '궁합', adult: '궁합 성인용', any: '만능 이용권' };
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + RESEND, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: '사주다이어리 <onboarding@resend.dev>',
+          to: [NOTIFY_TO],
+          subject: '🎁 선물 쿠폰 사용됨 — ' + (KEY_LABEL[key] || key),
+          html:
+            '<div style="font-family:sans-serif;max-width:480px">' +
+            '<h2 style="color:#b8923c">🎁 선물 쿠폰이 사용되었습니다</h2>' +
+            '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
+            '<tr><td style="padding:6px 0;color:#888">쿠폰 종류</td><td><b>' + (KEY_LABEL[key] || key) + '</b></td></tr>' +
+            '<tr><td style="padding:6px 0;color:#888">코드</td><td style="font-family:monospace">' + raw + '</td></tr>' +
+            '<tr><td style="padding:6px 0;color:#888">사용 시각</td><td>' + new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) + '</td></tr>' +
+            '</table>' +
+            '<p style="margin-top:14px;font-size:13px;color:#666">발급기 이력의 메모와 대조해 누구인지 확인하세요.<br>2~3일 뒤가 후기 요청 골든타임입니다 🙏</p>' +
+            '</div>'
+        })
+      });
+    } catch (e) {
+      console.error('[coupon-verify] 이메일 알림 실패:', e);
+      // 알림 실패해도 쿠폰 검증은 성공 처리
+    }
+  }
+
   return res.status(200).json({ ok: true, productKey: key });
 };
