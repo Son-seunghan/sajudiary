@@ -207,6 +207,14 @@
           </div>
         </div>
 
+        <!-- 인앱 브라우저 경고 (스레드·인스타·페북 WebView는 카카오 로그인 불가) -->
+        <div id="inapp-warn" class="hidden mb-4 p-4 rounded-xl border-2 border-[var(--gold)] bg-[var(--paper3)] leading-relaxed">
+          <p class="font-bold text-sm text-[var(--ink)] mb-1">⚠️ 앱 내 브라우저로 열려 있어요</p>
+          <p class="text-xs text-[var(--ink3)] mb-3">스레드·인스타그램 안에서는 카카오 로그인이 진행되지 않는 경우가 많아요.<br>기본 브라우저(크롬·삼성인터넷·사파리)에서 열면 정상 이용하실 수 있습니다.</p>
+          <button id="btn-open-external" class="w-full py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] text-sm font-bold">🌐 기본 브라우저로 열기</button>
+          <p id="inapp-ios-guide" class="hidden text-[11px] text-[var(--ink4)] mt-2">버튼이 동작하지 않으면: 화면 모서리의 <b>⋯ 메뉴 → "외부 브라우저로 열기"</b>를 눌러주세요.</p>
+        </div>
+
         <!-- 카카오 로그인 버튼 -->
         <button id="btn-kakao-login" class="btn-kakao">
           <svg width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -327,6 +335,35 @@
         Auth.login(productId);
       }
     });
+
+    // ─── 인앱 브라우저(스레드·인스타·페북) 감지 → 외부 브라우저 탈출 유도 ───
+    // 메타 계열 WebView는 카카오 인증(카카오톡 앱 호출)을 처리 못해 로그인이 죽음
+    (function () {
+      const ua = navigator.userAgent || '';
+      // Barcelona = Threads 앱의 UA 식별자
+      const isMetaInApp = /Instagram|Barcelona|FBAN|FBAV|FB_IAB/i.test(ua);
+      if (!isMetaInApp) return;
+
+      document.getElementById('inapp-warn').classList.remove('hidden');
+      const isAndroid = /Android/i.test(ua);
+      const target = window.location.href;
+
+      document.getElementById('btn-open-external').addEventListener('click', () => {
+        if (isAndroid) {
+          // 크롬으로 열기 (미설치 시 fallback으로 기본 처리)
+          const noScheme = target.replace(/^https?:\/\//, '');
+          window.location.href = 'intent://' + noScheme
+            + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='
+            + encodeURIComponent(target) + ';end';
+        } else {
+          // iOS: 사파리 스킴 시도 (인스타·스레드 iOS에서 동작하는 경우 많음)
+          window.location.href = 'x-safari-' + target;
+        }
+      });
+
+      // iOS는 수동 탈출 경로도 함께 안내
+      if (!isAndroid) document.getElementById('inapp-ios-guide').classList.remove('hidden');
+    })();
   </script>
 
 </body>
