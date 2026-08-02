@@ -310,7 +310,9 @@
       document.getElementById('order-detail').innerHTML = detailHtml;
 
       // 분석 페이지 링크 설정 (메인 상품)
-      document.getElementById('goto-product').href = mainProduct.file;
+      // slot=new — 기존 분석이 있어도 새 입력 폼으로 진입 (결제=새 슬롯이므로)
+      const mainProductUrl = mainProduct.file + (mainProduct.file.includes('?') ? '&' : '?') + 'slot=new';
+      document.getElementById('goto-product').href = mainProductUrl;
       if (pending.items.length > 1) {
         document.getElementById('goto-product').textContent = `${mainProduct.name} 분석 결과 보기 →`;
       }
@@ -322,7 +324,7 @@
         secs--;
         if (secs <= 0) {
           clearInterval(timer);
-          window.location.href = mainProduct.file;
+          window.location.href = mainProductUrl;
         } else {
           txt.textContent = secs + '초';
         }
