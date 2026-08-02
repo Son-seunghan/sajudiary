@@ -530,7 +530,11 @@
         showMsg(`✓ ${r.label} — 분석 페이지로 이동합니다.`, 'success');
         apply.disabled = true;
         input.disabled = true;
-        const productFile = cfg.PRODUCTS[r.productId] && cfg.PRODUCTS[r.productId].file;
+        // slot=new — 기존 분석이 있어도 새 입력 폼으로 진입 (쿠폰=새 슬롯이므로)
+        let productFile = cfg.PRODUCTS[r.productId] && cfg.PRODUCTS[r.productId].file;
+        if (productFile) {
+          productFile += (productFile.includes('?') ? '&' : '?') + 'slot=new';
+        }
         setTimeout(() => {
           window.location.href = productFile ? productFile : 'mypage.html';
         }, 900);
