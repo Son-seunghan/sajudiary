@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>사용자 후기 — 사주다이어리 四柱日記</title>
+<meta name="description" content="사주다이어리 실제 구매자들의 후기 모음. 입문용·전문가용·궁합 분석을 이용하신 분들이 직접 남긴 별점과 후기를 확인하세요.">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(M).ttf") format("truetype"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Shilla Culture'; src: url("assets/fonts/Shilla_Culture_TTF/Shilla_Culture(B).ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Shilla Gothic';  src: url("assets/fonts/Shilla_Gothic_ttf/Shilla_Gothic.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728;
+    --jade:#5a8a98; --jade2:#406878;
+    --plum:#b8607a; --plum2:#944860;
+    --wine:#8a3a4d; --wine2:#6a2438;
+  }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html { scroll-behavior: smooth; }
+  body { animation: page-fade-in 0.4s ease; }
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .font-display { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; }
+  .font-shilla  { font-family: 'Shilla Gothic', 'Pretendard', sans-serif; }
+  .font-hanja   { font-family: 'Shilla Culture', 'Noto Serif KR', serif; font-weight: 700; letter-spacing: 0.05em; }
+
+  .paper-bg {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 50% 30%, rgba(184,146,60,0.06) 0%, transparent 45%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .top-stripe {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--jade) 0%, var(--jade) 20%,
+      var(--vermil) 20%, var(--vermil) 40%,
+      var(--gold) 40%, var(--gold) 60%,
+      var(--plum) 60%, var(--plum) 80%,
+      var(--ink) 80%, var(--ink) 100%);
+  }
+
+  /* ━━━ 리뷰 카드 ━━━ */
+  .review-card {
+    background: linear-gradient(180deg, var(--paper2) 0%, var(--paper) 100%);
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    padding: 22px 22px 20px;
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    cursor: pointer;
+  }
+  .review-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold);
+    box-shadow: 0 10px 30px rgba(60, 45, 30, 0.10);
+  }
+  .clamp-6 {
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ━━━ 별점 ━━━ */
+  .stars { letter-spacing: 1px; }
+  .star-on  { color: var(--vermil); }
+  .star-off { color: var(--paper-dk); }
+
+  /* ━━━ 상품 태그 ━━━ */
+  .product-tag {
+    display: inline-block;
+    font-family: 'Shilla Gothic', 'Pretendard', sans-serif;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .tag-light  { background: rgba(90,138,152,0.15);  color: var(--jade2); }
+  .tag-deep   { background: rgba(177,58,44,0.12);   color: var(--vermil2); }
+  .tag-couple { background: rgba(184,96,122,0.15);  color: var(--plum2); }
+  .tag-wine   { background: rgba(138,58,77,0.15);   color: var(--wine2); }
+
+  /* ━━━ 필터 탭 ━━━ */
+  .filter-tab {
+    font-family: 'Shilla Gothic', 'Pretendard', sans-serif;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--paper-dk);
+    background: var(--paper2);
+    color: var(--ink3);
+    transition: all .2s ease;
+    white-space: nowrap;
+  }
+  .filter-tab:hover { border-color: var(--gold); color: var(--ink); }
+  .filter-tab.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper2);
+    font-weight: 600;
+  }
+  .filter-tab .cnt { opacity: .65; font-size: 11px; margin-left: 3px; }
+
+  /* ━━━ 평균 별점 요약 ━━━ */
+  .rating-summary {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 14px 24px;
+    background: linear-gradient(180deg, var(--paper2), var(--paper3));
+    border: 1px solid var(--paper-dk);
+    border-radius: 14px;
+  }
+</style>
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JTND4S6842');
+</script>
+<!-- Vercel Web Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+
+<body class="paper-bg min-h-screen flex flex-col">
+
+  <!-- ━━━━━━━━━━━ 상단 오행 5색선 ━━━━━━━━━━━ -->
+  <div class="top-stripe"></div>
+
+  <!-- ━━━━━━━━━━━ Header ━━━━━━━━━━━ -->
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-3 shrink-0">
+        <span class="font-hanja text-xl sm:text-2xl text-[var(--vermil)]">四柱日記</span>
+        <span class="hidden sm:inline-block w-px h-5 bg-[var(--paper-dk)]"></span>
+        <span class="hidden sm:inline font-display text-xl tracking-tight text-[var(--ink)]">사주다이어리</span>
+      </a>
+      <nav class="font-shilla flex items-center gap-1 sm:gap-2 text-sm">
+        <a href="manse.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">무료 만세력</a>
+        <a href="today.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">오늘의 운세</a>
+        <a href="column/" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">칼럼</a>
+        <a href="qna.html" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">독자의 글</a>
+        <a href="index.html#products" class="hidden md:inline px-3 py-2 text-[var(--ink2)] hover:text-[var(--vermil)]">상품</a>
+        <a href="reviews.html" class="hidden lg:inline px-3 py-2 text-[var(--vermil)] font-bold">후기</a>
+
+        <!-- 로그인 안 된 상태 -->
+        <a id="nav-login" href="login.html" class="ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)] text-xs sm:text-sm">로그인</a>
+
+        <!-- 로그인 된 상태 (JS로 표시 토글) -->
+        <a id="nav-mypage" href="mypage.html" class="hidden ml-1 px-4 py-2 rounded-md bg-[var(--ink)] text-[var(--paper2)] hover:bg-[var(--vermil)] items-center gap-2 text-xs sm:text-sm">
+          <span id="nav-nickname" class="hidden sm:inline truncate max-w-[100px]"></span>
+          <span class="text-[10px] opacity-70">마이</span>
+        </a>
+
+        <!-- 모바일 햄버거 -->
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden ml-1 p-2 text-[var(--ink2)] hover:text-[var(--vermil)]" aria-label="메뉴">
+          <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ━━━━ 모바일 드롭다운 메뉴 ━━━━ -->
+    <div id="mobile-menu" class="md:hidden hidden border-t border-[var(--paper-dk)]/60 bg-[var(--paper)]/95 backdrop-blur-md">
+      <nav class="font-shilla max-w-6xl mx-auto px-6 py-2 flex flex-col text-sm">
+        <a href="manse.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--jade)]">曆</span> 무료 만세력
+        </a>
+        <a href="today.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--gold)]">日</span> 오늘의 운세
+        </a>
+        <a href="column/" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--vermil)]">録</span> 칼럼
+        </a>
+        <a href="qna.html" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--gold)]">問</span> 독자의 글
+        </a>
+        <a href="index.html#products" class="py-3 border-b border-[var(--paper-dk)]/40 text-[var(--ink2)] hover:text-[var(--vermil)] flex items-center gap-2">
+          <span class="text-[var(--ink3)]">命</span> 분석 상품
+        </a>
+        <a href="reviews.html" class="py-3 text-[var(--vermil)] font-bold">후기</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ━━━━ 모바일 메뉴 토글 스크립트 ━━━━ -->
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const hamburger = document.getElementById('hamburger-icon');
+      const closeIc = document.getElementById('close-icon');
+      menu.classList.toggle('hidden');
+      const isOpen = !menu.classList.contains('hidden');
+      hamburger.classList.toggle('hidden', isOpen);
+      closeIc.classList.toggle('hidden', !isOpen);
+    }
+  </script>
+
+  <!-- ━━━━━━━━━━━ 본문 ━━━━━━━━━━━ -->
+  <main class="flex-1 max-w-6xl mx-auto w-full px-6 pt-14 pb-20">
+
+    <!-- 타이틀 -->
+    <div class="text-center mb-10">
+      <p class="font-shilla text-sm text-[var(--ink3)] tracking-[0.3em] mb-3">REVIEWS</p>
+      <h1 class="font-display text-2xl sm:text-3xl md:text-4xl mb-3 text-[var(--ink)]">실제 사용자들의 후기</h1>
+      <p class="text-[var(--ink3)]">결제하신 분들이 직접 남긴 후기입니다</p>
+    </div>
+
+    <!-- 평균 별점 요약 -->
+    <div class="text-center mb-8">
+      <div id="rating-summary-box" class="rating-summary hidden">
+        <div>
+          <span id="summary-stars"></span>
+          <span id="summary-avg" class="font-display text-2xl text-[var(--ink)] ml-2">0.0</span>
+        </div>
+        <span class="w-px h-8 bg-[var(--paper-dk)]"></span>
+        <div class="font-shilla text-sm text-[var(--ink3)]">
+          누적 후기 <span id="summary-count" class="text-[var(--vermil)] font-bold">0</span>건
+        </div>
+      </div>
+    </div>
+
+    <!-- 상품별 필터 탭 -->
+    <div id="filter-tabs" class="hidden flex flex-wrap justify-center gap-2 mb-10 px-2">
+      <!-- JS로 동적 채워짐 -->
+    </div>
+
+    <!-- 후기 그리드 -->
+    <div id="reviews-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- JS로 동적 채워짐 -->
+    </div>
+
+    <!-- 빈 상태 -->
+    <div id="reviews-empty" class="hidden text-center py-16">
+      <div class="text-5xl mb-4 opacity-30">📜</div>
+      <p class="font-display text-xl text-[var(--ink2)] mb-2">첫 후기를 기다리고 있습니다</p>
+      <p class="font-shilla text-sm text-[var(--ink3)] mb-6">결제하신 후 첫 번째 후기를 남겨보세요</p>
+      <a href="index.html#products" class="inline-block px-6 py-3 rounded-lg bg-[var(--ink)] text-[var(--paper2)] font-bold hover:bg-[var(--vermil)] transition font-shilla">
+        상품 둘러보기 →
+      </a>
+    </div>
+
+    <!-- 안내 -->
+    <p id="reviews-footer" class="hidden text-center mt-12 font-shilla text-sm text-[var(--ink4)]">
+      후기는 <span class="text-[var(--vermil)]">결제 완료자만</span> 작성할 수 있습니다 · 작성은 <a href="mypage.html" class="underline hover:text-[var(--vermil)]">마이페이지</a>에서
+    </p>
+  </main>
+
+  <!-- ━━━━━━━━━━━ 후기 상세 모달 ━━━━━━━━━━━ -->
+  <div id="review-modal" class="hidden fixed inset-0 z-[1200] flex items-center justify-center p-4" style="background:rgba(30,24,18,.55);backdrop-filter:blur(2px);" onclick="if(event.target===this)closeReviewModal()">
+    <div class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl p-6 sm:p-8 relative" style="background:linear-gradient(180deg,var(--paper2) 0%,var(--paper) 100%);border:1px solid var(--paper-dk);box-shadow:0 20px 60px rgba(30,24,18,.35);">
+      <button onclick="closeReviewModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-[var(--ink3)] hover:bg-[var(--paper3)] hover:text-[var(--ink)] transition" aria-label="닫기">✕</button>
+      <div id="review-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ━━━━━━━━━━━ Footer ━━━━━━━━━━━ -->
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="flex justify-center gap-4 font-shilla">
+        <a href="terms.html" class="hover:text-[var(--vermil)]">이용약관</a>
+        <span>·</span>
+        <a href="privacy.html" class="hover:text-[var(--vermil)]"><strong>개인정보처리방침</strong></a>
+      </div>
+      <div class="text-[10px] text-[var(--ink4)] mt-2 leading-relaxed space-y-0.5">
+        <p>상호: 마일 · 대표: 손승한 · 이메일: cleanblue99@gmail.com · 전화: 010-8451-2715</p>
+        <p>사업자등록번호: 254-32-01626 · 통신판매업신고: 제2025-경기양주-5033호</p>
+        <p>주소: 경기도 양주시 부흥로 1936, 406호 255111(광사동, 다온프라자)</p>
+      </div>
+      <p>© 2026 사주다이어리. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="top-stripe"></div>
+
+  <!-- ━━━━━━━━━━━ Scripts ━━━━━━━━━━━ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js?v=20260718"></script>
+  <script src="assets/js/auth-guard.js?v=20260718"></script>
+  <script src="assets/js/supabase-client.js?v=20260718"></script>
+  <script src="assets/js/reviews.js?v=20260718"></script>
+
+  <script>
+    // ─── 로그인 상태에 따라 헤더 변경 ───
+    (function () {
+      try {
+        const user = JSON.parse(localStorage.getItem('sajudiary_user') || 'null');
+        if (!user) return;
+        document.getElementById('nav-login').classList.add('hidden');
+        const myBtn = document.getElementById('nav-mypage');
+        myBtn.classList.remove('hidden');
+        myBtn.classList.add('inline-flex');
+        document.getElementById('nav-nickname').textContent = user.nickname;
+      } catch (e) { /* 무시 */ }
+    })();
+
+    // ─── 후기 전체 로딩 + 필터 ───
+    (async function () {
+      const cfg = window.SAJULOG_CONFIG;
+      const grid = document.getElementById('reviews-grid');
+      const emptyEl = document.getElementById('reviews-empty');
+      const footerEl = document.getElementById('reviews-footer');
+      const summaryBox = document.getElementById('rating-summary-box');
+      const tabsEl = document.getElementById('filter-tabs');
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
+      if (!Reviews.isEnabled()) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      const reviews = await Reviews.getAll();
+      if (!reviews || reviews.length === 0) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      // 최신순 정렬
+      const sorted = [...reviews].sort((a, b) => b.createdAt - a.createdAt);
+      footerEl.classList.remove('hidden');
+
+      // ─── 필터 탭 구성 (전체 + 후기가 있는 상품만) ───
+      let currentFilter = 'all';
+      const productOrder = ['light', 'deep', 'couple', 'couple_plus'];
+      const countBy = {};
+      sorted.forEach(r => { countBy[r.productId] = (countBy[r.productId] || 0) + 1; });
+
+      function tabHtml(id, label, count) {
+        return `<button class="filter-tab${id === currentFilter ? ' active' : ''}" data-filter="${id}">${label}<span class="cnt">${count}</span></button>`;
+      }
+      function renderTabs() {
+        let html = tabHtml('all', '전체', sorted.length);
+        productOrder.forEach(pid => {
+          if (!countBy[pid]) return;
+          const p = cfg.PRODUCTS[pid];
+          if (!p) return;
+          html += tabHtml(pid, p.name.replace(/\s*\(.*?\)/, ''), countBy[pid]);
+        });
+        tabsEl.innerHTML = html;
+        tabsEl.classList.remove('hidden');
+      }
+      renderTabs();
+
+      tabsEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-tab');
+        if (!btn) return;
+        currentFilter = btn.dataset.filter;
+        renderTabs();
+        renderGrid();
+        renderSummary();
+      });
+
+      // ─── 카드 렌더링 ───
+      function cardHtml(r, idx) {
+        const product = cfg.PRODUCTS[r.productId];
+        if (!product) return '';
+        const urls = (r.photoUrls || []).filter(Boolean).slice(0, 2);
+        const photoHtml = urls.length === 0 ? '' :
+          urls.length === 1
+            ? `<img src="${urls[0]}" alt="후기 사진" class="w-full h-36 object-cover rounded-lg mb-3 border border-[var(--paper-dk)]" loading="lazy" />`
+            : `<div class="grid grid-cols-2 gap-2 mb-3">
+                <img src="${urls[0]}" alt="후기 사진 1" class="w-full h-28 object-cover rounded-lg border border-[var(--paper-dk)]" loading="lazy" />
+                <img src="${urls[1]}" alt="후기 사진 2" class="w-full h-28 object-cover rounded-lg border border-[var(--paper-dk)]" loading="lazy" />
+              </div>`;
+        return `
+          <div class="review-card" data-idx="${idx}" role="button" tabindex="0">
+            <div class="flex items-center justify-between mb-3">
+              ${Reviews.renderStars(r.rating)}
+              <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product.name.replace(/\s*\(.*?\)/, '')}</span>
+            </div>
+            ${photoHtml}
+            <p class="text-sm text-[var(--ink2)] leading-relaxed mb-4 clamp-6">${escapeHtml(r.content)}</p>
+            <div class="flex items-center justify-between text-xs text-[var(--ink3)] font-shilla">
+              <span>${escapeHtml(r.userNickname)}</span>
+              <span>${Reviews.formatDate(r.createdAt)}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function filtered() {
+        return currentFilter === 'all' ? sorted : sorted.filter(r => r.productId === currentFilter);
+      }
+
+      function renderGrid() {
+        const list = filtered();
+        if (list.length === 0) {
+          grid.innerHTML = `<p class="col-span-full text-center py-12 font-shilla text-sm text-[var(--ink3)]">이 상품의 첫 후기를 기다리고 있어요</p>`;
+          return;
+        }
+        // data-idx는 sorted 기준 인덱스 유지 (필터와 무관하게 모달 연결)
+        grid.innerHTML = list.map(r => cardHtml(r, sorted.indexOf(r))).join('');
+      }
+      renderGrid();
+
+      // ─── 평균 별점 (현재 필터 기준) ───
+      function renderSummary() {
+        const list = filtered();
+        if (list.length === 0) { summaryBox.classList.add('hidden'); return; }
+        const avg = Math.round(list.reduce((s, r) => s + r.rating, 0) / list.length * 10) / 10;
+        document.getElementById('summary-stars').innerHTML = Reviews.renderStars(avg);
+        document.getElementById('summary-avg').textContent = avg.toFixed(1);
+        document.getElementById('summary-count').textContent = list.length;
+        summaryBox.classList.remove('hidden');
+      }
+      renderSummary();
+
+      // ─── 상세 모달 ───
+      grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.review-card');
+        if (!card) return;
+        const r = sorted[parseInt(card.dataset.idx, 10)];
+        if (r) openReviewModal(r);
+      });
+
+      function openReviewModal(r) {
+        const product = cfg.PRODUCTS[r.productId];
+        const urls = (r.photoUrls || []).filter(Boolean);
+        const photos = urls.map(u =>
+          `<img src="${u}" alt="후기 사진" class="w-full rounded-xl border border-[var(--paper-dk)] mb-3 cursor-zoom-in" style="max-height:380px;object-fit:contain;background:var(--paper3);" onclick="window.open(this.src,'_blank')" loading="lazy" title="클릭하면 원본 크기로 볼 수 있어요" />`
+        ).join('');
+        document.getElementById('review-modal-body').innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            ${Reviews.renderStars(r.rating, 'text-lg')}
+            <span class="product-tag ${Reviews.getProductTagClass(r.productId)}">${product ? product.name.replace(/\s*\(.*?\)/, '') : ''}</span>
+          </div>
+          ${photos}
+          <p class="text-[15px] text-[var(--ink2)] leading-relaxed whitespace-pre-wrap mb-5">${escapeHtml(r.content)}</p>
+          <div class="flex items-center justify-between text-xs text-[var(--ink3)] font-shilla pt-3 border-t border-[var(--paper-dk)]">
+            <span>${escapeHtml(r.userNickname)}</span>
+            <span>${Reviews.formatDate(r.createdAt)}</span>
+          </div>`;
+        document.getElementById('review-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+      window.closeReviewModal = function () {
+        document.getElementById('review-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+      };
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') window.closeReviewModal();
+      });
+    })();
+  </script>
+</body>
+</html>

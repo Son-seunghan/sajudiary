@@ -527,6 +527,24 @@
     from { transform: translateX(0); }
     to   { transform: translateX(-50%); }
   }
+  /* 모바일: 자동 마키 대신 손가락 스와이프 */
+  @media (max-width: 768px) {
+    .reviews-marquee {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      mask-image: none;
+      -webkit-mask-image: none;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .reviews-marquee::-webkit-scrollbar { display: none; }
+    .reviews-track {
+      animation: none !important;
+      padding: 0 6px;
+    }
+    .review-card { scroll-snap-align: center; }
+  }
 
   /* 별점 */
   .stars { letter-spacing: 1px; }
@@ -1163,8 +1181,15 @@
       </a>
     </div>
 
+    <!-- 전체 후기 페이지로 -->
+    <div id="reviews-more" class="hidden text-center mt-8">
+      <a href="reviews.html" class="inline-block px-6 py-3 rounded-lg border border-[var(--ink)]/40 text-[var(--ink)] font-bold hover:bg-[var(--ink)] hover:text-[var(--paper2)] transition font-shilla text-sm">
+        후기 전체 보기 →
+      </a>
+    </div>
+
     <!-- 더 보기 안내 -->
-    <p id="reviews-footer" class="hidden text-center mt-10 font-shilla text-sm text-[var(--ink4)]">
+    <p id="reviews-footer" class="hidden text-center mt-6 font-shilla text-sm text-[var(--ink4)]">
       후기는 <span class="text-[var(--vermil)]">결제 완료자만</span> 작성할 수 있습니다
     </p>
   </section>
@@ -1399,10 +1424,17 @@
       };
 
       const html = sorted.map((r, i) => cardHtml(r, i)).join('');
-      if (sorted.length < 3) {
+      const isSwipe = window.matchMedia('(max-width: 768px)').matches;
+      if (isSwipe) {
+        // 모바일: 복제·애니메이션 없이 좌우 스와이프 목록
+        grid.innerHTML = html;
+        grid.style.animation = 'none';
+        if (sorted.length === 1) { grid.style.width = '100%'; grid.style.justifyContent = 'center'; }
+      } else if (sorted.length < 3) {
         // 카드가 적으면 복제 없이 실제 개수만 표시 + 애니메이션 정지 (1건=1장)
         grid.innerHTML = html;
         grid.style.animation = 'none';
+        grid.style.width = '100%';
         grid.style.justifyContent = 'center';
       } else {
         // 부드러운 무한 루프를 위해 카드 두 번 복제 (마퀴 애니메이션용)
@@ -1449,6 +1481,7 @@
       const summary = await Reviews.getAverageRating();
       summaryBox.classList.remove('hidden');
       footerEl.classList.remove('hidden');
+      document.getElementById('reviews-more').classList.remove('hidden');
       document.getElementById('summary-stars').innerHTML = Reviews.renderStars(summary.average);
       document.getElementById('summary-avg').textContent = summary.average.toFixed(1);
       document.getElementById('summary-count').textContent = summary.count;
