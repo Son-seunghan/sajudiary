@@ -4575,7 +4575,17 @@ function buildSummaryHook(score,grade,strength,eb,cnts,pg,interactions,name,dwFl
   const _dwLabel=d=>d?`${STEMS[d.si]}${BRANS[d.bi]}(${d.age}~${d.endAge}세) 대운`:'';
   const curDwLabel=_dwLabel(curDw)||'현재 대운';
   const nextDwLabel=_dwLabel(nextDw)?`이어지는 ${_dwLabel(nextDw)}`:'다음 대운';
-  if(dwFlow==='ascending'){
+  // 다음 대운이 편관·겁재 같은 압박형 십신이면, 대운 분석의 '주의 시기' 판정과
+  // 어긋나 보이지 않도록 '고비 통과 후 상승' 워딩으로 전환 (독자 혼선 방지)
+  const nextTg=nextDw?getTG(dsi,nextDw.si):-1;
+  const nextIsPressure=[1,6].includes(nextTg); // 1=겁재, 6=편관
+  if(dwFlow==='ascending'&&nextDw&&nextIsPressure){
+    dw_line=pick([
+      `대운 흐름에서 가장 주목할 점이 있습니다. 이 사주는 긴 흐름으로 보면 갈수록 운이 강하게 열리는 '우상향 구조'입니다. 다만 이 상승은 완만한 오르막이 아니라 계단식이에요. 특히 ${_dwLabel(nextDw)}은 압박과 긴장이 큰 구간이라 아래 대운 분석에서도 '주의 시기'로 따로 짚어두었습니다. 이 구간을 잘 통과한 뒤에 성취의 문이 본격적으로 열리는, '고비 후 상승'형 구조로 읽는 것이 정확해요.`,
+      `대운 흐름이 갈수록 강해지는 후천 개운(開運)형 사주입니다. 단, 순서를 정확히 읽어야 해요. ${_dwLabel(nextDw)} 자체는 압박이 큰 '주의 구간'이고, 좋은 기운은 이 고비를 통과한 뒤부터 본격적으로 차오릅니다. 아래 대운 분석에서 이 시기를 주의 시기로 설명한 것과 같은 맥락이에요. 시련 구간에서 단련된 힘이 그 다음 대운의 상승 동력으로 전환되는 구조입니다.`,
+      `이 사주는 뒤로 갈수록 운의 흐름이 강해지는 '후발 개화형'입니다. 다만 그 길목에 있는 ${_dwLabel(nextDw)}은 긴장감이 높은 '주의 구간'이라, 본격적인 상승은 이 시기를 넘긴 뒤부터 시작됩니다. 통계적으로도 이런 구조는 압박 구간을 통과한 직후에 성과가 집중되는 케이스가 많아요. 구간별 자세한 흐름은 아래 대운 분석에서 확인해 주세요.`,
+    ],0);
+  } else if(dwFlow==='ascending'){
     dw_line=pick([
       `대운 흐름에서 가장 주목할 점이 있습니다. 이 사주는 갈수록 운이 강하게 열리는 '우상향 구조'입니다. ${curDwLabel}을 거쳐 ${nextDwLabel}으로 흘러갈수록 에너지가 결집되고 성취의 문이 더 크게 열려요. 지금이 힘들거나 답답하다면, 그 고비를 버티는 것 자체가 다음 대운의 성취를 쌓는 과정임을 기억하세요.`,
       `대운 흐름이 갈수록 강해지는 후천 개운(開運)형 사주입니다. ${curDwLabel}을 지나 ${nextDwLabel}으로 넘어갈수록 좋은 기운이 차오르는 구조예요. 지금 당장의 결과보다 방향을 믿고 씨앗을 묵묵히 심는 시기라는 것, 기억해 두세요.`,
