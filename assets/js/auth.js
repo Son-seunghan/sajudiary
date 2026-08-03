@@ -107,7 +107,8 @@ const Auth = (function () {
         profile_image: tokenData.profileImage || '',
         provider: 'kakao',
         birthMM: birthMM,
-        birthDD: birthDD
+        birthDD: birthDD,
+        session: tokenData.session || null   // 서버 원장(/api/ledger)용 서명 토큰
       };
       saveUser(user);
       console.log('[Auth] 로그인 성공! (실제 카카오 계정:', user.nickname + ') 결제 페이지로 이동');

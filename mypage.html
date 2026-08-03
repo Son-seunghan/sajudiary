@@ -459,10 +459,16 @@
       }).join('');
     }
 
-    renderAnalyses();
+    // ─── 3.5) 서버 원장 동기화 후 렌더 (다른 기기에서의 구매·분석도 반영) ───
+    (async function () {
+      renderAnalyses();               // 1차: 로컬 기준 즉시 표시
+      await AuthGuard.syncFromServer();
+      renderAnalyses();               // 2차: 서버 원장 반영
+      renderPurchases();
+    })();
 
     // ─── 4) 구매 내역 표시 (async — Reviews를 Supabase로 가져옴) ───
-    (async function renderPurchases() {
+    async function renderPurchases() {
       const purchases = AuthGuard.getPurchases();
       document.getElementById('purchase-count').textContent = purchases.length;
 
@@ -569,7 +575,7 @@
           </div>
         `;
       }).join('');
-    })();
+    }
 
     // ─── 내가 남긴 글 (QNA·댓글) ───
     async function renderMyPosts() {

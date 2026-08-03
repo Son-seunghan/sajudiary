@@ -7,7 +7,10 @@
    환경변수:
    - KAKAO_REST_API_KEY  (필수) — developers.kakao.com 앱 키
    - KAKAO_CLIENT_SECRET (선택) — 보안 설정에서 사용 중일 때만
+   - SESSION_SECRET      (선택) — 설정 시 서버 원장(/api/ledger)용 세션 토큰 발급
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const crypto = require('crypto');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -72,12 +75,27 @@ module.exports = async (req, res) => {
     }
 
     const acc = me.kakao_account || {};
+
+    // ── 3) 서버 원장용 세션 토큰 발급 (SESSION_SECRET 설정 시) ──
+    // base64url(payload).HMAC — /api/ledger가 이 서명으로 본인 확인
+    let session = null;
+    if (process.env.SESSION_SECRET) {
+      const payload = Buffer.from(JSON.stringify({
+        id: 'kakao_' + me.id,
+        exp: Date.now() + 1000 * 60 * 60 * 24 * 90   // 90일
+      })).toString('base64url');
+      const sig = crypto.createHmac('sha256', process.env.SESSION_SECRET)
+        .update(payload).digest('base64url');
+      session = payload + '.' + sig;
+    }
+
     return res.status(200).json({
       ok: true,
       id: me.id,
       nickname: (acc.profile && acc.profile.nickname) || '회원',
       profileImage: (acc.profile && acc.profile.profile_image_url) || '',
-      birthday: acc.birthday || ''   // MMDD (동의항목 승인 시)
+      birthday: acc.birthday || '',   // MMDD (동의항목 승인 시)
+      session: session
     });
   } catch (e) {
     console.error('[kakao-token] exception:', e);

@@ -20,6 +20,64 @@ const AuthGuard = (function () {
     return getUser() !== null;
   }
 
+  // ─── 서버 원장 (/api/ledger — Supabase 경유) ───
+  // 로그인 시 발급된 세션 토큰이 있으면 구매·분석 기록을 서버에 보관 →
+  // 어느 기기에서 로그인해도 내역 유지. 서버 불가 시 로컬 저장으로 폴백.
+  function _session() {
+    const u = getUser();
+    return (u && u.session) || null;
+  }
+  async function _ledger(action, extra) {
+    const session = _session();
+    if (!session) return null;
+    try {
+      const r = await fetch('/api/ledger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ session: session, action: action }, extra || {}))
+      });
+      return await r.json();
+    } catch (e) {
+      console.warn('[AuthGuard] 원장 서버 연결 실패:', action, e);
+      return null;
+    }
+  }
+
+  // 서버 원장 → 로컬 미러링. 페이지 렌더 전에 await 권장.
+  // 1) 서버가 모르는 로컬 기록을 먼저 서버로 병합(migrate)
+  // 2) 서버 상태를 로컬로 내려받음 (서버 = 단일 진실)
+  let _synced = false;
+  async function syncFromServer(force) {
+    if (_synced && !force) return true;
+    if (!_session()) return false;
+
+    const localPurchases = getPurchases();
+    const localAnalyses = _getAllAnalyses();
+    const hasLocal = localPurchases.length > 0 || Object.keys(localAnalyses).length > 0;
+    if (hasLocal) {
+      const m = await _ledger('migrate', { purchases: localPurchases, analyses: localAnalyses });
+      // 병합 실패 시 로컬을 덮어쓰지 않음 — 기록 유실 방지
+      if (!m || !m.ok) return false;
+    }
+
+    const r = await _ledger('list');
+    if (!r || !r.ok) return false;
+
+    const purchases = (r.purchases || []).map(row => row.raw).filter(Boolean);
+    const analyses = {};
+    (r.analyses || []).forEach(row => {
+      if (!row.raw) return;
+      if (!analyses[row.product_id]) analyses[row.product_id] = [];
+      analyses[row.product_id].push(row.raw);
+    });
+    localStorage.setItem(PURCHASES_KEY, JSON.stringify(purchases));
+    localStorage.setItem(ANALYSES_KEY, JSON.stringify(analyses));
+    _synced = true;
+    console.log('[AuthGuard] 서버 원장 동기화 — 구매', purchases.length, '건 / 분석',
+      Object.keys(analyses).reduce((s, k) => s + analyses[k].length, 0), '건');
+    return true;
+  }
+
   // ─── 구매 내역 ───
   // localStorage에 [{productId, orderId, paymentKey, amount, purchasedAt, ...}] 배열로 저장
   function getPurchases() {
@@ -30,9 +88,12 @@ const AuthGuard = (function () {
     return getPurchases().some(p => p.productId === productId);
   }
   function addPurchase(record) {
+    const rec = { ...record, purchasedAt: new Date().toISOString() };
     const list = getPurchases();
-    list.push({ ...record, purchasedAt: new Date().toISOString() });
+    list.push(rec);
     localStorage.setItem(PURCHASES_KEY, JSON.stringify(list));
+    // 서버 원장에도 기록 (실패해도 로컬은 유지 — 다음 동기화 때 병합됨)
+    _ledger('purchase', { productId: rec.productId, raw: rec });
   }
 
   // ─── 분석 입력 잠금 (다중 슬롯 지원) ───
@@ -103,6 +164,8 @@ const AuthGuard = (function () {
     all[productId].push(newRecord);
     localStorage.setItem(ANALYSES_KEY, JSON.stringify(all));
     console.log('[AuthGuard] 분석 슬롯 저장:', productId, 'slot', all[productId].length - 1);
+    // 서버 원장에도 기록 (실패해도 로컬은 유지 — 다음 동기화 때 병합됨)
+    _ledger('analysis', { productId: productId, raw: newRecord });
     return newRecord;
   }
   // 마스터 전용 — 특정 슬롯 또는 전체 삭제
@@ -203,6 +266,12 @@ const AuthGuard = (function () {
       return { success: false, error: '적용할 상품을 확인할 수 없습니다.' };
     }
 
+    // 서버 전역 1회용 체크 — 다른 기기에서 이미 쓴 코드도 차단 (세션 보유 시)
+    const redeemR = await _ledger('redeem', { code });
+    if (redeemR && redeemR.already) {
+      return { success: false, error: '이미 사용된 쿠폰입니다.' };
+    }
+
     addPurchase({
       productId,
       orderId: 'gift_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
@@ -289,7 +358,7 @@ const AuthGuard = (function () {
   }
 
   return {
-    getUser, isLoggedIn,
+    getUser, isLoggedIn, syncFromServer,
     getPurchases, hasPurchased, addPurchase,
     getAnalyses, getAnalysis, hasAnalysis, saveAnalysis, clearAnalysis,
     getRemainingSlots, canAnalyze,

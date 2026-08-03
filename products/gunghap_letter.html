@@ -18,23 +18,24 @@
 <script src="../assets/js/config.js?v=20260718"></script>
 <script src="../assets/js/auth-guard.js?v=20260718"></script>
 <script>
-  (function () {
-    const mode = new URLSearchParams(window.location.search).get('mode');
-    const requiredProduct = mode === 'adult' ? 'couple_plus' : 'couple';
-    // couple_plus 결제자는 couple도 자동으로 볼 수 있게 (상위 호환)
-    if (requiredProduct === 'couple' && AuthGuard.hasPurchased('couple_plus')) {
-      return;
-    }
-    // 마스터 계정은 모두 패스
-    if (AuthGuard.isMaster()) {
-      console.log('[AuthGuard] ✦ 마스터 계정 — 궁합 페이지 패스');
-      return;
-    }
-    AuthGuard.requirePurchase(requiredProduct);
-  })();
-
   // ─── 다중 슬롯 + 카카오 생일 자동입력 (궁합) ───
-  window.addEventListener('DOMContentLoaded', function() {
+  // 서버 원장 동기화를 먼저 수행 — 다른 기기에서 결제한 내역도 인식
+  window.addEventListener('DOMContentLoaded', async function() {
+    await AuthGuard.syncFromServer();
+    (function () {
+      const mode = new URLSearchParams(window.location.search).get('mode');
+      const requiredProduct = mode === 'adult' ? 'couple_plus' : 'couple';
+      // couple_plus 결제자는 couple도 자동으로 볼 수 있게 (상위 호환)
+      if (requiredProduct === 'couple' && AuthGuard.hasPurchased('couple_plus')) {
+        return;
+      }
+      // 마스터 계정은 모두 패스
+      if (AuthGuard.isMaster()) {
+        console.log('[AuthGuard] ✦ 마스터 계정 — 궁합 페이지 패스');
+        return;
+      }
+      AuthGuard.requirePurchase(requiredProduct);
+    })();
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode');
     const productId = mode === 'adult' ? 'couple_plus' : 'couple';

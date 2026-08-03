@@ -1,0 +1,176 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   구매·분석 원장 (Vercel 서버리스 → Supabase)
+   카카오 로그인 세션 토큰으로 본인 확인 후, 본인 데이터만 읽고/씀.
+   클라이언트(anon key)로는 원장 테이블 접근 불가 — RLS로 전면 차단,
+   이 함수만 service_role 키로 우회 접근.
+
+   actions:
+   - list     : 내 구매·분석 전체 조회
+   - purchase : 구매 1건 기록
+   - analysis : 분석 1건 기록
+   - migrate  : 로컬(localStorage) 기록을 서버로 병합 (중복은 orderId/id로 스킵)
+   - redeem   : 선물 쿠폰 코드 전역 1회용 체크+기록 (이미 쓰였으면 already:true)
+
+   환경변수:
+   - SESSION_SECRET        — kakao-token.js와 동일해야 함
+   - SUPABASE_SERVICE_KEY  — Supabase service_role 키 (Project Settings > API Keys)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const crypto = require('crypto');
+
+const SUPA_URL = 'https://hlxttdvvwftiquzqxgxs.supabase.co';
+
+function verifySession(session, secret) {
+  if (!session || !secret) return null;
+  const parts = String(session).split('.');
+  if (parts.length !== 2) return null;
+  const [payload, sig] = parts;
+  const expected = crypto.createHmac('sha256', secret).update(payload).digest('base64url');
+  const a = Buffer.from(sig, 'utf8');
+  const b = Buffer.from(expected, 'utf8');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!data.id || !data.exp || Date.now() > data.exp) return null;
+    return String(data.id);
+  } catch (e) { return null; }
+}
+
+async function supa(method, path, body, headers) {
+  const KEY = process.env.SUPABASE_SERVICE_KEY;
+  const r = await fetch(SUPA_URL + '/rest/v1/' + path, {
+    method: method,
+    headers: Object.assign({
+      'apikey': KEY,
+      'Authorization': 'Bearer ' + KEY,
+      'Content-Type': 'application/json'
+    }, headers || {}),
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await r.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : null; } catch (e) { /* ignore */ }
+  return { ok: r.ok, status: r.status, json: json };
+}
+
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'POST only' });
+  }
+  if (!process.env.SESSION_SECRET || !process.env.SUPABASE_SERVICE_KEY) {
+    // 환경변수 미설정 — 클라이언트는 로컬 저장 모드로 폴백
+    return res.status(503).json({ ok: false, error: 'ledger_disabled' });
+  }
+
+  const body = req.body || {};
+  const kakaoId = verifySession(body.session, process.env.SESSION_SECRET);
+  if (!kakaoId) {
+    return res.status(401).json({ ok: false, error: '세션이 만료되었습니다. 다시 로그인해주세요.', reauth: true });
+  }
+  const enc = encodeURIComponent(kakaoId);
+
+  try {
+    // ─── 조회 ───
+    if (body.action === 'list') {
+      const [p, a] = await Promise.all([
+        supa('GET', 'purchases?user_kakao_id=eq.' + enc + '&select=product_id,raw,created_at&order=created_at.asc'),
+        supa('GET', 'analyses?user_kakao_id=eq.' + enc + '&select=product_id,raw,created_at&order=created_at.asc')
+      ]);
+      if (!p.ok || !a.ok) throw new Error('list query failed: ' + p.status + '/' + a.status);
+      return res.status(200).json({ ok: true, purchases: p.json || [], analyses: a.json || [] });
+    }
+
+    // ─── 구매 1건 ───
+    if (body.action === 'purchase') {
+      if (!body.productId || !body.raw) return res.status(400).json({ ok: false, error: 'bad request' });
+      const r = await supa('POST', 'purchases', {
+        user_kakao_id: kakaoId,
+        product_id: String(body.productId),
+        raw: body.raw,
+        created_at: body.raw.purchasedAt || new Date().toISOString()
+      }, { 'Prefer': 'return=minimal' });
+      if (!r.ok) throw new Error('purchase insert failed: ' + r.status);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ─── 분석 1건 ───
+    if (body.action === 'analysis') {
+      if (!body.productId || !body.raw || !body.raw.inputs) return res.status(400).json({ ok: false, error: 'bad request' });
+      const r = await supa('POST', 'analyses', {
+        user_kakao_id: kakaoId,
+        product_id: String(body.productId),
+        raw: body.raw,
+        created_at: body.raw.lockedAt || new Date().toISOString()
+      }, { 'Prefer': 'return=minimal' });
+      if (!r.ok) throw new Error('analysis insert failed: ' + r.status);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ─── 로컬 → 서버 병합 이관 ───
+    if (body.action === 'migrate') {
+      const [exP, exA] = await Promise.all([
+        supa('GET', 'purchases?user_kakao_id=eq.' + enc + '&select=raw'),
+        supa('GET', 'analyses?user_kakao_id=eq.' + enc + '&select=raw')
+      ]);
+      if (!exP.ok || !exA.ok) throw new Error('migrate query failed');
+      const haveOrder = new Set((exP.json || []).map(r => r.raw && r.raw.orderId).filter(Boolean));
+      const haveAn = new Set((exA.json || []).map(r => r.raw && r.raw.id).filter(Boolean));
+
+      const pRows = (Array.isArray(body.purchases) ? body.purchases : []).slice(0, 100)
+        .filter(p => p && p.productId && p.orderId && !haveOrder.has(p.orderId))
+        .map(p => ({
+          user_kakao_id: kakaoId,
+          product_id: String(p.productId),
+          raw: p,
+          created_at: p.purchasedAt || new Date().toISOString()
+        }));
+
+      const aRows = [];
+      const anObj = (body.analyses && typeof body.analyses === 'object') ? body.analyses : {};
+      Object.keys(anObj).slice(0, 20).forEach(pid => {
+        (Array.isArray(anObj[pid]) ? anObj[pid] : []).slice(0, 100).forEach(a => {
+          if (a && a.id && a.inputs && !haveAn.has(a.id)) {
+            aRows.push({
+              user_kakao_id: kakaoId,
+              product_id: String(pid),
+              raw: a,
+              created_at: a.lockedAt || new Date().toISOString()
+            });
+          }
+        });
+      });
+
+      if (pRows.length > 0) {
+        const r1 = await supa('POST', 'purchases', pRows, { 'Prefer': 'return=minimal' });
+        if (!r1.ok) throw new Error('migrate purchases insert failed: ' + r1.status);
+      }
+      if (aRows.length > 0) {
+        const r2 = await supa('POST', 'analyses', aRows, { 'Prefer': 'return=minimal' });
+        if (!r2.ok) throw new Error('migrate analyses insert failed: ' + r2.status);
+      }
+      return res.status(200).json({ ok: true, migrated: pRows.length + aRows.length });
+    }
+
+    // ─── 선물 쿠폰 전역 1회용 ───
+    if (body.action === 'redeem') {
+      const code = String(body.code || '').trim().toLowerCase();
+      if (!/^gift-[a-z]+-[a-z0-9]{4,10}-[a-f0-9]{8}$/.test(code)) {
+        return res.status(400).json({ ok: false, error: 'bad code' });
+      }
+      const ins = await supa('POST', 'coupon_redemptions', {
+        code: code,
+        user_kakao_id: kakaoId
+      }, { 'Prefer': 'return=minimal' });
+      if (ins.status === 409) {
+        return res.status(200).json({ ok: false, already: true, error: '이미 사용된 쿠폰입니다.' });
+      }
+      if (!ins.ok) throw new Error('redeem insert failed: ' + ins.status);
+      return res.status(200).json({ ok: true });
+    }
+
+    return res.status(400).json({ ok: false, error: 'unknown action' });
+  } catch (e) {
+    console.error('[ledger]', e);
+    return res.status(500).json({ ok: false, error: '원장 서버 오류' });
+  }
+};

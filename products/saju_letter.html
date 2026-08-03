@@ -19,10 +19,11 @@
 <script src="../assets/js/auth-guard.js?v=20260718"></script>
 <script>
   // 입문용(light) 결제자만 접근 가능 (마스터 계정은 패스)
-  AuthGuard.requirePurchase('light');
-
   // ─── 다중 슬롯 + 카카오 생일 자동입력 ───
-  window.addEventListener('DOMContentLoaded', function() {
+  // 서버 원장 동기화를 먼저 수행 — 다른 기기에서 결제한 내역도 인식
+  window.addEventListener('DOMContentLoaded', async function() {
+    await AuthGuard.syncFromServer();
+    if (!AuthGuard.requirePurchase('light')) return;
     const params = new URLSearchParams(window.location.search);
     const slotParam = params.get('slot');
     const isNewSlot = slotParam === 'new';
