@@ -113,6 +113,9 @@
 <div id="resultArea" style="display:none">
   <div class="row-tools">
     <input type="text" id="searchBox" placeholder="🔍 이름·생년월일·원국으로 검색" oninput="renderTable()">
+    <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3);margin:0;white-space:nowrap;cursor:pointer">
+      <input type="checkbox" id="dedupChk" checked onchange="applyDedup()"> 중복 자동 제거
+    </label>
     <span class="cnt" id="rowCnt"></span>
     <button class="btn" onclick="downloadClean()">정리본 CSV 저장</button>
     <button class="btn dark" onclick="window.print()">인쇄</button>
@@ -219,7 +222,31 @@ function parseCSV(text) {
 }
 
 /* ━━━ 데이터 정리 ━━━ */
-let cleanRows = [];  // {name, gender, birth, hourTxt, product, pillars:{hanja,hangul}, dt}
+let allRows = [];    // CSV에서 파싱된 전체 (중복 포함)
+let cleanRows = [];  // 화면 표시용 {name, gender, birthTxt, hourTxt, product, pillars:{hanja,hangul}, dt, dup}
+
+// 중복 제거: 같은 사람(이름+생년월일+시)이 같은 상품을 여러 번 돌린 경우 최신 1건만
+// (CSV가 최신순이므로 먼저 나온 행 유지, 중복 횟수는 dup에 기록)
+function applyDedup() {
+  const on = document.getElementById('dedupChk').checked;
+  if (!on) {
+    cleanRows = allRows.map(r => ({ ...r, dup: 1 }));
+  } else {
+    const seen = new Map();
+    cleanRows = [];
+    allRows.forEach(r => {
+      const key = [r.name, r.birthTxt, r.hourTxt, r.product].join('|');
+      if (seen.has(key)) {
+        seen.get(key).dup++;
+      } else {
+        const copy = { ...r, dup: 1 };
+        seen.set(key, copy);
+        cleanRows.push(copy);
+      }
+    });
+  }
+  renderTable();
+}
 
 const PRODUCT_TAG = { '입문용': 'tag-light', '전문가용': 'tag-deep', '궁합': 'tag-couple', '궁합(성인)': 'tag-couple' };
 
@@ -257,7 +284,7 @@ function buildRows(rows) {
     return;
   }
 
-  cleanRows = [];
+  allRows = [];
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
     const get = i => (i >= 0 && i < row.length ? String(row[i]).trim() : '');
@@ -267,7 +294,7 @@ function buildRows(rows) {
     const birth = padDate(get(iBirth));
     if (birth) {
       const hour = parseInt(get(iHour), 10);
-      cleanRows.push({
+      allRows.push({
         name: get(iName) || '(무명)',
         gender: toGender(get(iGender)),
         birthTxt: birth.txt,
@@ -281,7 +308,7 @@ function buildRows(rows) {
     const bBirth = padDate(get(iBBirth));
     if (bBirth) {
       const bHour = parseInt(get(iBHour), 10);
-      cleanRows.push({
+      allRows.push({
         name: (get(iBName) || '(상대)'),
         gender: toGender(get(iBGender)),
         birthTxt: bBirth.txt,
@@ -294,7 +321,7 @@ function buildRows(rows) {
   }
 
   document.getElementById('resultArea').style.display = 'block';
-  renderTable();
+  applyDedup();
   window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 10, behavior: 'smooth' });
 }
 
@@ -309,15 +336,18 @@ function renderTable() {
     if (!q) return true;
     return (r.name + r.birthTxt + r.pillars.hangul + r.pillars.hanja + r.product).toLowerCase().includes(q);
   });
-  document.getElementById('rowCnt').textContent = '총 ' + list.length + '명' + (q ? ' (검색됨)' : '');
+  const dupRemoved = allRows.length - cleanRows.length;
+  document.getElementById('rowCnt').textContent =
+    '총 ' + list.length + '명' + (q ? ' (검색됨)' : (dupRemoved > 0 ? ' (중복 ' + dupRemoved + '건 제외)' : ''));
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty">표시할 이력이 없습니다</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(r => {
     const tagCls = PRODUCT_TAG[r.product.replace(' · 상대', '')] || 'tag-etc';
+    const dupBadge = r.dup > 1 ? ' <span class="tag tag-etc" title="같은 정보로 ' + r.dup + '회 분석됨">×' + r.dup + '</span>' : '';
     return '<tr>' +
-      '<td><b>' + escHtml(r.name) + '</b>' + (r.gender ? ' <span class="muted">(' + r.gender + ')</span>' : '') + '</td>' +
+      '<td><b>' + escHtml(r.name) + '</b>' + (r.gender ? ' <span class="muted">(' + r.gender + ')</span>' : '') + dupBadge + '</td>' +
       '<td>' + r.birthTxt + ' <span class="muted">' + r.hourTxt + '</span></td>' +
       '<td><span class="tag ' + tagCls + '">' + escHtml(r.product) + '</span></td>' +
       '<td class="pillars"><div class="hj">' + r.pillars.hanja + '</div><div class="hg">' + r.pillars.hangul + '</div></td>' +
