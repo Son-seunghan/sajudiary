@@ -76,6 +76,8 @@
   .pillars { font-family: 'Noto Serif KR', serif; }
   .pillars .hj { font-size: 15px; font-weight: 700; letter-spacing: 2px; }
   .pillars .hg { font-size: 11px; color: var(--ink4); letter-spacing: 1.5px; }
+  /* 궁합 등 두 사람이 한 행에 묶일 때 — 사람 사이 구분선 */
+  .pcell > div + div { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--paper-dk); }
   .tag {
     display: inline-block; font-size: 11px; font-weight: 700;
     padding: 2px 8px; border-radius: 999px;
@@ -236,7 +238,7 @@ function parseCSV(text) {
 let allRows = [];    // CSV에서 파싱된 전체 (중복 포함)
 let cleanRows = [];  // 화면 표시용 {name, gender, birthTxt, hourTxt, product, pillars:{hanja,hangul}, dt, dup}
 
-// 중복 제거: 같은 사람(이름+생년월일+시)이 같은 상품을 여러 번 돌린 경우 최신 1건만
+// 중복 제거: 같은 사람(들)(이름+생년월일+시)이 같은 상품을 여러 번 돌린 경우 최신 1건만
 // (CSV가 최신순이므로 먼저 나온 행 유지, 중복 횟수는 dup에 기록)
 function applyDedup() {
   const on = document.getElementById('dedupChk').checked;
@@ -246,7 +248,7 @@ function applyDedup() {
     const seen = new Map();
     cleanRows = [];
     allRows.forEach(r => {
-      const key = [r.name, r.birthTxt, r.hourTxt, r.product].join('|');
+      const key = r.persons.map(p => [p.name, p.birthTxt, p.hourTxt].join('|')).join('+') + '|' + r.product;
       if (seen.has(key)) {
         seen.get(key).dup++;
       } else {
@@ -290,7 +292,8 @@ function utcToKST(s) {
     String(d.getUTCMinutes()).padStart(2, '0');
 }
 
-function personRow(p, product, dt) {
+// 사람 1명분 정보 (이름·생년월일시·원국)
+function personObj(p) {
   if (!p || !p.year || !p.month || !p.day) return null;
   const hour = (typeof p.hour === 'number') ? p.hour : parseInt(p.hour, 10);
   const h = isNaN(hour) ? -1 : hour;
@@ -299,9 +302,7 @@ function personRow(p, product, dt) {
     gender: toGender(p.gender),
     birthTxt: p.year + '-' + String(p.month).padStart(2, '0') + '-' + String(p.day).padStart(2, '0'),
     hourTxt: hourLabel(h),
-    product: product,
-    pillars: pillarsOf(+p.year, +p.month, +p.day, h),
-    dt: dt
+    pillars: pillarsOf(+p.year, +p.month, +p.day, h)
   };
 }
 
@@ -318,15 +319,11 @@ function buildFromRawTable(rows, h) {
     if (!inputs) continue;
     const product = PRODUCT_KO[row[iProduct]] || row[iProduct] || '-';
     const dt = utcToKST(row[iDt]);
-    if (inputs.A || inputs.B) {
-      const a = personRow(inputs.A, product, dt);
-      const b = personRow(inputs.B, product + ' · 상대', dt);
-      if (a) allRows.push(a);
-      if (b) allRows.push(b);
-    } else {
-      const p = personRow(inputs, product, dt);
-      if (p) allRows.push(p);
-    }
+    // 궁합은 두 사람을 한 행에 묶음
+    const persons = (inputs.A || inputs.B)
+      ? [personObj(inputs.A), personObj(inputs.B)].filter(Boolean)
+      : [personObj(inputs)].filter(Boolean);
+    if (persons.length) allRows.push({ persons, product, dt });
   }
   document.getElementById('resultArea').style.display = 'block';
   applyDedup();
@@ -366,33 +363,31 @@ function buildRows(rows) {
     const product = get(iProduct) || '-';
     const dt = get(iDt);
 
+    const persons = [];
     const birth = padDate(get(iBirth));
     if (birth) {
       const hour = parseInt(get(iHour), 10);
-      allRows.push({
+      persons.push({
         name: get(iName) || '(무명)',
         gender: toGender(get(iGender)),
         birthTxt: birth.txt,
         hourTxt: hourLabel(hour),
-        product: product,
-        pillars: pillarsOf(birth.y, birth.mo, birth.d, isNaN(hour) ? -1 : hour),
-        dt: dt
+        pillars: pillarsOf(birth.y, birth.mo, birth.d, isNaN(hour) ? -1 : hour)
       });
     }
-    // 궁합 상대방 → 별도 행
+    // 궁합 상대방 → 같은 행에 묶음
     const bBirth = padDate(get(iBBirth));
     if (bBirth) {
       const bHour = parseInt(get(iBHour), 10);
-      allRows.push({
+      persons.push({
         name: (get(iBName) || '(상대)'),
         gender: toGender(get(iBGender)),
         birthTxt: bBirth.txt,
         hourTxt: hourLabel(bHour),
-        product: product + ' · 상대',
-        pillars: pillarsOf(bBirth.y, bBirth.mo, bBirth.d, isNaN(bHour) ? -1 : bHour),
-        dt: dt
+        pillars: pillarsOf(bBirth.y, bBirth.mo, bBirth.d, isNaN(bHour) ? -1 : bHour)
       });
     }
+    if (persons.length) allRows.push({ persons, product, dt });
   }
 
   document.getElementById('resultArea').style.display = 'block';
@@ -409,7 +404,8 @@ function currentList() {
   const q = document.getElementById('searchBox').value.trim().toLowerCase();
   return cleanRows.filter(r => {
     if (!q) return true;
-    return (r.name + r.birthTxt + r.pillars.hangul + r.pillars.hanja + r.product).toLowerCase().includes(q);
+    const hay = r.persons.map(p => p.name + p.birthTxt + p.pillars.hangul + p.pillars.hanja).join('') + r.product;
+    return hay.toLowerCase().includes(q);
   });
 }
 
@@ -419,19 +415,30 @@ function renderTable() {
   const list = currentList();
   const dupRemoved = allRows.length - cleanRows.length;
   document.getElementById('rowCnt').textContent =
-    '총 ' + list.length + '명' + (q ? ' (검색됨)' : (dupRemoved > 0 ? ' (중복 ' + dupRemoved + '건 제외)' : ''));
+    '총 ' + list.length + '건' + (q ? ' (검색됨)' : (dupRemoved > 0 ? ' (중복 ' + dupRemoved + '건 제외)' : ''));
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty">표시할 이력이 없습니다</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(r => {
-    const tagCls = PRODUCT_TAG[r.product.replace(' · 상대', '')] || 'tag-etc';
+    const tagCls = PRODUCT_TAG[r.product] || 'tag-etc';
     const dupBadge = r.dup > 1 ? ' <span class="tag tag-etc" title="같은 정보로 ' + r.dup + '회 분석됨">×' + r.dup + '</span>' : '';
+    const multi = r.persons.length > 1;
+    const nameCell = r.persons.map((p, i) =>
+      '<div><b>' + escHtml(p.name) + '</b>' + (p.gender ? ' <span class="muted">(' + p.gender + ')</span>' : '') + (i === 0 ? dupBadge : '') + '</div>'
+    ).join('');
+    const birthCell = r.persons.map(p =>
+      '<div>' + p.birthTxt + ' <span class="muted">' + p.hourTxt + '</span></div>'
+    ).join('');
+    const pillarCell = r.persons.map(p =>
+      '<div><span class="hj">' + p.pillars.hanja + '</span><div class="hg">' + p.pillars.hangul + '</div></div>'
+    ).join('');
+    const mc = multi ? ' class="pcell"' : '';
     return '<tr>' +
-      '<td><b>' + escHtml(r.name) + '</b>' + (r.gender ? ' <span class="muted">(' + r.gender + ')</span>' : '') + dupBadge + '</td>' +
-      '<td>' + r.birthTxt + ' <span class="muted">' + r.hourTxt + '</span></td>' +
+      '<td' + mc + '>' + nameCell + '</td>' +
+      '<td' + mc + '>' + birthCell + '</td>' +
       '<td><span class="tag ' + tagCls + '">' + escHtml(r.product) + '</span></td>' +
-      '<td class="pillars"><div class="hj">' + r.pillars.hanja + '</div><div class="hg">' + r.pillars.hangul + '</div></td>' +
+      '<td class="pillars' + (multi ? ' pcell' : '') + '">' + pillarCell + '</td>' +
       '<td class="dt">' + escHtml(r.dt) + '</td>' +
     '</tr>';
   }).join('');
@@ -439,7 +446,9 @@ function renderTable() {
 
 const EXPORT_HEAD = ['이름', '성별', '생년월일', '시', '조회항목', '사주원국', '사주원국(한자)', '분석일시'];
 function exportRow(r) {
-  return [r.name, r.gender, r.birthTxt, r.hourTxt, r.product, r.pillars.hangul, r.pillars.hanja, r.dt];
+  const j = fn => r.persons.map(fn).join(' / ');
+  return [j(p => p.name), j(p => p.gender), j(p => p.birthTxt), j(p => p.hourTxt),
+          r.product, j(p => p.pillars.hangul), j(p => p.pillars.hanja), r.dt];
 }
 
 // 화면에 보이는 그대로(중복 제거·검색 필터 반영) CSV 파일로 저장
