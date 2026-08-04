@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>발행 이력 정리기 — 사주다이어리 (운영자 전용)</title>
+<style>
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418;
+    --gold:#b8923c; --jade:#5a8a98;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: var(--ink4); margin-bottom: 20px; }
+  .card {
+    background: var(--paper2);
+    border: 1px solid var(--paper-dk);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  label { display: block; font-size: 12px; color: var(--ink3); margin-bottom: 6px; font-weight: 600; }
+  .dropzone {
+    border: 2px dashed var(--paper-dk);
+    border-radius: 10px;
+    padding: 26px 14px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink3);
+    cursor: pointer;
+    background: #fff;
+    transition: border-color .2s, background .2s;
+  }
+  .dropzone.drag { border-color: var(--jade); background: #f4f9fa; }
+  .dropzone input { display: none; }
+  textarea {
+    width: 100%; height: 90px;
+    padding: 10px 12px; margin-top: 10px;
+    border: 1px solid var(--paper-dk); border-radius: 8px;
+    font-size: 12px; font-family: monospace;
+    background: #fff; resize: vertical;
+  }
+  .row-tools { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .row-tools input[type=text] {
+    flex: 1; min-width: 160px;
+    padding: 9px 12px;
+    border: 1px solid var(--paper-dk); border-radius: 8px;
+    font-size: 13px; background: #fff;
+  }
+  .cnt { font-size: 12px; color: var(--ink4); white-space: nowrap; }
+  .btn {
+    padding: 9px 14px;
+    border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    background: var(--jade); color: #fff;
+    white-space: nowrap;
+  }
+  .btn.dark { background: var(--ink); color: var(--paper); }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; }
+  th, td { padding: 10px 12px; font-size: 13px; text-align: left; border-bottom: 1px solid var(--paper-dk); vertical-align: middle; }
+  th { background: var(--ink); color: var(--paper); font-size: 12px; white-space: nowrap; }
+  tr:hover td { background: #fffdf6; }
+  .pillars { font-family: 'Noto Serif KR', serif; }
+  .pillars .hj { font-size: 15px; font-weight: 700; letter-spacing: 2px; }
+  .pillars .hg { font-size: 11px; color: var(--ink4); letter-spacing: 1.5px; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .tag-light  { background: rgba(90,138,152,.15); color: #406878; }
+  .tag-deep   { background: rgba(177,58,44,.12); color: var(--vermil2); }
+  .tag-couple { background: rgba(184,96,122,.15); color: #944860; }
+  .tag-etc    { background: var(--paper-dk); color: var(--ink3); }
+  .dt { font-size: 11px; color: var(--ink4); white-space: nowrap; }
+  .muted { color: var(--ink4); }
+  .empty { text-align: center; padding: 30px; color: var(--ink4); font-size: 13px; }
+  .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--paper-dk); }
+  @media print {
+    .card, .row-tools .btn, .dropzone, textarea { display: none !important; }
+    body { background: #fff; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>📜 발행 이력 정리기</h1>
+<p class="sub">운영자 전용 · Supabase 분석 이력 CSV → 이름·생년월일시·조회항목·사주원국 표 (데이터는 브라우저 안에서만 처리됩니다)</p>
+
+<div class="card">
+  <label>① Supabase에서 받은 CSV 파일 넣기 (분석 발행 이력 쿼리 결과)</label>
+  <div class="dropzone" id="dropzone">
+    📂 여기를 클릭해 CSV 선택 — 또는 파일을 끌어다 놓기
+    <input type="file" id="fileInput" accept=".csv,text/csv">
+  </div>
+  <label style="margin-top:12px">또는 CSV 내용을 직접 붙여넣기</label>
+  <textarea id="pasteBox" placeholder="분석일시,상품,이름,성별,생년월일,... 헤더 포함 전체를 붙여넣고 아래 버튼"></textarea>
+  <div style="margin-top:8px"><button class="btn dark" onclick="parseFromPaste()">붙여넣은 내용 정리하기</button></div>
+</div>
+
+<div id="resultArea" style="display:none">
+  <div class="row-tools">
+    <input type="text" id="searchBox" placeholder="🔍 이름·생년월일·원국으로 검색" oninput="renderTable()">
+    <span class="cnt" id="rowCnt"></span>
+    <button class="btn" onclick="downloadClean()">정리본 CSV 저장</button>
+    <button class="btn dark" onclick="window.print()">인쇄</button>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>이름</th><th>생년월일시</th><th>조회항목</th><th>사주원국 (년 · 월 · 일 · 시)</th><th>분석일시</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ━━━ 만세력 엔진 (manse.html과 동일 로직) ━━━ */
+const STEMS   = ['갑','을','병','정','무','기','경','신','임','계'];
+const STEMS_H = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANS   = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
+const BRANS_H = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+function getJDN(y, m, d) {
+  const a = Math.floor((14 - m) / 12);
+  const yy = y + 4800 - a;
+  const mm = m + 12 * a - 3;
+  return d + Math.floor((153*mm + 2)/5) + 365*yy + Math.floor(yy/4) - Math.floor(yy/100) + Math.floor(yy/400) - 32045;
+}
+const TERMS = [
+  {m:2,d:4,bi:2},{m:3,d:6,bi:3},{m:4,d:5,bi:4},{m:5,d:6,bi:5},{m:6,d:6,bi:6},{m:7,d:7,bi:7},
+  {m:8,d:7,bi:8},{m:9,d:8,bi:9},{m:10,d:8,bi:10},{m:11,d:7,bi:11},{m:12,d:7,bi:0},{m:1,d:6,bi:1}
+];
+function getYearPillar(year, month, day) {
+  let ay = year;
+  if (month < 2 || (month === 2 && day < 4)) ay = year - 1;
+  return { si: ((ay - 4) % 10 + 10) % 10, bi: ((ay - 4) % 12 + 12) % 12 };
+}
+function getMonthPillar(year, month, day, yearSi) {
+  let bi = 2;
+  if (month === 1) {
+    bi = day >= TERMS[11].d ? 1 : 0;
+  } else {
+    for (let i = TERMS.length - 2; i >= 0; i--) {
+      const t = TERMS[i];
+      if (month > t.m || (month === t.m && day >= t.d)) { bi = t.bi; break; }
+      if (i === 0) bi = 1;
+    }
+  }
+  const baseSi = [2, 4, 6, 8, 0][yearSi % 5];
+  const si = (baseSi + ((bi - 2) + 12) % 12) % 10;
+  return { si, bi };
+}
+function getDayPillar(year, month, day) {
+  const idx60 = ((54 + (getJDN(year, month, day) - getJDN(2000, 1, 1))) % 60 + 60) % 60;
+  return { si: idx60 % 10, bi: idx60 % 12 };
+}
+function getHourPillar(hour, daySi) {
+  if (hour < 0 || isNaN(hour)) return null;
+  const bi = hour === 23 ? 0 : Math.floor((hour + 1) / 2);
+  return { si: ([0, 2, 4, 6, 8][daySi % 5] + bi) % 10, bi };
+}
+function pillarsOf(y, m, d, hour) {
+  const yp = getYearPillar(y, m, d);
+  const mp = getMonthPillar(y, m, d, yp.si);
+  const dp = getDayPillar(y, m, d);
+  const hp = getHourPillar(hour, dp.si);
+  const hj = p => p ? STEMS_H[p.si] + BRANS_H[p.bi] : '？';
+  const hg = p => p ? STEMS[p.si] + BRANS[p.bi] : '모름';
+  return {
+    hanja: [yp, mp, dp, hp].map(hj).join(' '),
+    hangul: [yp, mp, dp, hp].map(hg).join(' ')
+  };
+}
+function hourLabel(hour) {
+  if (hour < 0 || isNaN(hour)) return '시간모름';
+  const bi = hour === 23 ? 0 : Math.floor((hour + 1) / 2);
+  return BRANS[bi] + '시';
+}
+
+/* ━━━ CSV 파서 (따옴표·쉼표·줄바꿈 처리) ━━━ */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cell = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; }
+        else inQ = false;
+      } else cell += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(cell); cell = '';
+        if (row.some(v => v !== '')) rows.push(row);
+        row = [];
+      } else cell += c;
+    }
+  }
+  row.push(cell);
+  if (row.some(v => v !== '')) rows.push(row);
+  return rows;
+}
+
+/* ━━━ 데이터 정리 ━━━ */
+let cleanRows = [];  // {name, gender, birth, hourTxt, product, pillars:{hanja,hangul}, dt}
+
+const PRODUCT_TAG = { '입문용': 'tag-light', '전문가용': 'tag-deep', '궁합': 'tag-couple', '궁합(성인)': 'tag-couple' };
+
+function colIdx(headers, matchFn) {
+  for (let i = 0; i < headers.length; i++) if (matchFn(headers[i])) return i;
+  return -1;
+}
+function toGender(g) {
+  if (!g) return '';
+  const s = String(g).toLowerCase();
+  return s.startsWith('m') || s === '남' ? '남' : (s.startsWith('f') || s === '여' ? '여' : '');
+}
+function padDate(s) {
+  const m = String(s || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!m) return null;
+  return { y: +m[1], mo: +m[2], d: +m[3], txt: m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0') };
+}
+
+function buildRows(rows) {
+  if (!rows.length) { alert('CSV 내용이 비어 있어요.'); return; }
+  const h = rows[0].map(x => String(x).trim());
+  const iDt      = colIdx(h, x => x.includes('분석일시') || x.includes('일시'));
+  const iProduct = colIdx(h, x => x.includes('상품'));
+  const iName    = colIdx(h, x => x.includes('이름') && !x.includes('상대'));
+  const iGender  = colIdx(h, x => x.includes('성별') && !x.includes('상대'));
+  const iBirth   = colIdx(h, x => x.includes('생년월일') && !x.includes('상대'));
+  const iHour    = colIdx(h, x => (x.startsWith('시') || x.includes('시(')) && !x.includes('상대') && !x.includes('일시'));
+  const iBName   = colIdx(h, x => x.includes('상대이름'));
+  const iBGender = colIdx(h, x => x.includes('상대성별'));
+  const iBBirth  = colIdx(h, x => x.includes('상대생년월일'));
+  const iBHour   = colIdx(h, x => x.includes('상대시'));
+
+  if (iBirth === -1 || iName === -1) {
+    alert('헤더에서 "이름"·"생년월일" 컬럼을 찾지 못했어요.\n가이드의 ① 분석 발행 이력 쿼리 결과 CSV를 넣어주세요.');
+    return;
+  }
+
+  cleanRows = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const get = i => (i >= 0 && i < row.length ? String(row[i]).trim() : '');
+    const product = get(iProduct) || '-';
+    const dt = get(iDt);
+
+    const birth = padDate(get(iBirth));
+    if (birth) {
+      const hour = parseInt(get(iHour), 10);
+      cleanRows.push({
+        name: get(iName) || '(무명)',
+        gender: toGender(get(iGender)),
+        birthTxt: birth.txt,
+        hourTxt: hourLabel(hour),
+        product: product,
+        pillars: pillarsOf(birth.y, birth.mo, birth.d, isNaN(hour) ? -1 : hour),
+        dt: dt
+      });
+    }
+    // 궁합 상대방 → 별도 행
+    const bBirth = padDate(get(iBBirth));
+    if (bBirth) {
+      const bHour = parseInt(get(iBHour), 10);
+      cleanRows.push({
+        name: (get(iBName) || '(상대)'),
+        gender: toGender(get(iBGender)),
+        birthTxt: bBirth.txt,
+        hourTxt: hourLabel(bHour),
+        product: product + ' · 상대',
+        pillars: pillarsOf(bBirth.y, bBirth.mo, bBirth.d, isNaN(bHour) ? -1 : bHour),
+        dt: dt
+      });
+    }
+  }
+
+  document.getElementById('resultArea').style.display = 'block';
+  renderTable();
+  window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 10, behavior: 'smooth' });
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderTable() {
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const tbody = document.getElementById('tbody');
+  const list = cleanRows.filter(r => {
+    if (!q) return true;
+    return (r.name + r.birthTxt + r.pillars.hangul + r.pillars.hanja + r.product).toLowerCase().includes(q);
+  });
+  document.getElementById('rowCnt').textContent = '총 ' + list.length + '명' + (q ? ' (검색됨)' : '');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">표시할 이력이 없습니다</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(r => {
+    const tagCls = PRODUCT_TAG[r.product.replace(' · 상대', '')] || 'tag-etc';
+    return '<tr>' +
+      '<td><b>' + escHtml(r.name) + '</b>' + (r.gender ? ' <span class="muted">(' + r.gender + ')</span>' : '') + '</td>' +
+      '<td>' + r.birthTxt + ' <span class="muted">' + r.hourTxt + '</span></td>' +
+      '<td><span class="tag ' + tagCls + '">' + escHtml(r.product) + '</span></td>' +
+      '<td class="pillars"><div class="hj">' + r.pillars.hanja + '</div><div class="hg">' + r.pillars.hangul + '</div></td>' +
+      '<td class="dt">' + escHtml(r.dt) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function downloadClean() {
+  const head = '이름,성별,생년월일,시,조회항목,사주원국,사주원국(한자),분석일시\n';
+  const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const body = cleanRows.map(r =>
+    [r.name, r.gender, r.birthTxt, r.hourTxt, r.product, r.pillars.hangul, r.pillars.hanja, r.dt].map(esc).join(',')
+  ).join('\n');
+  const blob = new Blob(['﻿' + head + body], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '사주다이어리_발행이력_정리본.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ━━━ 입력 처리 ━━━ */
+const dz = document.getElementById('dropzone');
+const fi = document.getElementById('fileInput');
+dz.addEventListener('click', () => fi.click());
+fi.addEventListener('change', () => { if (fi.files[0]) readFile(fi.files[0]); });
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => buildRows(parseCSV(String(reader.result)));
+  reader.readAsText(file, 'utf-8');
+}
+function parseFromPaste() {
+  const t = document.getElementById('pasteBox').value.trim();
+  if (!t) { alert('붙여넣은 내용이 없어요.'); return; }
+  buildRows(parseCSV(t));
+}
+</script>
+</body>
+</html>
