@@ -265,9 +265,73 @@ function padDate(s) {
   return { y: +m[1], mo: +m[2], d: +m[3], txt: m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0') };
 }
 
+/* ── Supabase Table Editor 원본 내보내기 (analyses_rows.csv) 형식 ──
+   컬럼: id, user_kakao_id, product_id, raw(JSON), created_at(UTC) */
+const PRODUCT_KO = { light: '입문용', deep: '전문가용', couple: '궁합', couple_plus: '궁합(성인)' };
+
+function utcToKST(s) {
+  // "2026-08-04 01:16:37.086+00" → "2026-08-04 10:16" (KST)
+  const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!m) return String(s || '');
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) + 9 * 3600 * 1000);
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getUTCDate()).padStart(2, '0') + ' ' + String(d.getUTCHours()).padStart(2, '0') + ':' +
+    String(d.getUTCMinutes()).padStart(2, '0');
+}
+
+function personRow(p, product, dt) {
+  if (!p || !p.year || !p.month || !p.day) return null;
+  const hour = (typeof p.hour === 'number') ? p.hour : parseInt(p.hour, 10);
+  const h = isNaN(hour) ? -1 : hour;
+  return {
+    name: p.name || '(무명)',
+    gender: toGender(p.gender),
+    birthTxt: p.year + '-' + String(p.month).padStart(2, '0') + '-' + String(p.day).padStart(2, '0'),
+    hourTxt: hourLabel(h),
+    product: product,
+    pillars: pillarsOf(+p.year, +p.month, +p.day, h),
+    dt: dt
+  };
+}
+
+function buildFromRawTable(rows, h) {
+  const iProduct = h.indexOf('product_id');
+  const iRaw = h.indexOf('raw');
+  const iDt = h.indexOf('created_at');
+  allRows = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    let raw;
+    try { raw = JSON.parse(row[iRaw]); } catch (e) { continue; }
+    const inputs = raw && raw.inputs;
+    if (!inputs) continue;
+    const product = PRODUCT_KO[row[iProduct]] || row[iProduct] || '-';
+    const dt = utcToKST(row[iDt]);
+    if (inputs.A || inputs.B) {
+      const a = personRow(inputs.A, product, dt);
+      const b = personRow(inputs.B, product + ' · 상대', dt);
+      if (a) allRows.push(a);
+      if (b) allRows.push(b);
+    } else {
+      const p = personRow(inputs, product, dt);
+      if (p) allRows.push(p);
+    }
+  }
+  document.getElementById('resultArea').style.display = 'block';
+  applyDedup();
+  window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 10, behavior: 'smooth' });
+}
+
 function buildRows(rows) {
   if (!rows.length) { alert('CSV 내용이 비어 있어요.'); return; }
   const h = rows[0].map(x => String(x).trim());
+
+  // 형식 자동 감지 ① Supabase Table Editor 원본 (raw JSON 컬럼)
+  if (h.includes('raw') && h.includes('product_id')) {
+    buildFromRawTable(rows, h);
+    return;
+  }
+  // 형식 자동 감지 ② SQL 조회 결과 (한글 컬럼)
   const iDt      = colIdx(h, x => x.includes('분석일시') || x.includes('일시'));
   const iProduct = colIdx(h, x => x.includes('상품'));
   const iName    = colIdx(h, x => x.includes('이름') && !x.includes('상대'));
