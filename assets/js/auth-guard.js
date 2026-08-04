@@ -243,6 +243,11 @@ const AuthGuard = (function () {
       return { success: false, error: '유효하지 않은 쿠폰 코드입니다.' };
     }
     if (!getUser()) return { success: false, error: '쿠폰 사용 전 로그인이 필요합니다.' };
+    // 세션 필수 — 쿠폰 사용·구매·분석이 서버 원장에 확실히 기록되도록 (2026-08-05)
+    // 구버전 로그인 상태(세션 없음)면 재로그인 유도
+    if (!_session()) {
+      return { success: false, error: '계정 확인이 필요합니다. 로그아웃 후 카카오 로그인을 다시 한 번 하신 뒤, 쿠폰을 입력해주세요.' };
+    }
     if (_getRedeemedCoupons().includes(code)) {
       return { success: false, error: '이 쿠폰은 이미 사용되었습니다.' };
     }

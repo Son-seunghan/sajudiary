@@ -120,36 +120,27 @@ const Auth = (function () {
       }
 
     } catch (err) {
-      // ─── 토큰 교환 실패 — 우아한 폴백 ───
-      // CORS / 백엔드 부재 등으로 토큰 교환이 안 될 때
-      // ※ 실서비스에서는 백엔드(Vercel 함수)에서 처리해야 함
-      console.warn('[Auth] ⚠️ 토큰 교환 실패 — 폴백 모드로 로그인 처리');
-      console.warn('[Auth] 원본 에러:', err);
+      // ─── 토큰 교환 실패 ───
+      // (2026-08-05) 폴백 가짜 계정 생성 제거 — 폴백 사용자는 실명·세션이 없어
+      // 후기 마스킹이 깨지고 원장(구매·분석·쿠폰) 기록이 누락되는 문제가 있었음
+      console.warn('[Auth] ⚠️ 토큰 교환 실패:', err);
 
-      // ── 폴백 ID 안정화 ──
-      // 매번 새 인가 code로 새 ID 만들지 말고, 한 번 만들어진 ID는 localStorage에 캐시
-      // (같은 브라우저에서 로그인 = 같은 사용자로 인식 → isMaster·구매내역 유지)
-      const FALLBACK_ID_KEY = 'sajudiary_fallback_id';
-      let fallbackId = localStorage.getItem(FALLBACK_ID_KEY);
-      if (!fallbackId) {
-        fallbackId = 'kakao_fb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
-        localStorage.setItem(FALLBACK_ID_KEY, fallbackId);
+      // 이미 정상 카카오 계정으로 로그인돼 있으면 그대로 유지하고 진행
+      // (새로고침 등으로 인가 코드가 재사용돼 실패한 경우 — 기존 계정 덮어쓰기 방지)
+      const existing = getUser();
+      if (existing && existing.provider === 'kakao') {
+        console.log('[Auth] 기존 정상 계정 유지:', existing.id);
+        if (product === '__cart__') {
+          window.location.href = 'payment.html?fromCart=1';
+        } else {
+          goToPayment(product);
+        }
+        return;
       }
-      const fallbackUser = {
-        id: fallbackId,
-        nickname: '카카오 회원',
-        profile_image: '',
-        provider: 'kakao_fallback'
-      };
-      saveUser(fallbackUser);
-      console.log('[Auth] ✅ 폴백 로그인 — 안정 ID:', fallbackId);
 
-      console.log('[Auth] ✅ 폴백 로그인 성공, 결제 페이지로 이동');
-      if (product === '__cart__') {
-        window.location.href = 'payment.html?fromCart=1';
-      } else {
-        goToPayment(product);
-      }
+      // 가짜 계정을 만들지 않고 재시도 안내 → 로그인 화면으로 복귀
+      alert('카카오 로그인에 실패했어요.\n네트워크가 불안정하거나 로그인 창이 오래 열려 있었을 수 있어요.\n확인을 누르면 로그인 화면으로 돌아갑니다. 다시 시도해주세요.');
+      window.location.href = window.location.pathname + (product ? '?product=' + encodeURIComponent(product) : '');
     }
   }
 
