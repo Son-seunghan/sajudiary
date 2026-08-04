@@ -39,7 +39,8 @@ const Reviews = (function () {
     return {
       id: row.id,
       userId: row.user_kakao_id,
-      userNickname: row.display_nickname || '회원',
+      // 렌더 시점에도 마스킹 — 과거에 마스킹 규칙이 느슨할 때 저장된 닉네임도 보정
+      userNickname: maskNickname(row.display_nickname || '회원'),
       productId: row.product_id,
       rating: row.rating,
       content: row.content,
@@ -244,11 +245,13 @@ const Reviews = (function () {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   // 닉네임 마스킹 (개인정보 보호)
-  // 김민정 → 김O정 / 박수 → 박O / O수아 → O수아 (3자 이상만 마스킹)
+  // 김민정 → 김O정 / 다빈 → O빈 / 카카오회원 → 카OOO원
+  // 이미 마스킹된 문자열에 다시 적용해도 결과 동일 (렌더 시점 재마스킹 안전)
   function maskNickname(nickname) {
     if (!nickname) return '회원';
     const trimmed = nickname.trim();
-    if (trimmed.length <= 2) return trimmed;
+    if (trimmed.length <= 1) return trimmed;
+    if (trimmed.length === 2) return 'O' + trimmed[1];
     if (trimmed.length === 3) return trimmed[0] + 'O' + trimmed[2];
     return trimmed[0] + 'O'.repeat(trimmed.length - 2) + trimmed[trimmed.length - 1];
   }
