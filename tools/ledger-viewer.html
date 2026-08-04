@@ -88,8 +88,16 @@
   .muted { color: var(--ink4); }
   .empty { text-align: center; padding: 30px; color: var(--ink4); font-size: 13px; }
   .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--paper-dk); }
+  .toast {
+    position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper);
+    padding: 10px 22px; border-radius: 999px; font-size: 13px;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+    white-space: nowrap; z-index: 10;
+  }
+  .toast.show { opacity: 1; }
   @media print {
-    .card, .row-tools .btn, .dropzone, textarea { display: none !important; }
+    .card, .row-tools .btn, .dropzone, textarea, .toast { display: none !important; }
     body { background: #fff; padding: 0; }
   }
 </style>
@@ -117,7 +125,8 @@
       <input type="checkbox" id="dedupChk" checked onchange="applyDedup()"> 중복 자동 제거
     </label>
     <span class="cnt" id="rowCnt"></span>
-    <button class="btn" onclick="downloadClean()">정리본 CSV 저장</button>
+    <button class="btn" onclick="downloadClean()">CSV 저장</button>
+    <button class="btn" style="background:var(--gold)" onclick="copyTable()">표 복사</button>
     <button class="btn dark" onclick="window.print()">인쇄</button>
   </div>
   <div class="tbl-wrap">
@@ -129,6 +138,8 @@
     </table>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 /* ━━━ 만세력 엔진 (manse.html과 동일 로직) ━━━ */
@@ -393,13 +404,19 @@ function escHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function renderTable() {
+// 현재 화면에 보이는 목록 (중복 제거 + 검색 필터 적용 상태)
+function currentList() {
   const q = document.getElementById('searchBox').value.trim().toLowerCase();
-  const tbody = document.getElementById('tbody');
-  const list = cleanRows.filter(r => {
+  return cleanRows.filter(r => {
     if (!q) return true;
     return (r.name + r.birthTxt + r.pillars.hangul + r.pillars.hanja + r.product).toLowerCase().includes(q);
   });
+}
+
+function renderTable() {
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const tbody = document.getElementById('tbody');
+  const list = currentList();
   const dupRemoved = allRows.length - cleanRows.length;
   document.getElementById('rowCnt').textContent =
     '총 ' + list.length + '명' + (q ? ' (검색됨)' : (dupRemoved > 0 ? ' (중복 ' + dupRemoved + '건 제외)' : ''));
@@ -420,18 +437,41 @@ function renderTable() {
   }).join('');
 }
 
+const EXPORT_HEAD = ['이름', '성별', '생년월일', '시', '조회항목', '사주원국', '사주원국(한자)', '분석일시'];
+function exportRow(r) {
+  return [r.name, r.gender, r.birthTxt, r.hourTxt, r.product, r.pillars.hangul, r.pillars.hanja, r.dt];
+}
+
+// 화면에 보이는 그대로(중복 제거·검색 필터 반영) CSV 파일로 저장
 function downloadClean() {
-  const head = '이름,성별,생년월일,시,조회항목,사주원국,사주원국(한자),분석일시\n';
   const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
-  const body = cleanRows.map(r =>
-    [r.name, r.gender, r.birthTxt, r.hourTxt, r.product, r.pillars.hangul, r.pillars.hanja, r.dt].map(esc).join(',')
-  ).join('\n');
-  const blob = new Blob(['﻿' + head + body], { type: 'text/csv;charset=utf-8' });
+  const body = currentList().map(r => exportRow(r).map(esc).join(',')).join('\n');
+  const blob = new Blob(['﻿' + EXPORT_HEAD.join(',') + '\n' + body], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = '사주다이어리_발행이력_정리본.csv';
+  const d = new Date();
+  a.download = '사주다이어리_발행이력_' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '.csv';
   a.click();
   URL.revokeObjectURL(a.href);
+  showToast('CSV 파일이 다운로드 폴더에 저장되었습니다');
+}
+
+// 표를 클립보드에 복사 — 엑셀·구글시트에 Ctrl+V로 바로 붙여넣기 (탭 구분)
+function copyTable() {
+  const lines = [EXPORT_HEAD.join('\t')];
+  currentList().forEach(r => lines.push(exportRow(r).join('\t')));
+  navigator.clipboard.writeText(lines.join('\n')).then(
+    () => showToast('표가 복사되었습니다 — 엑셀·구글시트에 붙여넣기(Ctrl+V) 하세요'),
+    () => alert('복사에 실패했습니다. 브라우저 권한을 확인해주세요.')
+  );
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
 /* ━━━ 입력 처리 ━━━ */
