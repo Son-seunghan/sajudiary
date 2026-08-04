@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>발행 이력 정리기 — 사주다이어리 (운영자 전용)</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --paper:#f7f0df; --paper2:#faf5e8; --paper-dk:#ebe1c4;
@@ -78,6 +79,12 @@
   .pillars .hg { font-size: 11px; color: var(--ink4); letter-spacing: 1.5px; }
   /* 궁합 등 두 사람이 한 행에 묶일 때 — 사람 사이 구분선 */
   .pcell > div + div { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--paper-dk); }
+  /* 사주원국 세로 기둥 (시일월년 순, 천간 위·지지 아래) */
+  .pgrid { display: inline-flex; gap: 12px; }
+  .pcol { display: flex; flex-direction: column; align-items: center; line-height: 1.18; }
+  .plb { font-size: 10px; color: var(--ink4); margin-bottom: 2px; }
+  .ph { font-size: 16px; font-weight: 700; font-family: 'Noto Serif KR', serif; }
+  .pk { font-size: 10px; color: var(--ink4); margin-top: 2px; }
   .tag {
     display: inline-block; font-size: 11px; font-weight: 700;
     padding: 2px 8px; border-radius: 999px;
@@ -127,7 +134,7 @@
       <input type="checkbox" id="dedupChk" checked onchange="applyDedup()"> 중복 자동 제거
     </label>
     <span class="cnt" id="rowCnt"></span>
-    <button class="btn" onclick="downloadClean()">CSV 저장</button>
+    <button class="btn" onclick="downloadXlsx()">엑셀 저장</button>
     <button class="btn" style="background:var(--gold)" onclick="copyTable()">표 복사</button>
     <button class="btn dark" onclick="window.print()">인쇄</button>
   </div>
@@ -197,9 +204,27 @@ function pillarsOf(y, m, d, hour) {
   const hj = p => p ? STEMS_H[p.si] + BRANS_H[p.bi] : '？';
   const hg = p => p ? STEMS[p.si] + BRANS[p.bi] : '모름';
   return {
+    ymdh: [yp, mp, dp, hp],   // 년·월·일·시 순 원본 (렌더 시 시일월년으로 역순 사용)
     hanja: [yp, mp, dp, hp].map(hj).join(' '),
     hangul: [yp, mp, dp, hp].map(hg).join(' ')
   };
+}
+// 기둥 1개 → "庚寅(경인)" / 없으면 "－"
+function pilTxt(p) {
+  return p ? STEMS_H[p.si] + BRANS_H[p.bi] + '(' + STEMS[p.si] + BRANS[p.bi] + ')' : '－';
+}
+// 시일월년 순 세로 기둥 표시 (천간 위 · 지지 아래)
+const PIL_LBL = ['시', '일', '월', '년'];
+function pillarGridHtml(pl) {
+  const order = [pl.ymdh[3], pl.ymdh[2], pl.ymdh[1], pl.ymdh[0]];
+  return '<div class="pgrid">' + order.map((p, i) =>
+    '<div class="pcol">' +
+      '<span class="plb">' + PIL_LBL[i] + '</span>' +
+      '<span class="ph">' + (p ? STEMS_H[p.si] : '？') + '</span>' +
+      '<span class="ph">' + (p ? BRANS_H[p.bi] : '？') + '</span>' +
+      '<span class="pk">' + (p ? STEMS[p.si] + BRANS[p.bi] : '모름') + '</span>' +
+    '</div>'
+  ).join('') + '</div>';
 }
 function hourLabel(hour) {
   if (hour < 0 || isNaN(hour)) return '시간모름';
@@ -431,7 +456,7 @@ function renderTable() {
       '<div>' + p.birthTxt + ' <span class="muted">' + p.hourTxt + '</span></div>'
     ).join('');
     const pillarCell = r.persons.map(p =>
-      '<div><span class="hj">' + p.pillars.hanja + '</span><div class="hg">' + p.pillars.hangul + '</div></div>'
+      '<div>' + pillarGridHtml(p.pillars) + '</div>'
     ).join('');
     const mc = multi ? ' class="pcell"' : '';
     return '<tr>' +
@@ -444,31 +469,53 @@ function renderTable() {
   }).join('');
 }
 
-const EXPORT_HEAD = ['이름', '성별', '생년월일', '시', '조회항목', '사주원국', '사주원국(한자)', '분석일시'];
-function exportRow(r) {
-  const j = fn => r.persons.map(fn).join(' / ');
-  return [j(p => p.name), j(p => p.gender), j(p => p.birthTxt), j(p => p.hourTxt),
-          r.product, j(p => p.pillars.hangul), j(p => p.pillars.hanja), r.dt];
+// 내보내기: 1인 1행 (궁합은 두 행 — '함께 본 사람'으로 연결 표시)
+// 원국은 시주→일주→월주→년주 순 4개 컬럼
+const EXPORT_HEAD = ['이름', '성별', '생년월일', '시', '조회항목', '시주', '일주', '월주', '년주', '함께 본 사람', '분석일시'];
+function exportRows(r) {
+  return r.persons.map(p => {
+    const [yp, mp, dp, hp] = p.pillars.ymdh;
+    const partner = r.persons.length > 1
+      ? r.persons.filter(x => x !== p).map(x => x.name).join(', ')
+      : '';
+    return [p.name, p.gender, p.birthTxt, p.hourTxt, r.product,
+            pilTxt(hp), pilTxt(dp), pilTxt(mp), pilTxt(yp), partner, r.dt];
+  });
+}
+function exportAll() {
+  const rows = [EXPORT_HEAD];
+  currentList().forEach(r => exportRows(r).forEach(row => rows.push(row)));
+  return rows;
 }
 
-// 화면에 보이는 그대로(중복 제거·검색 필터 반영) CSV 파일로 저장
-function downloadClean() {
-  const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
-  const body = currentList().map(r => exportRow(r).map(esc).join(',')).join('\n');
-  const blob = new Blob(['﻿' + EXPORT_HEAD.join(',') + '\n' + body], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+// 화면에 보이는 그대로(중복 제거·검색 필터 반영) 엑셀(.xlsx) 파일로 저장
+function downloadXlsx() {
   const d = new Date();
-  a.download = '사주다이어리_발행이력_' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '.csv';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showToast('CSV 파일이 다운로드 폴더에 저장되었습니다');
+  const fname = '사주다이어리_발행이력_' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  const rows = exportAll();
+  if (typeof XLSX === 'undefined') {
+    // CDN 차단 등으로 라이브러리가 없으면 CSV로 대체 저장
+    const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const blob = new Blob(['﻿' + rows.map(r => r.map(esc).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fname + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('엑셀 모듈을 불러오지 못해 CSV로 저장했습니다');
+    return;
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:10},{wch:5},{wch:12},{wch:9},{wch:11},{wch:11},{wch:11},{wch:11},{wch:11},{wch:12},{wch:17}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '발행이력');
+  XLSX.writeFile(wb, fname + '.xlsx');
+  showToast('엑셀 파일이 다운로드 폴더에 저장되었습니다');
 }
 
 // 표를 클립보드에 복사 — 엑셀·구글시트에 Ctrl+V로 바로 붙여넣기 (탭 구분)
 function copyTable() {
-  const lines = [EXPORT_HEAD.join('\t')];
-  currentList().forEach(r => lines.push(exportRow(r).join('\t')));
+  const lines = exportAll().map(r => r.join('\t'));
   navigator.clipboard.writeText(lines.join('\n')).then(
     () => showToast('표가 복사되었습니다 — 엑셀·구글시트에 붙여넣기(Ctrl+V) 하세요'),
     () => alert('복사에 실패했습니다. 브라우저 권한을 확인해주세요.')
