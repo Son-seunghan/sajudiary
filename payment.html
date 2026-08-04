@@ -546,8 +546,9 @@
           showMsg('쿠폰 코드를 입력해주세요.', 'error');
           return;
         }
-        // 서명형 선물 쿠폰 (gift-…) — 서버 검증, 만능(any)은 현재 상품에 적용
-        if (code.toLowerCase().startsWith('gift-')) {
+        // 서명형 선물/홍보 쿠폰 (gift-… / promo-…) — 서버 검증, 만능(any)은 현재 상품에 적용
+        const lcCode = code.toLowerCase();
+        if (lcCode.startsWith('gift-') || lcCode.startsWith('promo-')) {
           showMsg('쿠폰 확인 중...', '');
           AuthGuard.redeemGiftCoupon(code, items[0]).then(r => {
             if (!r.success) { showMsg(r.error, 'error'); return; }

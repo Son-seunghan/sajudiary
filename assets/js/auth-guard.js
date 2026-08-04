@@ -230,14 +230,16 @@ const AuthGuard = (function () {
     return { success: true, productId: coupon.productId, label: coupon.label };
   }
 
-  // ─── 서명형 일회용 선물 쿠폰 (gift-…) ───
-  // 코드 형식: gift-<light|deep|couple|adult|any>-<nonce>-<sig8>
+  // ─── 서명형 선물/홍보 쿠폰 (gift-… / promo-…) ───
+  // gift  : gift-<light|deep|couple|adult|any>-<nonce>-<sig8> — 1인용 1회
+  // promo : promo-<key>-<tag>-<limit>-<sig8> — 홍보자 전용, 선착순 limit명·1인 1회
   // 서명 검증은 서버(/api/coupon-verify, COUPON_SECRET)에서 수행 — 클라이언트 위조 불가
   // 'any'(만능 이용권)는 현재 결제하려는 상품(contextProductId)에 적용
   const GIFT_PRODUCT_MAP = { light: 'light', deep: 'deep', couple: 'couple', adult: 'couple_plus' };
   async function redeemGiftCoupon(rawCode, contextProductId) {
     const code = String(rawCode || '').trim().toLowerCase();
-    if (!code.startsWith('gift-')) {
+    const isPromo = code.startsWith('promo-');
+    if (!code.startsWith('gift-') && !isPromo) {
       return { success: false, error: '유효하지 않은 쿠폰 코드입니다.' };
     }
     if (!getUser()) return { success: false, error: '쿠폰 사용 전 로그인이 필요합니다.' };
@@ -250,7 +252,8 @@ const AuthGuard = (function () {
       const resp = await fetch('/api/coupon-verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        // promo는 1인 1회 판별을 위해 세션 토큰 동봉 (서버에서 본인 확인)
+        body: JSON.stringify({ code, session: _session() })
       });
       r = await resp.json();
       if (!resp.ok || !r.ok) {
@@ -266,22 +269,26 @@ const AuthGuard = (function () {
       return { success: false, error: '적용할 상품을 확인할 수 없습니다.' };
     }
 
-    // 서버 전역 1회용 체크 — 다른 기기에서 이미 쓴 코드도 차단 (세션 보유 시)
-    const redeemR = await _ledger('redeem', { code });
-    if (redeemR && redeemR.already) {
-      return { success: false, error: '이미 사용된 쿠폰입니다.' };
+    // gift: 서버 전역 1회용 체크 — 다른 기기에서 이미 쓴 코드도 차단 (세션 보유 시)
+    // promo: coupon-verify에서 이미 횟수 기록·차단 완료 → 생략
+    if (!isPromo) {
+      const redeemR = await _ledger('redeem', { code });
+      if (redeemR && redeemR.already) {
+        return { success: false, error: '이미 사용된 쿠폰입니다.' };
+      }
     }
 
     addPurchase({
       productId,
-      orderId: 'gift_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      orderId: (isPromo ? 'promo_' : 'gift_') + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
       paymentKey: null,
       amount: 0,
-      method: 'gift-coupon',
-      couponCode: code
+      method: isPromo ? 'promo-coupon' : 'gift-coupon',
+      couponCode: code,
+      promoTag: r.tag || null
     });
     _markCouponRedeemed(code);
-    console.log('[AuthGuard] 선물 쿠폰 사용 완료:', code, '→', productId);
+    console.log('[AuthGuard] 쿠폰 사용 완료:', code, '→', productId, isPromo ? '(홍보 ' + r.used + '/' + r.limit + ')' : '');
     const label = cfg.PRODUCTS[productId].name + ' 이용권';
     return { success: true, productId, label };
   }
