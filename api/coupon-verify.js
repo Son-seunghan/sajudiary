@@ -66,7 +66,7 @@ async function sendMail(subject, html) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + RESEND, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: '사주다이어리 <onboarding@resend.dev>', to: [NOTIFY_TO], subject: subject, html: html })
+      body: JSON.stringify({ from: '사주다이어리 <noreply@sajudiary.com>', to: [NOTIFY_TO], subject: subject, html: html })
     });
     // Resend가 거절해도 HTTP 응답은 정상 수신되므로 상태·본문을 반드시 로그에 남김
     const body = await r.text();

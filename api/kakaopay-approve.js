@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: '사주다이어리 <onboarding@resend.dev>',
+            from: '사주다이어리 <noreply@sajudiary.com>',
             to: [NOTIFY_TO],
             subject: '💰 결제 완료 — ' + (data.item_name || '상품') + ' ' + amt + '원',
             html:
