@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
       try {
         const amt = data.amount && data.amount.total ? data.amount.total.toLocaleString('ko-KR') : '-';
         const payType = data.payment_method_type === 'MONEY' ? '카카오페이 머니' : '카드(카카오페이)';
-        await fetch('https://api.resend.com/emails', {
+        const mailRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer ' + RESEND,
@@ -80,6 +80,13 @@ module.exports = async (req, res) => {
               '</div>'
           })
         });
+        // Resend가 거절해도 HTTP 응답은 정상 수신되므로 상태·본문을 반드시 로그에 남김
+        const mailBody = await mailRes.text();
+        if (!mailRes.ok) {
+          console.error('[mail] Resend 발송 거절 HTTP', mailRes.status, mailBody.slice(0, 300));
+        } else {
+          console.log('[mail] 결제 알림 발송 성공');
+        }
       } catch (e) {
         // 알림 실패해도 결제 승인 자체는 성공 처리
         console.error('[kakaopay-approve] 이메일 알림 실패:', e);
