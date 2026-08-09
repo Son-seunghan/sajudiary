@@ -55,14 +55,10 @@ module.exports = async (req, res) => {
       try {
         const amt = data.amount && data.amount.total ? data.amount.total.toLocaleString('ko-KR') : '-';
         const payType = data.payment_method_type === 'MONEY' ? '카카오페이 머니' : '카드(카카오페이)';
-        const mailRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + RESEND,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: '사주다이어리 <noreply@sajudiary.com>',
+        // 일시 오류 대비: noreply 2회 시도 → 예비 발신자(onboarding) 폴백
+        const _senders = ['사주다이어리 <noreply@sajudiary.com>', '사주다이어리 <noreply@sajudiary.com>', '사주다이어리 <onboarding@resend.dev>'];
+        const _mailPayload = {
+            from: _senders[0],
             to: [NOTIFY_TO],
             subject: '💰 결제 완료 — ' + (data.item_name || '상품') + ' ' + amt + '원',
             html:
@@ -78,14 +74,22 @@ module.exports = async (req, res) => {
               '</table>' +
               '<p style="margin-top:16px"><a href="https://pg.kakao.com" style="color:#b13a2c">→ 파트너어드민에서 상세 보기</a></p>' +
               '</div>'
-          })
-        });
-        // Resend가 거절해도 HTTP 응답은 정상 수신되므로 상태·본문을 반드시 로그에 남김
-        const mailBody = await mailRes.text();
-        if (!mailRes.ok) {
-          console.error('[mail] Resend 발송 거절 HTTP', mailRes.status, mailBody.slice(0, 300));
-        } else {
-          console.log('[mail] 결제 알림 발송 성공');
+          };
+        for (let _i = 0; _i < _senders.length; _i++) {
+          _mailPayload.from = _senders[_i];
+          try {
+            const mailRes = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + RESEND, 'Content-Type': 'application/json' },
+              body: JSON.stringify(_mailPayload)
+            });
+            const mailBody = await mailRes.text();
+            if (mailRes.ok) { console.log('[mail] 결제 알림 발송 성공(시도 ' + (_i + 1) + ')'); break; }
+            console.error('[mail] 거절(시도 ' + (_i + 1) + ') HTTP', mailRes.status, mailBody.slice(0, 300));
+          } catch (_e) {
+            console.error('[mail] 연결 실패(시도 ' + (_i + 1) + '):', _e);
+          }
+          await new Promise(function (rs) { setTimeout(rs, 400); });
         }
       } catch (e) {
         // 알림 실패해도 결제 승인 자체는 성공 처리

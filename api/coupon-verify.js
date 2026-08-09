@@ -62,21 +62,22 @@ async function sendMail(subject, html) {
   const RESEND = process.env.RESEND_API_KEY;
   const NOTIFY_TO = process.env.PAYMENT_NOTIFY_EMAIL || 'cleanblue99@gmail.com';
   if (!RESEND) { console.error('[mail] RESEND_API_KEY 미설정'); return; }
-  try {
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + RESEND, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: '사주다이어리 <noreply@sajudiary.com>', to: [NOTIFY_TO], subject: subject, html: html })
-    });
-    // Resend가 거절해도 HTTP 응답은 정상 수신되므로 상태·본문을 반드시 로그에 남김
-    const body = await r.text();
-    if (!r.ok) {
-      console.error('[mail] Resend 발송 거절 HTTP', r.status, body.slice(0, 300));
-    } else {
-      console.log('[mail] 발송 성공:', subject);
+  // 일시 오류 대비: noreply 2회 시도 → 실패 시 예비 발신자(onboarding)로 폴백
+  const senders = ['사주다이어리 <noreply@sajudiary.com>', '사주다이어리 <noreply@sajudiary.com>', '사주다이어리 <onboarding@resend.dev>'];
+  for (let i = 0; i < senders.length; i++) {
+    try {
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + RESEND, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: senders[i], to: [NOTIFY_TO], subject: subject, html: html })
+      });
+      const body = await r.text();
+      if (r.ok) { console.log('[mail] 발송 성공(시도 ' + (i + 1) + '):', subject); return; }
+      console.error('[mail] 거절(시도 ' + (i + 1) + ') HTTP', r.status, body.slice(0, 300));
+    } catch (e) {
+      console.error('[mail] 연결 실패(시도 ' + (i + 1) + '):', e);
     }
-  } catch (e) {
-    console.error('[mail] Resend 연결 실패:', e);
+    await new Promise(function (rs) { setTimeout(rs, 400); });
   }
 }
 
