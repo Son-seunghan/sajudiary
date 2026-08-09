@@ -47,9 +47,26 @@
       set('bHour',   i.hour===23?0.5:i.hour); // 구형(자시=23) 저장분 → 새벽 자시로 호환
       set('bGender', i.gender);
       set('bRegion', i.tz);
-      setTimeout(function() {
-        if (typeof doCalc === 'function') doCalc(true);
-      }, 200);
+
+      // 진입 선택 화면 — 기존 분석 보기 / 새로 분석하기 (자동 로드 대신 명시적 분기)
+      var ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;z-index:1250;background:rgba(15,12,20,.93);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Pretendard,sans-serif;';
+      var nm = (saved.inputs && saved.inputs.name) ? saved.inputs.name : '저장된 분석';
+      var dtxt = saved.lockedAt ? new Date(saved.lockedAt).toLocaleDateString('ko-KR') : '';
+      var rem0 = AuthGuard.getRemainingSlots('deep');
+      var isM0 = AuthGuard.isMaster();
+      var newHref0 = (rem0 > 0 || isM0) ? 'saju.html?slot=new' : ('../payment.html?product=' + 'deep');
+      var newTxt0 = (rem0 > 0 || isM0) ? ('➕ 새로 분석하기' + (isM0 ? '' : ' (잔여 ' + rem0 + '회)')) : '➕ 다른 명식 분석하기 (추가 구매)';
+      ov.innerHTML = '<div style="max-width:340px;width:100%;text-align:center;">' +
+        '<p style="color:#cfc4b8;font-size:13px;margin:0 0 18px;">어떻게 시작할까요?</p>' +
+        '<button id="ovView" style="display:block;width:100%;padding:16px;margin-bottom:10px;border:none;border-radius:12px;background:#b13a2c;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">📖 기존 분석 보기<br><span style="font-size:12px;font-weight:400;opacity:.85;">' + nm + ' · ' + dtxt + '</span></button>' +
+        '<a href="' + newHref0 + '" style="display:block;width:100%;padding:16px;margin-bottom:10px;border-radius:12px;background:rgba(255,255,255,.12);color:#f0e8d8;font-size:14px;text-decoration:none;box-sizing:border-box;">' + newTxt0 + '</a>' +
+        '<a href="../mypage.html" style="color:#8f8577;font-size:12px;text-decoration:underline;">저장된 분석 전체 보기 (마이페이지)</a></div>';
+      document.body.appendChild(ov);
+      document.getElementById('ovView').addEventListener('click', function() {
+        ov.remove();
+        setTimeout(function() { if (typeof doCalc === 'function') doCalc(true); }, 100);
+      });
 
       // 저장 분석 열람 중 — 다른 분석으로 가는 경로 바 (새 분석/추가 구매/목록)
       setTimeout(function() {
@@ -57,7 +74,7 @@
         var isM = AuthGuard.isMaster();
         var canNew = rem > 0 || isM;
         var href = canNew ? 'saju.html?slot=new' : '../payment.html?product=deep';
-        var label = canNew ? ('➕ 새 분석 입력' + (isM ? '' : ' (잔여 ' + rem + '회)')) : '➕ 다른 사주 분석하기';
+        var label = canNew ? ('➕ 다른 명식 분석하기' + (isM ? '' : ' (잔여 ' + rem + '회)')) : '➕ 다른 명식 분석하기';
         var bar = document.createElement('div');
         bar.style.cssText = 'position:fixed;top:8px;left:8px;z-index:1100;display:flex;gap:6px;font-size:12px;font-family:Pretendard,sans-serif;';
         bar.innerHTML = '<a href="' + href + '" style="background:rgba(30,24,18,.85);color:#f7f0df;padding:7px 12px;border-radius:999px;text-decoration:none;">' + label + '</a>' +
