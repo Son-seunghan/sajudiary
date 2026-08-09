@@ -577,7 +577,7 @@
           <label>출생 시간</label>
           <select id="bHour">
             <option value="-1">시간 모름 (시주 미산출)</option>
-            <option value="23">자시 子時 (23:30 ~ 01:30)</option>
+            <option value="23">자시 子時 (새벽 00:00~01:30 · 밤 11시대생은 다음날 날짜로)</option>
             <option value="1">축시 丑時 (01:30 ~ 03:30)</option>
             <option value="3">인시 寅時 (03:30 ~ 05:30)</option>
             <option value="5">묘시 卯時 (05:30 ~ 07:30)</option>
@@ -1271,7 +1271,7 @@
     function _sunLonDeg(jd){const T=(jd-2451545)/36525;const L0=280.46646+36000.76983*T+0.0003032*T*T;const M=(357.52911+35999.05029*T-0.0001537*T*T)*Math.PI/180;const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M);const om=(125.04-1934.136*T)*Math.PI/180;let lam=(L0+C-0.00569-0.00478*Math.sin(om))%360;if(lam<0)lam+=360;return lam;}
     function termClockJD(year,i){const key=year*100+i;if(_termCache[key])return _termCache[key];const t=TERM_DEFS[i];let jd=getJDN(year,t[0],t[1]);for(let k=0;k<6;k++){let df=_sunLonDeg(jd)-t[3];df=((df+180)%360+360)%360-180;jd-=df/0.98564736;}return _termCache[key]=jd+9/24;}
     function _jdnToDate2(jdn){const a=jdn+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4);const dd=Math.floor((4*c+3)/1461),e=c-Math.floor(1461*dd/4),mm=Math.floor((5*e+2)/153);return{d:e-Math.floor((153*mm+2)/5)+1,m:mm+3-12*Math.floor(mm/10),y:100*b+dd-4800+Math.floor(mm/10)};}
-    function _birthClockJD(year,month,day,hour,minute){const h=(typeof hour==='number'&&hour>=0)?hour:12;return getJDN(year,month,day)+(h-12)/24+((minute||0))/1440;}
+    function _birthClockJD(year,month,day,hour,minute){let h=(typeof hour==='number'&&hour>=0)?hour:12;if(h===23)h=0.5;/* 자시는 입력일 새벽 0시대 기준(정자시법) — 밤 11시대 출생은 다음날 날짜로 입력 */return getJDN(year,month,day)+(h-12)/24+((minute||0))/1440;}
     function getSolarTerms(year){
       // 절입 시각으로 계산한 실제 날짜 (배열 순서·형식은 기존과 동일: 입춘~대설 + 다음해 소한)
       const order=[1,2,3,4,5,6,7,8,9,10,11,0];
@@ -1444,7 +1444,7 @@
       document.getElementById('mbtiBasis').textContent = mbti.basis;
 
       // 결과 헤더
-      const hourLabel = hour < 0 ? '시간 미입력' : `${BRANS[hP.bi]}시 (${['23:30~01:30','01:30~03:30','03:30~05:30','05:30~07:30','07:30~09:30','09:30~11:30','11:30~13:30','13:30~15:30','15:30~17:30','17:30~19:30','19:30~21:30','21:30~23:30'][hP.bi]})`;
+      const hourLabel = hour < 0 ? '시간 미입력' : `${BRANS[hP.bi]}시 (${['00:00~01:30','01:30~03:30','03:30~05:30','05:30~07:30','07:30~09:30','09:30~11:30','11:30~13:30','13:30~15:30','15:30~17:30','17:30~19:30','19:30~21:30','21:30~23:30'][hP.bi]})`;
       document.getElementById('resultTitle').textContent = `${name}님의 사주팔자`;
       document.getElementById('resultDate').textContent =
         `${year}년 ${month}월 ${day}일 · ${gender === 'male' ? '남자' : '여자'} · ${hourLabel}`;
