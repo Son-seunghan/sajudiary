@@ -168,6 +168,25 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
+    // ─── 메일 파이프라인 진단 (마스터 전용) ───
+    if (body.action === 'mailtest') {
+      if (kakaoId !== 'kakao_4876030261') return res.status(403).json({ ok: false, error: 'forbidden' });
+      const RESEND = process.env.RESEND_API_KEY;
+      if (!RESEND) return res.status(200).json({ ok: false, diag: 'RESEND_API_KEY 미설정' });
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + RESEND, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: '사주다이어리 <noreply@sajudiary.com>',
+          to: [process.env.PAYMENT_NOTIFY_EMAIL || 'cleanblue99@gmail.com'],
+          subject: '🔧 메일 파이프라인 테스트',
+          html: '<p>이 메일이 보이면 발송 인프라 정상입니다.</p>'
+        })
+      });
+      const txt = await r.text();
+      return res.status(200).json({ ok: true, resendStatus: r.status, resendBody: txt.slice(0, 400) });
+    }
+
     return res.status(400).json({ ok: false, error: 'unknown action' });
   } catch (e) {
     console.error('[ledger]', e);
