@@ -43,7 +43,7 @@
       set('bYear',   i.year);
       set('bMonth',  i.month);
       set('bDay',    i.day);
-      set('bHour',   i.hour);
+      set('bHour',   i.hour===23?0.5:i.hour); // 구형(자시=23) 저장분 → 새벽 자시로 호환
       set('bGender', i.gender);
       set('bRegion', i.tz);
       setTimeout(function() {
@@ -837,7 +837,8 @@ body{padding-bottom:80px;}
         <label>출생시간</label>
         <select id="bHour">
           <option value="-1">모름 (시주 미산출)</option>
-          <option value="23">자시 子時 (새벽 00:00~01:30 · 밤 11시대생은 다음날 날짜로)</option>
+          <option value="23.75">자시 子時 (밤 23:30~24:00)</option>
+          <option value="0.5">자시 子時 (새벽 00:00~01:30)</option>
           <option value="1">축시 丑時 (01:30~03:30)</option>
           <option value="3">인시 寅時 (03:30~05:30)</option>
           <option value="5">묘시 卯時 (05:30~07:30)</option>
@@ -1046,7 +1047,7 @@ function getDayPillar(year,month,day){
 
 function getHourPillar(hour,daySi){
   if(hour<0) return null;
-  let bi=hour===23?0:Math.floor((hour+1)/2);
+  let bi=(hour>=23||hour<1)?0:Math.floor((hour+1)/2);
   const grp=daySi%5;
   const base=[0,2,4,6,8][grp];
   return{si:(base+bi)%10,bi};
@@ -5309,8 +5310,8 @@ function downloadHTML(){
   const _fn_y=document.getElementById('bYear').value||'';
   const _fn_m=String(document.getElementById('bMonth').value||'').padStart(2,'0');
   const _fn_d=String(document.getElementById('bDay').value||'').padStart(2,'0');
-  const _fn_hr=parseInt(document.getElementById('bHour').value);
-  const _fn_hbi=_fn_hr>=0?(_fn_hr===23?0:Math.floor((_fn_hr+1)/2)):-1;
+  const _fn_hr=parseFloat(document.getElementById('bHour').value);
+  const _fn_hbi=_fn_hr>=0?((_fn_hr>=23||_fn_hr<1)?0:Math.floor((_fn_hr+1)/2)):-1;
   const _fn_time=_fn_hbi>=0?(BRANS[_fn_hbi]+'시'):'';
   const _fn_prefix=_fn_name?(_fn_name+'님'):'고객님';
   a.download=`${_fn_prefix}_${_fn_y}${_fn_m}${_fn_d}${_fn_time}_사주 편지.html`;
@@ -6067,7 +6068,7 @@ function doCalc(skipConfirm){
   const year=parseInt(document.getElementById('bYear').value);
   const month=parseInt(document.getElementById('bMonth').value);
   const day=parseInt(document.getElementById('bDay').value);
-  const hourRaw=parseInt(document.getElementById('bHour').value);
+  const hourRaw=parseFloat(document.getElementById('bHour').value);
   const gender=document.getElementById('bGender').value;
   const tz=parseFloat(document.getElementById('bRegion').value)||9;
   const name=(document.getElementById('bName').value||'').trim();

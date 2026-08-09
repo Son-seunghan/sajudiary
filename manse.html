@@ -577,7 +577,8 @@
           <label>출생 시간</label>
           <select id="bHour">
             <option value="-1">시간 모름 (시주 미산출)</option>
-            <option value="23">자시 子時 (새벽 00:00~01:30 · 밤 11시대생은 다음날 날짜로)</option>
+            <option value="23.75">자시 子時 (밤 23:30~24:00)</option>
+            <option value="0.5">자시 子時 (새벽 00:00~01:30)</option>
             <option value="1">축시 丑時 (01:30 ~ 03:30)</option>
             <option value="3">인시 寅時 (03:30 ~ 05:30)</option>
             <option value="5">묘시 卯時 (05:30 ~ 07:30)</option>
@@ -1322,7 +1323,7 @@
     // ── 시주 ──
     function getHourPillar(hour, daySi) {
       if (hour < 0) return null;
-      const bi = hour === 23 ? 0 : Math.floor((hour + 1) / 2);
+      const bi = (hour >= 23 || hour < 1) ? 0 : Math.floor((hour + 1) / 2);
       const grp = daySi % 5;
       const base = [0, 2, 4, 6, 8][grp];
       return { si: (base + bi) % 10, bi };
@@ -1351,7 +1352,7 @@
       const year   = parseInt(document.getElementById('bYear').value, 10);
       const month  = parseInt(document.getElementById('bMonth').value, 10);
       const day    = parseInt(document.getElementById('bDay').value, 10);
-      const hour   = parseInt(document.getElementById('bHour').value, 10);
+      const hour   = parseFloat(document.getElementById('bHour').value);
       const name   = (document.getElementById('bName').value || '').trim() || '귀하';
       const gender = document.getElementById('bGender').value;
 

@@ -59,7 +59,7 @@
         set('yearA',   i.A.year);
         set('monthA',  i.A.month);
         set('dayA',    i.A.day);
-        set('hourA',   i.A.hour);
+        set('hourA',   i.A.hour===23?0.5:i.A.hour);
       }
       if (i.B) {
         set('nameB',   i.B.name);
@@ -67,7 +67,7 @@
         set('yearB',   i.B.year);
         set('monthB',  i.B.month);
         set('dayB',    i.B.day);
-        set('hourB',   i.B.hour);
+        set('hourB',   i.B.hour===23?0.5:i.B.hour);
       }
       if (i.relMode) {
         window.currentMode = i.relMode;
@@ -333,7 +333,8 @@ body.has-fbar{padding-bottom:96px;}
         <div class="fg"><label>월</label><input id="monthA" type="number" value=""></div>
         <div class="fg"><label>일</label><input id="dayA" type="number" value=""></div>
         <div class="fg"><label>태어난 시간</label><select id="hourA"><option value="-1" selected>모름</option>
-<option value="23">자시 (새벽 00:00~01:30 · 밤 11시대생은 다음날 날짜로)</option>
+<option value="23.75">자시 (밤 23:30~24:00)</option>
+<option value="0.5">자시 (새벽 00:00~01:30)</option>
 <option value="1">축시 (01:30~03:30)</option>
 <option value="3">인시 (03:30~05:30)</option>
 <option value="5">묘시 (05:30~07:30)</option>
@@ -354,7 +355,8 @@ body.has-fbar{padding-bottom:96px;}
         <div class="fg"><label>월</label><input id="monthB" type="number" value=""></div>
         <div class="fg"><label>일</label><input id="dayB" type="number" value=""></div>
         <div class="fg"><label>태어난 시간</label><select id="hourB"><option value="-1" selected>모름</option>
-<option value="23">자시 (새벽 00:00~01:30 · 밤 11시대생은 다음날 날짜로)</option>
+<option value="23.75">자시 (밤 23:30~24:00)</option>
+<option value="0.5">자시 (새벽 00:00~01:30)</option>
 <option value="1">축시 (01:30~03:30)</option>
 <option value="3">인시 (03:30~05:30)</option>
 <option value="5">묘시 (05:30~07:30)</option>
@@ -463,7 +465,7 @@ function getMonthPillar(year,month,day,yearSi,hour,minute){
   return{si,bi};
 }
 function getDayPillar(year,month,day){const ref=getJDN(2000,1,1);const t=getJDN(year,month,day);const idx60=((54+(t-ref))%60+60)%60;return{si:idx60%10,bi:idx60%12,idx60};}
-function getHourPillar(hour,daySi){if(hour<0)return null;let bi=hour===23?0:Math.floor((hour+1)/2);const grp=daySi%5;const base=[0,2,4,6,8][grp];return{si:(base+bi)%10,bi};}
+function getHourPillar(hour,daySi){if(hour<0)return null;let bi=(hour>=23||hour<1)?0:Math.floor((hour+1)/2);const grp=daySi%5;const base=[0,2,4,6,8][grp];return{si:(base+bi)%10,bi};}
 function getJieqiJDNs(year){const res=[];for(let y=year-1;y<=year+1;y++){const ts=getSolarTerms(y);for(const t of ts){const ty=(t.m===1)?y+1:y;res.push(getJDN(ty,t.m,t.d));}}return[...new Set(res)].sort((a,b)=>a-b);}
 function calcDaewoon(year,month,day,gender,yearSi,hour){const isYang=yearSi%2===0;const fwd=gender==='male'?isYang:!isYang;const bJDN=getJDN(year,month,day);const all=getJieqiJDNs(year);let diff;if(fwd){const nxt=all.find(j=>j>bJDN);diff=nxt?nxt-bJDN:30;}else{const sorted=[...all].reverse();const prv=sorted.find(j=>j<bJDN);diff=prv?bJDN-prv:30;}const startAge=Math.round(diff/3);const mp=getMonthPillar(year,month,day,yearSi,hour);const list=[];for(let i=0;i<10;i++){const off=fwd?(i+1):-(i+1);list.push({age:startAge+i*10,endAge:startAge+i*10+9,si:((mp.si+off)%10+10)%10,bi:((mp.bi+off)%12+12)%12});}return{startAge,fwd,list};}
 function getSewoon(years){return years.map(y=>({year:y,si:((y-4)%10+10)%10,bi:((y-4)%12+12)%12}));}
@@ -2178,8 +2180,8 @@ function doCalc(skipConfirm){
       if(!confirm(_msg)) return;
     }
 
-    const A=buildSaju({name:document.getElementById('nameA').value||'사람 A',gender:document.getElementById('genderA').value,year:parseInt(document.getElementById('yearA').value,10),month:parseInt(document.getElementById('monthA').value,10),day:parseInt(document.getElementById('dayA').value,10),hour:parseInt(document.getElementById('hourA').value,10)});
-    const B=buildSaju({name:document.getElementById('nameB').value||'사람 B',gender:document.getElementById('genderB').value,year:parseInt(document.getElementById('yearB').value,10),month:parseInt(document.getElementById('monthB').value,10),day:parseInt(document.getElementById('dayB').value,10),hour:parseInt(document.getElementById('hourB').value,10)});
+    const A=buildSaju({name:document.getElementById('nameA').value||'사람 A',gender:document.getElementById('genderA').value,year:parseInt(document.getElementById('yearA').value,10),month:parseInt(document.getElementById('monthA').value,10),day:parseInt(document.getElementById('dayA').value,10),hour:parseFloat(document.getElementById('hourA').value)});
+    const B=buildSaju({name:document.getElementById('nameB').value||'사람 B',gender:document.getElementById('genderB').value,year:parseInt(document.getElementById('yearB').value,10),month:parseInt(document.getElementById('monthB').value,10),day:parseInt(document.getElementById('dayB').value,10),hour:parseFloat(document.getElementById('hourB').value)});
 
     // ─── 신규 슬롯 저장 (잔여 결제분 있을 때만, 다중 슬롯) ───
     const _mode = new URLSearchParams(window.location.search).get('mode');

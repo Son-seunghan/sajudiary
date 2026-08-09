@@ -203,7 +203,7 @@ function getDayPillar(year, month, day) {
 }
 function getHourPillar(hour, daySi) {
   if (hour < 0 || isNaN(hour)) return null;
-  const bi = hour === 23 ? 0 : Math.floor((hour + 1) / 2);
+  const bi = (hour >= 23 || hour < 1) ? 0 : Math.floor((hour + 1) / 2);
   return { si: ([0, 2, 4, 6, 8][daySi % 5] + bi) % 10, bi };
 }
 function pillarsOf(y, m, d, hour) {
@@ -238,8 +238,8 @@ function pillarGridHtml(pl) {
 }
 function hourLabel(hour) {
   if (hour < 0 || isNaN(hour)) return '시간모름';
-  const bi = hour === 23 ? 0 : Math.floor((hour + 1) / 2);
-  return BRANS[bi] + '시';
+  const bi = (hour >= 23 || hour < 1) ? 0 : Math.floor((hour + 1) / 2);
+  return BRANS[bi] + '시' + (hour === 23.75 ? '(밤)' : (hour === 0.5 ? '(새벽)' : ''));
 }
 
 /* ━━━ CSV 파서 (따옴표·쉼표·줄바꿈 처리) ━━━ */
