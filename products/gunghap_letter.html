@@ -85,6 +85,20 @@
       setTimeout(function() {
         if (typeof doCalc === 'function') doCalc(true);
       }, 250);
+
+      // 저장 분석 열람 중 — 다른 분석으로 가는 경로 바 (새 분석/추가 구매/목록)
+      setTimeout(function() {
+        var rem = AuthGuard.getRemainingSlots(productId);
+        var isM = AuthGuard.isMaster();
+        var canNew = rem > 0 || isM;
+        var href = canNew ? 'gunghap_letter.html?mode=' + (mode==='adult'?'adult':'normal') + '&slot=new' : '../payment.html?product=' + productId;
+        var label = canNew ? ('➕ 새 분석 입력' + (isM ? '' : ' (잔여 ' + rem + '회)')) : '➕ 다른 사주 분석하기';
+        var bar = document.createElement('div');
+        bar.style.cssText = 'position:fixed;top:8px;left:8px;z-index:1100;display:flex;gap:6px;font-size:12px;font-family:Pretendard,sans-serif;';
+        bar.innerHTML = '<a href="' + href + '" style="background:rgba(30,24,18,.85);color:#f7f0df;padding:7px 12px;border-radius:999px;text-decoration:none;">' + label + '</a>' +
+          '<a href="../mypage.html" style="background:rgba(30,24,18,.55);color:#f7f0df;padding:7px 12px;border-radius:999px;text-decoration:none;">📂 내 분석 목록</a>';
+        document.body.appendChild(bar);
+      }, 700);
     } else {
       // 신규 — 사람 A는 본인이라 가정, 카카오 정보로 자동 채움
       const user = AuthGuard.getUser();
