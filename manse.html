@@ -1183,7 +1183,7 @@
     }
 
     // ── 대운 10개 + 흐름 판별 ──
-    function calcDaewoon(year, month, day, gender, yearSi) {
+    function calcDaewoon(year, month, day, gender, yearSi, hour) {
       const isYang = yearSi % 2 === 0;
       const fwd = gender === 'male' ? isYang : !isYang;
       const bJDN = getJDN(year, month, day);
@@ -1192,7 +1192,7 @@
       if (fwd) { const nxt = all.find(j => j > bJDN); diff = nxt ? nxt - bJDN : 30; }
       else     { const sorted = [...all].reverse(); const prv = sorted.find(j => j < bJDN); diff = prv ? bJDN - prv : 30; }
       const startAge = Math.round(diff / 3);
-      const mp = getMonthPillar(year, month, day, yearSi);
+      const mp = getMonthPillar(year, month, day, yearSi, hour);
       const list = [];
       for (let i = 0; i < 10; i++) {
         const off = fwd ? (i + 1) : -(i + 1);
@@ -1262,52 +1262,53 @@
       return d + Math.floor((153*mm + 2)/5) + 365*yy + Math.floor(yy/4) - Math.floor(yy/100) + Math.floor(yy/400) - 32045;
     }
 
-    // ── 24절기(월건 시작일) ──
-    function getSolarTerms(year) {
-      return [
-        {m:2,  d:4, name:'입춘', bi:2},  // 寅
-        {m:3,  d:6, name:'경칩', bi:3},  // 卯
-        {m:4,  d:5, name:'청명', bi:4},  // 辰
-        {m:5,  d:6, name:'입하', bi:5},  // 巳
-        {m:6,  d:6, name:'망종', bi:6},  // 午
-        {m:7,  d:7, name:'소서', bi:7},  // 未
-        {m:8,  d:7, name:'입추', bi:8},  // 申
-        {m:9,  d:8, name:'백로', bi:9},  // 酉
-        {m:10, d:8, name:'한로', bi:10}, // 戌
-        {m:11, d:7, name:'입동', bi:11}, // 亥
-        {m:12, d:7, name:'대설', bi:0},  // 子
-        {m:1,  d:6, name:'소한', bi:1},  // 丑 (next year)
-      ];
+    // ── 24절기(월건 시작일) — 절입 시각 정밀 계산 ──
+    /* ━━━ 절기 절입 시각 정밀 계산 (태양 시황경 기반·KST) ━━━
+       고정 날짜 근사(매년 2/4 입춘 등)를 천문 계산으로 교체 — 절기 경계일 출생의 연주·월주 오류 수정 (2026-08-09) */
+    const TERM_DEFS=[[1,6,1,285],[2,4,2,315],[3,6,3,345],[4,5,4,15],[5,6,5,45],[6,6,6,75],[7,7,7,105],[8,7,8,135],[9,8,9,165],[10,8,10,195],[11,7,11,225],[12,7,0,255]];
+    const TERM_NAMES=['소한','입춘','경칩','청명','입하','망종','소서','입추','백로','한로','입동','대설'];
+    const _termCache={};
+    function _sunLonDeg(jd){const T=(jd-2451545)/36525;const L0=280.46646+36000.76983*T+0.0003032*T*T;const M=(357.52911+35999.05029*T-0.0001537*T*T)*Math.PI/180;const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M);const om=(125.04-1934.136*T)*Math.PI/180;let lam=(L0+C-0.00569-0.00478*Math.sin(om))%360;if(lam<0)lam+=360;return lam;}
+    function termClockJD(year,i){const key=year*100+i;if(_termCache[key])return _termCache[key];const t=TERM_DEFS[i];let jd=getJDN(year,t[0],t[1]);for(let k=0;k<6;k++){let df=_sunLonDeg(jd)-t[3];df=((df+180)%360+360)%360-180;jd-=df/0.98564736;}return _termCache[key]=jd+9/24;}
+    function _jdnToDate2(jdn){const a=jdn+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4);const dd=Math.floor((4*c+3)/1461),e=c-Math.floor(1461*dd/4),mm=Math.floor((5*e+2)/153);return{d:e-Math.floor((153*mm+2)/5)+1,m:mm+3-12*Math.floor(mm/10),y:100*b+dd-4800+Math.floor(mm/10)};}
+    function _birthClockJD(year,month,day,hour,minute){const h=(typeof hour==='number'&&hour>=0)?hour:12;return getJDN(year,month,day)+(h-12)/24+((minute||0))/1440;}
+    function getSolarTerms(year){
+      // 절입 시각으로 계산한 실제 날짜 (배열 순서·형식은 기존과 동일: 입춘~대설 + 다음해 소한)
+      const order=[1,2,3,4,5,6,7,8,9,10,11,0];
+      return order.map(function(idx){
+        const ty=(idx===0)?year+1:year;
+        const dt=_jdnToDate2(Math.floor(termClockJD(ty,idx)+0.5));
+        return {m:dt.m,d:dt.d,name:TERM_NAMES[idx],bi:TERM_DEFS[idx][2]};
+      });
     }
 
     // ── 연주 ──
-    function getYearPillar(year, month, day) {
-      let ay = year;
-      if (month < 2 || (month === 2 && day < 4)) ay = year - 1;
-      const si = ((ay - 4) % 10 + 10) % 10;
-      const bi = ((ay - 4) % 12 + 12) % 12;
-      return { si, bi };
+    function getYearPillar(year,month,day,hour,minute){
+      // 입춘 절입 '시각' 기준 판정 — 경계일 출생 정확 처리 (시각 미상은 정오 가정)
+      const bjd=_birthClockJD(year,month,day,hour,minute);
+      let ay=year;
+      if(bjd<termClockJD(year,1)) ay=year-1;
+      const si=((ay-4)%10+10)%10;
+      const bi=((ay-4)%12+12)%12;
+      return{si,bi,ay};
     }
 
     // ── 월주 ──
-    function getMonthPillar(year, month, day, yearSi) {
-      const terms = getSolarTerms(year);
-      const nextTerms = getSolarTerms(year + 1);
-      let bi = 2;
-      if (month === 1) {
-        bi = day >= nextTerms[11].d ? 1 : 0; // 축 or 자
-      } else {
-        for (let i = terms.length - 2; i >= 0; i--) {
-          const t = terms[i];
-          if (month > t.m || (month === t.m && day >= t.d)) { bi = t.bi; break; }
-          if (i === 0) bi = 1;
+    function getMonthPillar(year,month,day,yearSi,hour,minute){
+      // 출생 시각 이전 마지막 절(節)의 월지 — 절입 시각 기준
+      const bjd=_birthClockJD(year,month,day,hour,minute);
+      let bi=1,best=-Infinity;
+      for(let yy=year-1;yy<=year;yy++){
+        for(let i=0;i<12;i++){
+          const tj=termClockJD(yy,i);
+          if(tj<=bjd&&tj>best){best=tj;bi=TERM_DEFS[i][2];}
         }
       }
-      const grp = yearSi % 5;
-      const baseSi = [2, 4, 6, 8, 0][grp];
-      const off = ((bi - 2) + 12) % 12;
-      const si = (baseSi + off) % 10;
-      return { si, bi };
+      const grp=yearSi%5;
+      const baseSi=[2,4,6,8,0][grp]; // 인월 천간
+      const off=((bi-2)+12)%12;
+      const si=(baseSi+off)%10;
+      return{si,bi};
     }
 
     // ── 일주 ──
@@ -1360,8 +1361,8 @@
       if (!day   || day < 1 || day > 31)       { alert('출생일을 1~31 사이로 입력해주세요.'); return; }
 
       // 4주 계산
-      const yP = getYearPillar(year, month, day);
-      const mP = getMonthPillar(year, month, day, yP.si);
+      const yP = getYearPillar(year, month, day, hour);
+      const mP = getMonthPillar(year, month, day, yP.si, hour);
       const dP = getDayPillar(year, month, day);
       const hP = getHourPillar(hour, dP.si);
 
@@ -1397,7 +1398,7 @@
       }
 
       // ━━━ Hook 카드 3: 사주의 흐름 (유료 후크) ━━━
-      const dw = calcDaewoon(year, month, day, gender, yP.si);
+      const dw = calcDaewoon(year, month, day, gender, yP.si, hour);
       const flow = detectFlow(dw.list, dP.si);
       const flowCopy = FLOW_COPY[flow];
       document.getElementById('hookFlowTag').textContent = flowCopy.tag;
