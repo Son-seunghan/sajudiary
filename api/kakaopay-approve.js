@@ -75,6 +75,7 @@ module.exports = async (req, res) => {
               '<p style="margin-top:16px"><a href="https://pg.kakao.com" style="color:#b13a2c">→ 파트너어드민에서 상세 보기</a></p>' +
               '</div>'
           };
+        const _mailTrace = [];
         for (let _i = 0; _i < _senders.length; _i++) {
           _mailPayload.from = _senders[_i];
           try {
@@ -84,13 +85,28 @@ module.exports = async (req, res) => {
               body: JSON.stringify(_mailPayload)
             });
             const mailBody = await mailRes.text();
-            if (mailRes.ok) { console.log('[mail] 결제 알림 발송 성공(시도 ' + (_i + 1) + ')'); break; }
+            if (mailRes.ok) {
+              _mailTrace.push('시도' + (_i + 1) + ':성공 ' + mailBody.slice(0, 60));
+              console.log('[mail] 결제 알림 발송 성공(시도 ' + (_i + 1) + ')');
+              break;
+            }
+            _mailTrace.push('시도' + (_i + 1) + ':거절 HTTP' + mailRes.status + ' ' + mailBody.slice(0, 200));
             console.error('[mail] 거절(시도 ' + (_i + 1) + ') HTTP', mailRes.status, mailBody.slice(0, 300));
           } catch (_e) {
+            _mailTrace.push('시도' + (_i + 1) + ':예외 ' + String(_e).slice(0, 150));
             console.error('[mail] 연결 실패(시도 ' + (_i + 1) + '):', _e);
           }
           await new Promise(function (rs) { setTimeout(rs, 400); });
         }
+        // 발송 결과를 Supabase mail_log에 영구 기록 (Vercel 로그 소멸 대비 — 테이블 없으면 조용히 무시)
+        try {
+          const _SK = process.env.SUPABASE_SERVICE_KEY;
+          if (_SK) await fetch('https://hlxttdvvwftiquzqxgxs.supabase.co/rest/v1/mail_log', {
+            method: 'POST',
+            headers: { 'apikey': _SK, 'Authorization': 'Bearer ' + _SK, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ context: 'kakaopay-approve', order_id: orderId || null, detail: _mailTrace.join(' | ') })
+          });
+        } catch (_e2) { /* 기록 실패는 무시 */ }
       } catch (e) {
         // 알림 실패해도 결제 승인 자체는 성공 처리
         console.error('[kakaopay-approve] 이메일 알림 실패:', e);
