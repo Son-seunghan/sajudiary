@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>매출 달력 — 사주다이어리 (운영자 전용)</title>
+<style>
+  :root {
+    --paper:#f7f0df; --paper2:#faf5e8; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418;
+    --gold:#b8923c; --jade:#5a8a98; --plum:#b8607a; --wine:#8a3a4d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    min-height: 100vh; padding: 24px 16px 60px;
+    max-width: 1080px; margin: 0 auto;
+  }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: var(--ink4); margin-bottom: 20px; }
+  .card { background: var(--paper2); border: 1px solid var(--paper-dk); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  label { display: block; font-size: 12px; color: var(--ink3); margin-bottom: 6px; font-weight: 600; }
+  .dropzone {
+    border: 2px dashed var(--paper-dk); border-radius: 10px;
+    padding: 26px 14px; text-align: center; font-size: 13px;
+    color: var(--ink3); cursor: pointer; background: #fff;
+    transition: border-color .2s, background .2s;
+  }
+  .dropzone.drag { border-color: var(--jade); background: #f4f9fa; }
+  .dropzone input { display: none; }
+  textarea {
+    width: 100%; height: 80px; padding: 10px 12px; margin-top: 10px;
+    border: 1px solid var(--paper-dk); border-radius: 8px;
+    font-size: 12px; font-family: monospace; background: #fff; resize: vertical;
+  }
+  .btn {
+    padding: 9px 14px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    background: var(--jade); color: #fff; white-space: nowrap;
+  }
+  .btn.dark { background: var(--ink); color: var(--paper); }
+
+  /* 요약 카드 */
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .sum-card { background: #fff; border: 1px solid var(--paper-dk); border-radius: 10px; padding: 14px; text-align: center; }
+  .sum-card .v { font-size: 22px; font-weight: 800; }
+  .sum-card .k { font-size: 11px; color: var(--ink4); margin-top: 3px; }
+  .sum-card.rev .v { color: var(--vermil2); }
+
+  /* 달력 */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-title { font-size: 17px; font-weight: 800; }
+  .nav-btn { border: 1px solid var(--paper-dk); background: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 14px; }
+  .nav-btn:hover { border-color: var(--gold); }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .dow { text-align: center; font-size: 11px; color: var(--ink4); padding: 4px 0; font-weight: 700; }
+  .day {
+    min-height: 76px; background: #fff; border: 1px solid var(--paper-dk);
+    border-radius: 8px; padding: 6px; font-size: 11px; cursor: default;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .day.empty { background: transparent; border: none; }
+  .day.has { cursor: pointer; }
+  .day.has:hover { border-color: var(--gold); }
+  .day.sel { border-color: var(--vermil); border-width: 2px; }
+  .day .dn { color: var(--ink4); font-weight: 700; }
+  .day .dn.sun { color: var(--vermil); }
+  .day .amt { font-weight: 800; color: var(--vermil2); font-size: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 2px; }
+  .chip { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 99px; color: #fff; }
+  .c-light { background: var(--jade); } .c-deep { background: var(--vermil); }
+  .c-couple { background: var(--plum); } .c-couple_plus { background: var(--wine); }
+  .c-etc { background: var(--ink4); }
+  .chip.free { opacity: .55; }
+
+  /* 일 상세 */
+  .detail table { width: 100%; border-collapse: collapse; }
+  .detail th, .detail td { padding: 8px 10px; font-size: 12px; text-align: left; border-bottom: 1px solid var(--paper-dk); }
+  .detail th { background: var(--ink); color: var(--paper); font-size: 11px; }
+  .toggle-row { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; font-size: 12px; color: var(--ink3); flex-wrap: wrap; }
+  .toggle-row label { display: inline-flex; align-items: center; gap: 5px; margin: 0; cursor: pointer; font-weight: 400; }
+  .legend { display: inline-flex; gap: 8px; align-items: center; margin-left: auto; }
+  .legend .chip { font-size: 10px; }
+</style>
+</head>
+<body>
+
+<h1>💰 매출 달력</h1>
+<p class="sub">운영자 전용 · Supabase purchases CSV → 일별 매출·건수 달력 (데이터는 브라우저 안에서만 처리)</p>
+
+<div class="card">
+  <label>Supabase → Table Editor → purchases → Export CSV 파일 넣기</label>
+  <div class="dropzone" id="dropzone">
+    📂 여기를 클릭해 CSV 선택 — 또는 파일을 끌어다 놓기
+    <input type="file" id="fileInput" accept=".csv,text/csv">
+  </div>
+  <textarea id="pasteBox" placeholder="또는 CSV 내용을 통째로 붙여넣고 아래 버튼"></textarea>
+  <div style="margin-top:8px"><button class="btn dark" onclick="parseFromPaste()">붙여넣은 내용 반영</button></div>
+</div>
+
+<div id="resultArea" style="display:none">
+  <div class="summary" id="summary"></div>
+  <div class="card">
+    <div class="cal-head">
+      <button class="nav-btn" onclick="moveMonth(-1)">◀ 이전달</button>
+      <div class="cal-title" id="calTitle"></div>
+      <button class="nav-btn" onclick="moveMonth(1)">다음달 ▶</button>
+    </div>
+    <div class="toggle-row">
+      <label><input type="checkbox" id="showFree" checked onchange="render()"> 무료 발급(쿠폰 0원)도 표시</label>
+      <span class="legend">
+        <span class="chip c-light">입문</span><span class="chip c-deep">전문가</span>
+        <span class="chip c-couple">궁합</span><span class="chip c-couple_plus">성인궁합</span>
+      </span>
+    </div>
+    <div class="cal" id="cal"></div>
+  </div>
+  <div class="card detail" id="detailCard" style="display:none">
+    <label id="detailTitle"></label>
+    <table><thead><tr><th>시각</th><th>상품</th><th>방식</th><th>금액</th><th>구매자</th></tr></thead>
+    <tbody id="detailBody"></tbody></table>
+  </div>
+</div>
+
+<script>
+const PRODUCT_KO = { light: '입문', deep: '전문가', couple: '궁합', couple_plus: '성인궁합' };
+const METHOD_KO = { kakaopay: '카카오페이', toss: '토스', coupon: '고정쿠폰', 'gift-coupon': '선물쿠폰', 'promo-coupon': '홍보쿠폰', migrated: '이관' };
+
+function parseCSV(text) {
+  const rows = []; let row = [], cell = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else inQ = false; }
+      else cell += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i+1] === '\n') i++;
+        row.push(cell); cell = '';
+        if (row.some(v => v !== '')) rows.push(row); row = [];
+      } else cell += c;
+    }
+  }
+  row.push(cell);
+  if (row.some(v => v !== '')) rows.push(row);
+  return rows;
+}
+// UTC → KST Date 구성요소
+function utcToKST(s) {
+  const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) + 9*3600*1000);
+  return { y: d.getUTCFullYear(), mo: d.getUTCMonth()+1, d: d.getUTCDate(),
+           hh: String(d.getUTCHours()).padStart(2,'0'), mi: String(d.getUTCMinutes()).padStart(2,'0') };
+}
+
+let entries = [];      // {y,mo,d,hh,mi,productId,method,amount,buyer}
+let curY = 0, curM = 0, selDay = 0;
+
+function buildRows(rows) {
+  if (!rows.length) { alert('CSV가 비어 있어요.'); return; }
+  const h = rows[0].map(x => String(x).trim());
+  const iP = h.indexOf('product_id'), iRaw = h.indexOf('raw'), iDt = h.indexOf('created_at'), iU = h.indexOf('user_kakao_id');
+  if (iRaw === -1 || iDt === -1) { alert('purchases 테이블 CSV가 아닌 것 같아요 (raw/created_at 컬럼 필요).'); return; }
+  entries = [];
+  for (let r = 1; r < rows.length; r++) {
+    let raw = {};
+    try { raw = JSON.parse(rows[r][iRaw]) || {}; } catch (e) {}
+    const t = utcToKST(rows[r][iDt]);
+    if (!t) continue;
+    entries.push({
+      y: t.y, mo: t.mo, d: t.d, hh: t.hh, mi: t.mi,
+      productId: rows[r][iP] || raw.productId || '?',
+      method: raw.method || 'kakaopay',
+      amount: Number(raw.amount) || 0,
+      buyer: (iU >= 0 ? rows[r][iU] : '') || ''
+    });
+  }
+  if (!entries.length) { alert('읽을 수 있는 행이 없어요.'); return; }
+  // 최신 항목의 달로 시작
+  const last = entries.reduce((a, b) => (a.y*12+a.mo >= b.y*12+b.mo ? a : b));
+  curY = last.y; curM = last.mo; selDay = 0;
+  document.getElementById('resultArea').style.display = 'block';
+  render();
+  window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 10, behavior: 'smooth' });
+}
+
+function moveMonth(dir) {
+  curM += dir;
+  if (curM < 1) { curM = 12; curY--; }
+  if (curM > 12) { curM = 1; curY++; }
+  selDay = 0;
+  render();
+}
+
+function monthEntries() {
+  const showFree = document.getElementById('showFree').checked;
+  return entries.filter(e => e.y === curY && e.mo === curM && (showFree || e.amount > 0));
+}
+
+function render() {
+  const list = monthEntries();
+  const paid = list.filter(e => e.amount > 0);
+  const free = list.filter(e => e.amount === 0);
+
+  // 요약
+  const revenue = paid.reduce((s, e) => s + e.amount, 0);
+  const byProd = {};
+  paid.forEach(e => { byProd[e.productId] = (byProd[e.productId] || 0) + e.amount; });
+  const prodTxt = Object.keys(byProd).map(p => (PRODUCT_KO[p] || p) + ' ' + byProd[p].toLocaleString() + '원').join(' · ') || '—';
+  document.getElementById('summary').innerHTML =
+    '<div class="sum-card rev"><div class="v">' + revenue.toLocaleString() + '원</div><div class="k">' + curM + '월 매출</div></div>' +
+    '<div class="sum-card"><div class="v">' + paid.length + '건</div><div class="k">유료 결제</div></div>' +
+    '<div class="sum-card"><div class="v">' + free.length + '건</div><div class="k">무료 발급 (쿠폰)</div></div>' +
+    '<div class="sum-card"><div class="v" style="font-size:12px;line-height:1.6;padding-top:4px">' + prodTxt + '</div><div class="k">상품별 매출</div></div>';
+
+  // 달력
+  document.getElementById('calTitle').textContent = curY + '년 ' + curM + '월';
+  const first = new Date(curY, curM - 1, 1).getDay();
+  const days = new Date(curY, curM, 0).getDate();
+  const byDay = {};
+  list.forEach(e => { (byDay[e.d] = byDay[e.d] || []).push(e); });
+
+  let html = ['일','월','화','수','목','금','토'].map(d => '<div class="dow">' + d + '</div>').join('');
+  for (let i = 0; i < first; i++) html += '<div class="day empty"></div>';
+  for (let d = 1; d <= days; d++) {
+    const es = byDay[d] || [];
+    const amt = es.reduce((s, e) => s + e.amount, 0);
+    const dow = (first + d - 1) % 7;
+    const chips = es.slice(0, 6).map(e =>
+      '<span class="chip c-' + (PRODUCT_KO[e.productId] ? e.productId : 'etc') + (e.amount === 0 ? ' free' : '') + '">' +
+      (PRODUCT_KO[e.productId] || e.productId) + '</span>').join('') + (es.length > 6 ? '<span class="chip c-etc">+' + (es.length - 6) + '</span>' : '');
+    html += '<div class="day' + (es.length ? ' has' : '') + (selDay === d ? ' sel' : '') + '"' +
+      (es.length ? ' onclick="selectDay(' + d + ')"' : '') + '>' +
+      '<span class="dn' + (dow === 0 ? ' sun' : '') + '">' + d + '</span>' +
+      (amt > 0 ? '<span class="amt">' + amt.toLocaleString() + '</span>' : '') +
+      '<span class="chips">' + chips + '</span></div>';
+  }
+  document.getElementById('cal').innerHTML = html;
+  renderDetail();
+}
+
+function selectDay(d) { selDay = (selDay === d ? 0 : d); render(); }
+
+function renderDetail() {
+  const card = document.getElementById('detailCard');
+  if (!selDay) { card.style.display = 'none'; return; }
+  const es = monthEntries().filter(e => e.d === selDay).sort((a, b) => (a.hh + a.mi).localeCompare(b.hh + b.mi));
+  if (!es.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('detailTitle').textContent = curY + '년 ' + curM + '월 ' + selDay + '일 — ' + es.length + '건';
+  document.getElementById('detailBody').innerHTML = es.map(e =>
+    '<tr><td>' + e.hh + ':' + e.mi + '</td><td>' + (PRODUCT_KO[e.productId] || e.productId) + '</td>' +
+    '<td>' + (METHOD_KO[e.method] || e.method) + '</td>' +
+    '<td>' + (e.amount > 0 ? '<b style="color:var(--vermil2)">' + e.amount.toLocaleString() + '원</b>' : '<span style="color:var(--ink4)">무료</span>') + '</td>' +
+    '<td style="font-family:monospace;font-size:10px">' + e.buyer + '</td></tr>').join('');
+}
+
+/* 입력 처리 */
+const dz = document.getElementById('dropzone');
+const fi = document.getElementById('fileInput');
+dz.addEventListener('click', () => fi.click());
+fi.addEventListener('change', () => { if (fi.files[0]) readFile(fi.files[0]); });
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => buildRows(parseCSV(String(reader.result)));
+  reader.readAsText(file, 'utf-8');
+}
+function parseFromPaste() {
+  const t = document.getElementById('pasteBox').value.trim();
+  if (!t) { alert('붙여넣은 내용이 없어요.'); return; }
+  buildRows(parseCSV(t));
+}
+</script>
+</body>
+</html>
