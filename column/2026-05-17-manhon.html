@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>나는 결혼을 늦게 해야 한다고? | 사주다이어리</title>
-<meta name="description" content="'결혼 늦게 하라'는 말을 들은 다음, 정확히 뭘 확인해야 하고 언제가 나에게 좋은지. 본인 자아·궁합·대운 세 가지 신호로 결혼 시기를 직접 판단하는 법.">
-<meta name="keywords" content="만혼 사주, 결혼 늦게, 결혼 시기 사주, 늦결혼, 결혼 적기, 사주 결혼 시기, 대운 결혼, 결혼 대운, 자아 강한 결혼, 궁합 결혼">
+<meta name="description" content="'결혼 늦게 하라'는 말을 들었다면, 그건 대개 비겁이 강한 사주입니다. 자아가 강해 세상의 담금질이 필요하다는 명리적 판단 — 내가 정말 그런 사주인지 3가지로 확인하는 법.">
+<meta name="keywords" content="만혼 사주, 결혼 늦게, 비겁 강한 사주, 신강 사주, 자아 강한 사주, 결혼 시기 사주, 늦결혼 사주, 이혼 사주">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="article">
 <meta property="og:title" content="나는 결혼을 늦게 해야 한다고?">
-<meta property="og:description" content="'늦게 하라'는 말은 진단이지 처방이 아니에요. 처방은 본인의 세 가지 신호로 직접 짜야 합니다.">
+<meta property="og:description" content="'늦게 하라'는 말의 뒤에 있는 명리적 판단 — 비겁이 강한 사주의 특징과 자가 진단, 준비하는 법까지.">
 <meta property="og:image" content="../assets/og-image.svg">
 <meta property="og:url" content="https://sajudiary.com/column/2026-05-17-manhon.html">
 <meta property="og:site_name" content="사주다이어리">
@@ -58,6 +58,17 @@
     margin-top: 52px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--paper-dk);
   }
   .article-prose h2::before { content: "✦ "; color: var(--ink2); font-size: 17px; margin-right: 4px; }
+  .article-prose h3 {
+    font-family: 'Shilla Culture', serif; font-weight: 700; font-size: 19px;
+    color: var(--ink); margin-top: 34px; margin-bottom: 12px;
+  }
+  .article-prose h3::before {
+    content: attr(data-check); display: inline-block;
+    font-family: 'Shilla Culture', serif; font-weight: 700; font-size: 12px;
+    color: var(--jade2); background: rgba(90,138,152,0.10);
+    padding: 3px 10px; border-radius: 999px; margin-right: 10px;
+    vertical-align: 2px; letter-spacing: 0.1em;
+  }
   .article-prose p { margin-bottom: 18px; }
   .article-prose ul { margin: 14px 0 22px 8px; padding-left: 16px; }
   .article-prose li { margin-bottom: 6px; }
@@ -72,45 +83,53 @@
     font-style: italic; color: var(--ink2);
   }
 
-  /* 체크 카드 — 3단계 체크리스트 */
-  .check-card {
-    background: linear-gradient(180deg, var(--paper2), var(--paper));
-    border: 1px solid var(--paper-dk); border-left: 3px solid var(--jade);
-    border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+  /* 체크리스트 카드 (자가 진단용) */
+  .self-check {
+    background: linear-gradient(180deg, rgba(90,138,152,0.06), var(--paper));
+    border: 1px solid var(--jade3); border-left: 3px solid var(--jade);
+    border-radius: 10px; padding: 18px 22px; margin: 20px 0;
   }
-  .check-card .check-num {
-    display: inline-block; font-family: 'Shilla Culture', serif;
-    font-weight: 700; font-size: 14px; color: var(--jade2);
-    background: rgba(90,138,152,0.10); padding: 3px 12px;
-    border-radius: 999px; margin-bottom: 12px;
+  .self-check .sc-label {
+    display: block; font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px; letter-spacing: 0.14em; color: var(--jade2);
+    margin-bottom: 10px;
   }
-  .check-card h3 {
-    font-family: 'Shilla Culture', serif; font-weight: 700;
-    font-size: 19px; color: var(--ink); margin: 0 0 10px 0;
-  }
-  .check-card .check-sub {
-    font-family: 'Shilla Gothic', sans-serif; font-size: 12.5px;
-    color: var(--ink3); margin-bottom: 14px; letter-spacing: 0.02em;
-  }
-  .check-card .check-item {
+  .self-check .sc-item {
     display: block; font-size: 14.5px; color: var(--ink2);
-    padding: 6px 0; line-height: 1.7;
+    padding: 5px 0; line-height: 1.65;
   }
-  .check-card .check-item::before {
-    content: "□ "; color: var(--jade2); font-weight: 700; margin-right: 4px;
+  .self-check .sc-item::before {
+    content: "□"; color: var(--jade2); font-weight: 700; margin-right: 8px;
   }
-  .check-card .check-verdict {
-    margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--paper-dk);
+  .self-check .sc-verdict {
+    margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--paper-dk);
     font-size: 13.5px; color: var(--ink2);
   }
-  .check-card .check-verdict strong { color: var(--ink); }
+  .self-check .sc-verdict strong { color: var(--ink); }
 
-  /* 조합 판단 표 */
-  .combo-table { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 14px; }
-  .combo-table th, .combo-table td { border: 1px solid var(--paper-dk); padding: 10px 12px; text-align: left; vertical-align: top; }
-  .combo-table th { background: var(--paper3); font-family: 'Shilla Culture', serif; font-weight: 700; color: var(--ink); }
-  .combo-table .sig-good { color: var(--jade2); font-weight: 700; }
-  .combo-table .sig-bad  { color: var(--vermil2); font-weight: 700; }
+  /* 성향 매핑 박스 — "그 성향이 결혼에서 어떻게 나타나는가" */
+  .trait-map {
+    background: linear-gradient(180deg, rgba(184,96,122,0.06), var(--paper));
+    border: 1px solid var(--plum3); border-left: 3px solid var(--plum);
+    border-radius: 10px; padding: 18px 22px; margin: 20px 0;
+  }
+  .trait-map .tm-label {
+    display: block; font-family: 'Shilla Gothic', sans-serif;
+    font-size: 11px; letter-spacing: 0.14em; color: var(--plum2);
+    margin-bottom: 12px;
+  }
+  .trait-map .tm-row {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px;
+    align-items: center; padding: 8px 0;
+    border-top: 1px dashed var(--paper-dk);
+    font-size: 14px; color: var(--ink2);
+  }
+  .trait-map .tm-row:first-of-type { border-top: none; }
+  .trait-map .tm-arrow {
+    font-family: 'Shilla Culture', serif; color: var(--plum2); font-weight: 700;
+  }
+  .trait-map .tm-life { color: var(--ink3); }
+  .trait-map .tm-marry { color: var(--ink); font-weight: 500; }
 
   /* 마무리 박스 */
   .closing-box {
@@ -160,10 +179,10 @@
   .article-nav .next { text-align: right; }
 
   /* 모바일 가독성 */
-  .article-hero h1, .article-hero p, .article-prose p, .article-prose h2,
+  .article-hero h1, .article-hero p, .article-prose p, .article-prose h2, .article-prose h3,
   .article-prose li, .article-prose strong, .article-prose em, .article-prose blockquote,
-  .check-card h3, .check-card .check-sub, .check-card .check-item, .check-card .check-verdict,
-  .closing-box p, .combo-table td,
+  .self-check .sc-item, .self-check .sc-verdict, .trait-map .tm-row,
+  .closing-box p,
   .article-cta h3, .article-cta p, .article-nav .nav-title {
     word-break: keep-all; overflow-wrap: break-word;
   }
@@ -175,14 +194,16 @@
     .cat-badge { font-size: 10px; padding: 4px 11px; }
     .article-prose { font-size: 15.5px; line-height: 1.85; }
     .article-prose h2 { font-size: 20px; margin-top: 42px; }
-    .article-prose blockquote, .check-card, .closing-box { padding: 14px 16px; }
-    .check-card h3 { font-size: 17px; }
-    .check-card .check-item { font-size: 13.5px; }
+    .article-prose h3 { font-size: 17px; }
+    .article-prose h3::before { font-size: 11px; padding: 3px 8px; margin-right: 8px; }
+    .article-prose blockquote, .self-check, .trait-map, .closing-box { padding: 14px 16px; }
+    .self-check .sc-item { font-size: 13.5px; }
+    .trait-map .tm-row { grid-template-columns: 1fr; gap: 4px; text-align: left; padding: 10px 0; }
+    .trait-map .tm-arrow { display: none; }
+    .trait-map .tm-marry::before { content: "→ "; color: var(--plum2); font-weight: 700; }
     .article-cta { padding: 30px 22px; }
     .article-cta h3 { font-size: 19px; }
     .article-nav { grid-template-columns: 1fr; }
-    .combo-table { font-size: 13px; }
-    .combo-table th, .combo-table td { padding: 8px 10px; }
   }
 </style>
 </head>
@@ -215,8 +236,8 @@
         나는 결혼을 늦게 해야 한다고?
       </h1>
       <p class="text-[var(--ink3)] text-base leading-relaxed mb-5">
-        *"늦게 하라"*는 말은 진단이지 처방이 아니에요.<br/>
-        처방은 <strong>본인의 세 가지 신호</strong>로 직접 짜야 합니다.
+        "지금 결혼하면 이혼할 수도 있다"는 말의 뒤에 있는 명리적 판단.<br/>
+        <strong>비겁이 강한 사주</strong>의 특징과 자가 진단, 준비하는 법까지.
       </p>
       <div class="flex items-center gap-4 text-xs font-shilla text-[var(--ink4)] tracking-wider">
         <span>사주다이어리 편집팀</span>
@@ -229,158 +250,146 @@
   <main class="max-w-3xl mx-auto px-6 py-14">
     <article class="article-prose">
 
-      <p><a href="2026-05-16-gyeolhon-saju.html">지난 글</a>을 쓴 다음 날, 그 지인분이 다시 연락을 주셨어요.</p>
+      <p>어제 지인분이 사주를 보고 오셔서 저한테 이렇게 물어보셨어요.</p>
 
       <blockquote>
-        "네가 쓴 글 잘 봤어. 근데 그래서 <strong>나는 정확히 언제 결혼하면 되는데?</strong><br/>
-        30대 후반? 40대? 아니면 그냥 하지 말아야 해?"
+        "선생님이 그러시는데, 나는 결혼을 <strong>늦게 할수록 좋대</strong>.<br/>
+        지금 하면 <strong>이혼할 수도 있다</strong>는데 — 이게 무슨 말이야?"
       </blockquote>
 
-      <p>이게 진짜 질문이에요. *"결혼 못 할 사주는 없다"*, *"늦게 하라는 말의 진짜 의미는 다르다"* — 여기까지가 <em>진단</em>이었다면, <em>처방</em>은 다른 자리에서 시작해야 해요. 지난 글이 술사의 말을 어떻게 해석할지의 이야기였다면, 오늘은 그 말을 들은 사람이 <strong>정확히 뭘 확인해야 하고 언제가 본인에게 좋은지</strong>를 스스로 판단하는 이야기입니다.</p>
+      <p>표정이 안 좋으셨어요. 결혼을 이제 좀 진지하게 생각하기 시작하셨는데 갑자기 *"이혼"*이라는 단어가 튀어나왔으니 무거워지실 만도 하죠. 그런데 이 말의 진짜 의미를 풀어보면 생각만큼 무섭지 않아요. <a href="2026-05-16-gyeolhon-saju.html">지난 글</a>에서 짚었듯이, 오히려 본인을 아주 정확히 짚어준 조언에 가깝습니다.</p>
 
-      <h2>"결혼 늦게 하라"의 두 종류</h2>
+      <h2>그 말의 진짜 이유 — 비겁이 강한 사주</h2>
 
-      <p>같은 *"결혼 늦게 하라"*라도 무게가 두 가지로 나뉘어요.</p>
+      <p>술사가 이런 표현을 쓰는 사주는 열에 여덟 정도는 <strong>비겁(比劫)이 강한 사주</strong>예요. 명리에서 비겁이란 본인 일간과 같은 오행의 글자를 말합니다. 갑목 일간에게 갑·을·인·묘가 비겁이고, 병화 일간에게 병·정·사·오가 비겁이에요.</p>
+
+      <p>비겁이 사주에 많으면 본인의 힘이 강해집니다. 명리에서는 이 상태를 <strong>신강(身强)</strong>이라고 불러요. 신강 사주는 어떤 면에서는 좋아요. 결단력·추진력·자기 확신이 강하니까요. 그런데 결혼처럼 두 사람이 매일 부딪히는 관계에서는 이 강함이 오히려 걸림돌이 돼요. <em>양보가 어렵고, 자기 뜻을 굽히기 힘들며, 상대를 받아들이는 데 시간이 오래 걸립니다.</em></p>
+
+      <p>그래서 명리에서는 이런 사주에게 <em>"세상의 담금질을 받은 다음에 결혼하는 게 좋다"</em>고 조언해요. 세상에 부딪히면서 자아가 자연스럽게 다듬어진 후에 결혼하면, 관계 안에서 훨씬 편안해진다는 뜻이에요.</p>
+
+      <h2>비겁이 강한 사람의 특징 — 왜 결혼이 어려운가</h2>
+
+      <p>말로만 하면 추상적이니 구체적으로 풀어드릴게요. 비겁이 강한 사주는 대체로 이런 성향이에요.</p>
 
       <ul>
-        <li><strong>정말 시기가 늦어야 좋은 사주</strong> — 자아가 특히 강해서 30대 초반까지의 결혼이 확실히 무리인 사주. 30대 후반~40대 초반이 안정적</li>
-        <li><strong>그저 좀 여유를 두면 좋은 사주</strong> — 20대 후반이 조금 이른 편일 뿐이고, 30대 초중반이면 충분히 안정적. 굳이 40대까지 미룰 필요 없음</li>
+        <li><strong>자아가 강함</strong> — *"나는 이렇게 생각해"*가 분명함. 남과 다른 나만의 관점이 확고</li>
+        <li><strong>자존심이 높음</strong> — 자기 뜻이 꺾이는 걸 특히 못 견딤. 사소한 지적도 크게 받아들임</li>
+        <li><strong>남의 말을 잘 안 들음</strong> — 조언을 들어도 결국 본인 판단대로 감. 결정은 늘 본인이 내림</li>
+        <li><strong>결정이 단호함</strong> — 한 번 정하면 잘 안 바꿈. 애매한 상태를 견디기 어려워함</li>
+        <li><strong>관계에서 주도권을 잡으려 함</strong> — 대화에서도 결정 과정에서도 자연스럽게 앞에 섬</li>
       </ul>
 
-      <p>많은 분들이 <em>"늦게 하라"</em>를 들으면 무조건 첫 번째로 해석해서 40대까지 미루는 결정을 내려요. 그런데 대부분의 케이스는 두 번째에 가깝습니다. 차이를 가르는 건 본인 사주의 세 가지 신호예요.</p>
+      <p>이 성향들이 <em>혼자 있을 때·사회 생활에서는</em> 대체로 장점이에요. 리더십·독립심·추진력으로 나타나거든요. 그런데 <strong>결혼</strong>은 매일 두 사람이 자잘한 것부터 큰 것까지 함께 결정해야 하는 관계잖아요. 그때 같은 성향이 이렇게 바뀝니다.</p>
 
-      <h2>체크 ① 본인 자아의 상태</h2>
-
-      <div class="check-card">
-        <span class="check-num">CHECK 01</span>
-        <h3>지금 내 자아는 얼마나 강한가</h3>
-        <p class="check-sub">일간·비겁·양인·편관의 상태를 봅니다</p>
-        <span class="check-item">일간이 신강(身强) — 본인 힘이 강함</span>
-        <span class="check-item">비겁(比劫)이 사주에 2개 이상 — 자기 주장이 강함</span>
-        <span class="check-item">양인(羊刃)·편관(偏官)이 강함 — 결정이 단호함</span>
-        <span class="check-item">인성(印星)이 약함 — 남의 말 잘 안 들음</span>
-        <div class="check-verdict">
-          <strong>3개 이상 해당</strong> — 정말 시기가 늦어야 좋은 사주. 30대 후반이 안정적.<br/>
-          <strong>1~2개 해당</strong> — 여유만 두면 되는 사주. 30대 초중반이면 충분.<br/>
-          <strong>0개 해당</strong> — 자아 강함이 문제가 아님. 다른 이유로 *"늦게 하라"*를 들은 것.
+      <div class="trait-map">
+        <span class="tm-label">같은 성향, 자리에 따라 결이 다름</span>
+        <div class="tm-row">
+          <span class="tm-life">사회에서: 리더십</span>
+          <span class="tm-arrow">→</span>
+          <span class="tm-marry">결혼에서: 배우자가 답답해함</span>
+        </div>
+        <div class="tm-row">
+          <span class="tm-life">사회에서: 결단력</span>
+          <span class="tm-arrow">→</span>
+          <span class="tm-marry">결혼에서: 상의 없이 결정</span>
+        </div>
+        <div class="tm-row">
+          <span class="tm-life">사회에서: 자기 원칙</span>
+          <span class="tm-arrow">→</span>
+          <span class="tm-marry">결혼에서: 자잘한 부딪힘 잦음</span>
+        </div>
+        <div class="tm-row">
+          <span class="tm-life">사회에서: 굽히지 않음</span>
+          <span class="tm-arrow">→</span>
+          <span class="tm-marry">결혼에서: 논쟁이 길어짐</span>
+        </div>
+        <div class="tm-row">
+          <span class="tm-life">사회에서: 확신</span>
+          <span class="tm-arrow">→</span>
+          <span class="tm-marry">결혼에서: 상대가 지쳐 물러남</span>
         </div>
       </div>
 
-      <p>자아가 강할수록 결혼 후 양보와 조율이 어렵기 때문에, 본인이 좀 다져진 다음에 결혼하는 게 안정적이에요. <a href="2026-05-16-gyeolhon-saju.html">지난 글</a>에서 풀었던 그 원리 그대로입니다.</p>
+      <p>술사가 *"지금 결혼하면 이혼할 수도 있다"*고 말한 지점이 여기예요. 사주가 이혼을 정해준다는 뜻이 아니라, 이런 성향을 자각 못 한 채 결혼하면 갈등이 축적되기 쉽다는 명리적 판단이에요.</p>
 
-      <h2>체크 ② 결혼 상대와의 궁합</h2>
+      <h2>그럼 나는 정말 비겁이 강한 사주일까 — 세 가지 체크</h2>
 
-      <div class="check-card">
-        <span class="check-num">CHECK 02</span>
-        <h3>지금 만나는 사람과의 궁합은 어떤가</h3>
-        <p class="check-sub">일지 충·형·합을 봅니다</p>
-        <span class="check-item">두 사람 일지가 합(合) — 자연스러운 끌림, 좋음</span>
-        <span class="check-item">두 사람 일지가 충(冲) — 부딪힘 잦음, 시기 신중</span>
-        <span class="check-item">두 사람 일간이 서로 극(剋) — 관계 주도권 다툼</span>
-        <span class="check-item">두 사람 오행 균형이 서로 보완 — 좋음</span>
-        <div class="check-verdict">
-          <strong>합·보완이 우세</strong> — 굳이 늦출 필요 없음. 지금 결정 자연스러움.<br/>
-          <strong>충·극이 우세</strong> — 서로 다져지길 기다리거나, 결혼 후 관계 관리에 특히 신경.<br/>
-          <strong>지금 상대가 없음</strong> — 다음 체크(대운)에 집중.
+      <p>본인 사주를 열어보실 수 있으면 30초 안에 확인 가능해요. 세 가지만 봐보세요.</p>
+
+      <h3 data-check="CHECK 01">사주 8자에 본인 오행이 몇 개인가</h3>
+
+      <p>가장 간단한 확인법이에요. 무료 만세력에서 본인 사주를 펼치신 다음 <strong>본인 일간과 같은 오행의 글자가 8자 중 몇 개 있는지</strong> 세보세요.</p>
+
+      <ul>
+        <li>일간이 <strong>갑·을</strong> (목木) → 갑·을·인·묘가 몇 개인지</li>
+        <li>일간이 <strong>병·정</strong> (화火) → 병·정·사·오가 몇 개인지</li>
+        <li>일간이 <strong>무·기</strong> (토土) → 무·기·진·술·축·미가 몇 개인지</li>
+        <li>일간이 <strong>경·신</strong> (금金) → 경·신·신·유가 몇 개인지</li>
+        <li>일간이 <strong>임·계</strong> (수水) → 임·계·자·해가 몇 개인지</li>
+      </ul>
+
+      <p>본인 일간을 포함해 <em>3개 이상</em>이면 비겁이 강한 신호, <em>4개 이상</em>이면 확실히 비겁이 강한 사주예요.</p>
+
+      <h3 data-check="CHECK 02">월지가 본인 오행과 같은가</h3>
+
+      <p>이게 결정적 신호예요. 사주 8자 중 <strong>월지(月支)</strong>, 그러니까 태어난 달의 지지 글자가 본인 일간과 같은 오행이면 — 비겁이 아주 강합니다. 명리에서 월지는 사주 전체의 절반 무게를 가진다고 봐요. 그 자리에 본인과 같은 오행이 있으면 신강 사주가 확실해집니다.</p>
+
+      <p>예를 들어 갑목 일간이 <em>인월(寅月, 정월 즈음)</em>이나 <em>묘월(卯月, 이월 즈음)</em>에 태어났으면 다른 신호 없이도 신강. 병화 일간이 <em>사월(巳月)</em>이나 <em>오월(午月)</em>에 태어났어도 마찬가지예요. 이 하나만으로도 충분히 판단됩니다.</p>
+
+      <h3 data-check="CHECK 03">성격 자가 진단 다섯 문항</h3>
+
+      <p>사주를 안 봐도 확인할 수 있어요. 다음 다섯 문항 중 몇 개에 해당하는지 세보세요.</p>
+
+      <div class="self-check">
+        <span class="sc-label">SELF · 얼마나 해당하는가</span>
+        <span class="sc-item">남의 조언을 들어도 결국 내 판단대로 결정한다</span>
+        <span class="sc-item">결정을 빠르고 단호하게 내리는 편이다</span>
+        <span class="sc-item">내 뜻이 꺾일 때 유난히 스트레스를 받는다</span>
+        <span class="sc-item">논쟁을 시작하면 쉽게 물러서지 못한다</span>
+        <span class="sc-item">나만의 방식·기준·원칙이 뚜렷하다</span>
+        <div class="sc-verdict">
+          <strong>3개 이상 해당</strong>이면 비겁이 강한 사람의 성향에 가까워요. 사주 체크와 성격 체크가 같은 방향이면 판단이 확실해집니다.
         </div>
       </div>
 
-      <p>본인 사주가 아무리 <em>"만혼형"</em>이어도, 지금 만나는 상대와 궁합이 정말 좋으면 시기 늦출 이유가 별로 없어요. 반대로 자아가 그리 강하지 않아도 상대와의 충돌이 크면 시기를 두는 게 안전합니다. <strong>본인 사주만큼 궁합이 결정에 큰 몫을 차지</strong>합니다.</p>
+      <h2>그럼 언제 결혼하는 게 좋을까</h2>
 
-      <h2>체크 ③ 대운의 흐름</h2>
+      <p>비겁이 강한 사주는 대운의 흐름을 봤을 때 <strong>30대 중후반</strong>이 가장 자연스러운 결혼 시기예요. 이유는 두 가지.</p>
 
-      <div class="check-card">
-        <span class="check-num">CHECK 03</span>
-        <h3>지금 대운이 결혼에 어울리는가</h3>
-        <p class="check-sub">본인 대운의 십신 흐름을 봅니다</p>
-        <span class="check-item">정관·정재가 강하게 들어오는 대운 — 결혼 좋음</span>
-        <span class="check-item">인성이 살아있는 대운 — 안정된 결혼</span>
-        <span class="check-item">비겁이 폭발적으로 강한 대운 — 결혼 갈등 쉬움, 신중</span>
-        <span class="check-item">일지에 충·형이 계속 들어오는 대운 — 결혼 후 흔들림</span>
-        <div class="check-verdict">
-          <strong>좋은 신호 우세</strong> — 대운이 등을 밀어주는 시기. 결정 자연스러움.<br/>
-          <strong>부담 신호 우세</strong> — 다음 대운(10년 후)이 훨씬 안정적일 수 있음.<br/>
-          <strong>중립</strong> — 세운(그해 운)까지 같이 보고 판단.
-        </div>
-      </div>
+      <p>첫째, 사회 경험이 쌓이면서 자아가 자연스럽게 다듬어집니다. 20대엔 세상이 내 뜻대로 굴러가지 않는 걸 받아들이기 어려워요. 30대 중반이 지나면 <em>"나만 맞는 게 아니구나"</em>가 몸으로 배어들어요. 명리에서 말하는 <em>세상의 담금질</em>이 이 시기에 자연스럽게 이뤄집니다.</p>
 
-      <p>대운은 10년 단위로 흐르는 인생의 큰 파도예요. 파도가 등을 밀어줄 때 결정하면 힘이 덜 들고, 파도를 거슬러 결정하면 같은 결정도 훨씬 힘들어져요. <em>"늦게 하라"</em>는 조언의 상당수가 실은 대운을 보고 하는 판단입니다.</p>
+      <p>둘째, 대운에서 <strong>관성(官星)</strong>이나 <strong>인성(印星)</strong>이 들어와 비겁을 다듬어 주는 시기가 보통 30대 중후반이에요. 관성은 본인을 통제하는 힘, 인성은 본인을 수용하게 하는 힘. 이 둘이 자라면 같은 사주라도 다른 사람이 됩니다. 20대의 나와 30대 중반의 내가 왜 이렇게 다른가 — 그 이유예요.</p>
 
-      <h2>세 신호의 조합 — 어떻게 판단할까</h2>
+      <h2>그럼 지금 결혼하면 무조건 이혼할까 — 아니다</h2>
 
-      <p>세 체크를 다 하고 나면 결과는 8가지 조합으로 나옵니다. 그중 자주 나오는 5가지 패턴만 정리하면 이래요.</p>
+      <p>여기서 무거운 마음은 좀 내려놓으셔도 돼요. <strong>이혼은 사주가 정해주지 않아요.</strong> 상대와의 궁합, 본인이 스스로를 얼마나 자각하는가, 두 사람이 갈등을 어떻게 다루는가 — 여러 변수가 얽혀 결정되는 문제예요.</p>
 
-      <table class="combo-table">
-        <thead>
-          <tr>
-            <th width="20%">자아</th>
-            <th width="20%">궁합</th>
-            <th width="20%">대운</th>
-            <th>판단</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="sig-good">약~중</td>
-            <td class="sig-good">좋음</td>
-            <td class="sig-good">좋음</td>
-            <td>지금이 적기. 굳이 미룰 이유 없음</td>
-          </tr>
-          <tr>
-            <td class="sig-bad">강함</td>
-            <td class="sig-good">좋음</td>
-            <td class="sig-good">좋음</td>
-            <td>결혼은 지금 해도 됨. 단 결혼 후 조율에 특히 신경</td>
-          </tr>
-          <tr>
-            <td class="sig-bad">강함</td>
-            <td class="sig-bad">부딪힘</td>
-            <td class="sig-good">좋음</td>
-            <td>상대 재고 or 시기 두기. 대운은 좋아 놓치기 아깝지만 충돌 위험 큼</td>
-          </tr>
-          <tr>
-            <td class="sig-good">약~중</td>
-            <td class="sig-good">좋음</td>
-            <td class="sig-bad">부담</td>
-            <td>1~2년 안에 결정. 다음 대운 진입 전 자리 잡는 게 안전</td>
-          </tr>
-          <tr>
-            <td class="sig-bad">강함</td>
-            <td class="sig-bad">부딪힘</td>
-            <td class="sig-bad">부담</td>
-            <td>미루는 게 정답. 다음 대운(10년 후) + 새로운 인연에서 안정</td>
-          </tr>
-        </tbody>
-      </table>
+      <p>비겁이 강한 사주도 결혼을 잘 유지하는 케이스가 많습니다. 공통점은 하나예요 — <strong>본인이 자기 성향을 자각하고 있다는 것.</strong> 자각한 사람은 다투는 순간에도 <em>"아, 이건 내 자존심 때문에 물러서지 못하는 거구나"</em>를 알아차려요. 알아차리면 멈출 수 있어요. 그게 관계를 지키는 힘입니다.</p>
 
-      <p>표를 보면 알 수 있듯이 — <strong>세 신호가 다 좋을 때만 "지금이 적기"</strong>이고, 나머지는 모두 조건부 판단이에요. 그리고 세 신호가 다 좋은 케이스는 생각보다 자주 오지 않습니다.</p>
+      <p>이 글을 여기까지 읽으신 것 자체가 이미 첫걸음이에요. *"내가 비겁이 강한 사주인가?"*를 궁금해하는 순간부터 자각은 시작됩니다.</p>
 
-      <h2>그런데 — 완벽한 시기는 없어요</h2>
+      <h2>비겁이 강한 사람이 결혼을 잘 하는 세 가지 요령</h2>
 
-      <p>여기까지 읽으시면 자연스럽게 드는 생각이 있을 거예요. <em>"그럼 세 신호가 다 좋아질 때까지 기다려야 하나?"</em></p>
+      <p>술사의 조언을 <em>"결혼하지 말라"</em>로 받지 마시고, <em>"이렇게 준비하면 결혼 잘 할 수 있다"</em>로 바꿔서 받으세요. 명리적으로 정확한 처방이 있어요.</p>
 
-      <p>답은 — 아니에요. 명리에서 <strong>"완벽한 시기"</strong>는 존재하지 않는다고 말합니다. 사주는 계절이 있고, 대운은 파도가 있고, 사람과의 인연은 그 위를 스쳐가는 바람 같아요. 세 가지가 정확히 맞물리는 순간을 기다리면 대부분 놓쳐요.</p>
-
-      <p>실제로 봐야 하는 건 <em>완벽한 시기</em>가 아니라 <strong>"충분히 괜찮은 시기"</strong>예요. 세 신호 중 두 가지가 좋고 하나만 부담이라면 그 한 가지를 보완하는 방향으로 결정하시면 됩니다. 예를 들어 자아 강한 사주인데 궁합·대운이 좋으면 — 결혼은 하되 <em>결혼 후 조율에 시간을 더 쓰기</em>로 마음먹으면 되고, 궁합만 부담이면 <em>상대와의 대화를 더 깊게 하기</em>로 잡으면 됩니다. 하나의 신호가 부담이라고 결정 자체를 미룰 필요는 없어요.</p>
-
-      <h2>술사의 조언을 어떻게 받을 것인가</h2>
-
-      <p>정리하자면 술사의 *"늦게 하라"*는 세 신호 중 어떤 것을 보고 하는 판단이에요. 그러니 그 말을 들으셨다면 그다음으로 확인할 것은 — <strong>"이분이 어떤 신호를 보고 그렇게 말씀하시는 건가요?"</strong>입니다. 세 신호 중 어느 게 부담인지를 알면, 그 부담을 어떻게 보완할지가 보여요.</p>
-
-      <p>그리고 그 답을 들은 다음에 결정은 본인이 내리는 겁니다. 술사가 대신 결정해 주지 못해요. 명리는 <em>정보</em>를 주는 도구이지, <em>결정</em>을 대신하는 도구가 아니에요.</p>
+      <ul>
+        <li><strong>본인 성향 인정하기</strong> — 가장 첫 단계이자 가장 어려운 단계. *"나는 자아가 강한 사람이다"*를 인정하면 배우자와 부딪히는 순간에 반응이 달라져요. 상대가 답답해할 때 <em>"내가 지금 밀어붙이고 있구나"</em>를 알아차릴 수 있게 됩니다.</li>
+        <li><strong>인성 강한 상대 만나기</strong> — 양보 잘하고 잘 받아주는 사람. 상대 사주에 인성(印星)이 강하면 본인의 비겁을 부드럽게 감싸주는 궁합이 돼요. 명리적으로도 궁합 좋은 조합. 반대로 상대도 비겁이 강하면 두 강함이 부딪혀 관계가 더 험해집니다.</li>
+        <li><strong>갈등 관리 방법 미리 배우기</strong> — 부부 상담이나 심리 관련 책, 파트너와의 대화 규칙(*"싸움 중엔 결정하지 않기"*, *"24시간 뒤에 다시 이야기하기"* 같은 것) 미리 정해두기. 사주가 자각 못 한 자리를 이런 도구가 채워줍니다. 이 준비만 있으면 30대 초반에 결혼해도 안정적이에요.</li>
+      </ul>
 
       <div class="closing-box">
-        <p>*"결혼 늦게 하라"*는 말은 진단이지 처방이 아니에요.</p>
-        <p>처방은 본인의 <strong>세 가지 신호</strong>로 직접 짜야 합니다.</p>
-        <p>완벽한 시기를 기다리기보다 — <strong>충분히 괜찮은 시기</strong>에서 부족한 부분을 보완하는 결정이, 명리를 가장 잘 쓰는 법이에요.</p>
+        <p><em>"결혼 늦게 하라"</em>는 말은 <em>"너는 결혼 안 된다"</em>가 아니에요.</p>
+        <p><strong>"지금 그대로 결혼하면 손해 본다"</strong>는 뜻이에요. 준비가 되면 시기는 본인이 정하는 겁니다.</p>
+        <p>그리고 <strong>준비의 첫걸음</strong>은 이미 오늘 시작됐어요 — <em>내가 어떤 사주인지 궁금해하는 순간</em>부터요.</p>
       </div>
 
       <div class="article-cta">
         <p class="font-shilla text-xs text-[var(--ink2)] tracking-widest mb-3">YOUR TURN</p>
-        <h3 class="font-display text-2xl mb-3 text-[var(--ink)]">내 세 가지 신호는 지금 어떤 상태일까</h3>
+        <h3 class="font-display text-2xl mb-3 text-[var(--ink)]">내 사주는 정말 비겁이 강할까</h3>
         <p class="text-sm text-[var(--ink3)] mb-6 leading-relaxed">
-          무료 만세력에서 본인 일간·비겁·정관·정재부터 확인해보세요.<br/>
-          전문 분석에서는 <strong>자아·궁합·대운 세 가지 신호와 본인에게 맞는 결혼 시기</strong>까지 자세히 풀어드립니다.
+          무료 만세력에서 본인 일간과 8글자의 오행 분포부터 확인해보세요.<br/>
+          전문 분석에서는 <strong>비겁의 강도·결혼 적기·궁합 잘 맞는 상대의 사주 유형</strong>까지 자세히 풀어드립니다.
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <a href="../manse.html" class="inline-block px-6 py-3 rounded-lg border border-[var(--jade3)] text-[var(--jade2)] font-shilla font-bold hover:bg-[var(--jade)] hover:text-white transition">

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>나만의 만세력 명부 — 사주다이어리 (운영자 전용)</title>
+<meta name="robots" content="noindex, nofollow">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728; --gold3:#d6b660;
+    --jade:#5a8a98; --jade2:#406878; --jade3:#7aa8b5;
+    --plum:#b8607a; --wine:#8a3a4d;
+    --wood:#5a9a5a; --fire:#c85040; --earth:#b88030; --metal:#9098b0; --water:#4878a8;
+  }
+  html,body{ background:var(--paper); color:var(--ink); font-family:'Pretendard',sans-serif; -webkit-font-smoothing:antialiased; }
+  .font-hanja{ font-family:'Noto Serif KR',serif; font-weight:700; letter-spacing:.05em; }
+  .font-serif2{ font-family:'Noto Serif KR',serif; }
+  .top-stripe{ height:3px; background:linear-gradient(90deg,var(--jade) 0 20%,var(--vermil) 20% 40%,var(--gold) 40% 60%,var(--plum) 60% 80%,var(--ink) 80% 100%); }
+
+  .panel{ background:linear-gradient(180deg,var(--paper2),var(--paper)); border:1px solid var(--paper-dk); border-radius:14px; box-shadow:0 4px 20px rgba(60,45,30,.06); }
+  .panel-jade{ border-color:var(--jade3); border-top:3px solid var(--jade); }
+
+  .fg label{ display:block; font-size:12px; color:var(--ink3); margin-bottom:5px; letter-spacing:.02em; }
+  .fg input,.fg select,.fg textarea{ width:100%; padding:10px 12px; border:1px solid var(--paper-dk); border-radius:8px; background:#fff; font-size:14px; color:var(--ink); font-family:inherit; }
+  .fg input:focus,.fg select:focus,.fg textarea:focus{ outline:none; border-color:var(--jade); box-shadow:0 0 0 3px rgba(90,138,152,.12); }
+
+  .btn{ padding:11px 18px; border-radius:9px; font-weight:700; font-size:14px; cursor:pointer; border:1px solid transparent; transition:all .2s; }
+  .btn-jade{ background:linear-gradient(180deg,var(--jade3),var(--jade)); color:#fff; border-color:var(--jade2); }
+  .btn-jade:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(64,104,120,.28); }
+  .btn-vermil{ background:linear-gradient(180deg,var(--vermil3),var(--vermil)); color:#fff; border-color:var(--vermil2); }
+  .btn-vermil:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(177,58,44,.25); }
+  .btn-ghost{ background:#fff; color:var(--ink2); border-color:var(--paper-dk); }
+  .btn-ghost:hover{ border-color:var(--jade); color:var(--jade2); }
+
+  .pillar-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .pillar{ text-align:center; padding:12px 6px; background:linear-gradient(180deg,var(--paper2),var(--paper)); border:1px solid var(--paper-dk); border-radius:10px; position:relative; }
+  .pillar-day{ border-color:var(--jade3); background:linear-gradient(180deg,rgba(90,138,152,.08),rgba(90,138,152,.03)); }
+  .pillar .lab{ font-size:10px; letter-spacing:.1em; color:var(--ink3); margin-bottom:8px; }
+  .pillar .gz{ font-family:'Noto Serif KR',serif; font-weight:700; font-size:26px; line-height:1.1; }
+  .pillar .gz small{ display:block; font-size:11px; color:var(--ink3); font-weight:500; margin-top:1px; }
+  .wood{color:var(--wood)} .fire{color:var(--fire)} .earth{color:var(--earth)} .metal{color:var(--metal)} .water{color:var(--water)}
+
+  .chip{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; padding:3px 9px; border-radius:999px; background:var(--paper3); border:1px solid var(--paper-dk); color:var(--ink2); }
+  .chip.jade{ background:rgba(90,138,152,.12); border-color:var(--jade3); color:var(--jade2); }
+  .chip.gold{ background:rgba(184,146,60,.14); border-color:var(--gold3); color:var(--gold2); }
+  .chip.plum{ background:rgba(184,96,122,.12); border-color:var(--plum); color:var(--wine); }
+
+  .rec{ border:1px solid var(--paper-dk); border-radius:12px; background:var(--paper2); padding:14px 16px; }
+  .rec:hover{ border-color:var(--jade3); }
+  .tag-pill{ font-size:10.5px; padding:1px 8px; border-radius:6px; background:var(--ink); color:var(--paper2); }
+
+  .hidden{ display:none !important; }
+  textarea{ resize:vertical; min-height:60px; }
+  .spin{ width:18px;height:18px;border:2px solid var(--paper-dk);border-top-color:var(--jade);border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:middle }
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <div class="top-stripe"></div>
+
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-4xl mx-auto px-5 py-3 flex justify-between items-center">
+      <a href="../index.html" class="flex items-center gap-2.5">
+        <span class="font-hanja text-xl text-[var(--vermil)]">四柱日記</span>
+        <span class="hidden sm:inline text-xs px-2 py-0.5 rounded bg-[var(--ink)] text-[var(--paper2)] tracking-wide">명부 · 운영자</span>
+      </a>
+      <div class="flex items-center gap-1 text-sm">
+        <a href="../manse.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">공개 만세력</a>
+        <a href="../index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">← 홈</a>
+        <button id="btnLock" class="hidden px-3 py-2 text-[var(--ink4)] hover:text-[var(--vermil)]">잠그기</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-5 py-8">
+
+    <!-- 오류 게이트 -->
+    <div id="gate" class="panel p-8 text-center hidden">
+      <div class="font-hanja text-4xl text-[var(--jade)] mb-3">曆</div>
+      <h1 class="font-serif2 text-2xl font-bold mb-2">나만의 만세력 명부</h1>
+      <p id="gateMsg" class="text-sm text-[var(--ink3)] leading-relaxed"></p>
+    </div>
+
+    <!-- 잠금화면: 명부 암호 -->
+    <div id="lock" class="panel panel-jade p-8 max-w-md mx-auto hidden">
+      <div class="text-center mb-5">
+        <div class="text-3xl mb-2">🔐</div>
+        <h2 id="lockTitle" class="font-serif2 text-xl font-bold">명부 잠금 해제</h2>
+        <p id="lockDesc" class="text-xs text-[var(--ink3)] mt-2 leading-relaxed"></p>
+      </div>
+      <div class="fg mb-3">
+        <label>명부 암호</label>
+        <input type="password" id="passInput" placeholder="암호 입력" autocomplete="off">
+      </div>
+      <div class="fg mb-3 hidden" id="passConfirmWrap">
+        <label>암호 확인 (한 번 더)</label>
+        <input type="password" id="passConfirm" placeholder="같은 암호를 다시 입력" autocomplete="off">
+      </div>
+      <label class="flex items-center gap-2 text-xs text-[var(--ink3)] mb-4 cursor-pointer">
+        <input type="checkbox" id="rememberPass" checked> 이 기기에서 암호 기억
+      </label>
+      <button id="btnUnlock" class="btn btn-jade w-full">잠금 해제</button>
+      <p id="lockErr" class="text-xs text-[var(--vermil)] mt-3 text-center hidden"></p>
+      <p class="text-[11px] text-[var(--ink4)] mt-4 leading-relaxed border-t border-[var(--paper-dk)] pt-3">
+        ⚠ 이 암호로 손님 이름·메모를 암호화합니다. <b>암호를 잊으면 기존 기록의 이름·메모는 복구할 수 없어요.</b> 주기적으로 하단 "내보내기"로 백업하세요.
+      </p>
+    </div>
+
+    <!-- 앱 본체 -->
+    <div id="app" class="hidden space-y-6">
+
+      <section class="panel panel-jade p-6">
+        <div class="flex items-center justify-between mb-4">
+          <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold">INPUT ✦ 사주 입력</p>
+          <span id="whoami" class="text-xs text-[var(--ink4)]"></span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="fg col-span-2 sm:col-span-1"><label>이름 / 별칭 🔒</label><input type="text" id="bName" placeholder="예: 김손님 / 지인A" maxlength="30"></div>
+          <div class="fg"><label>성별</label><select id="bGender"><option value="male">남자</option><option value="female">여자</option></select></div>
+          <div class="fg"><label>출생년도</label><input type="number" id="bYear" placeholder="1990" min="1900" max="2050"></div>
+          <div class="fg"><label>출생월</label><select id="bMonth"><option value="">월</option></select></div>
+          <div class="fg"><label>출생일</label><input type="number" id="bDay" placeholder="15" min="1" max="31"></div>
+          <div class="fg col-span-2 sm:col-span-3"><label>출생 시간</label>
+            <select id="bHour">
+              <option value="-1">시간 모름 (시주 미산출)</option>
+              <option value="23.75">자시 子時 (밤 23:30~24:00)</option>
+              <option value="0.5">자시 子時 (00:00~01:30)</option>
+              <option value="1">축시 丑時 (01:30~03:30)</option>
+              <option value="3">인시 寅時 (03:30~05:30)</option>
+              <option value="5">묘시 卯時 (05:30~07:30)</option>
+              <option value="7">진시 辰時 (07:30~09:30)</option>
+              <option value="9">사시 巳時 (09:30~11:30)</option>
+              <option value="11">오시 午時 (11:30~13:30)</option>
+              <option value="13">미시 未時 (13:30~15:30)</option>
+              <option value="15">신시 申時 (15:30~17:30)</option>
+              <option value="17">유시 酉時 (17:30~19:30)</option>
+              <option value="19">술시 戌時 (19:30~21:30)</option>
+              <option value="21">해시 亥時 (21:30~23:30)</option>
+            </select>
+            <p class="text-[11px] text-[var(--ink4)] mt-1">※ 양력 기준 · 밤 23시대 출생은 자시(23:30~24:00) 선택</p>
+          </div>
+        </div>
+        <button id="btnCalc" class="btn btn-jade w-full mt-4">사주 계산 →</button>
+      </section>
+
+      <section id="resultCard" class="panel p-6 hidden">
+        <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold mb-1">RESULT ✦ 사주팔자</p>
+        <p id="resultDate" class="text-sm text-[var(--ink3)] mb-4"></p>
+        <div class="pillar-grid mb-4" id="pillars"></div>
+        <div class="flex flex-wrap gap-2 mb-5" id="summaryChips"></div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div class="fg"><label>메모 🔒 (상담 내용·특징 등)</label><textarea id="recMemo" placeholder="예: 편관격, 재성 약함. 이직 상담. 무진일주 특유의 뚝심."></textarea></div>
+          <div class="fg"><label>태그 (쉼표로 구분 · 민감정보 X)</label>
+            <input type="text" id="recTags" placeholder="예: 상담, VIP, 지인">
+            <label class="block mt-2">저장 상태</label>
+            <div class="flex gap-2 mt-1">
+              <button id="btnSave" class="btn btn-vermil flex-1">＋ 명부에 저장</button>
+              <button id="btnSaveCancel" class="btn btn-ghost hidden">편집 취소</button>
+            </div>
+            <p id="saveMsg" class="text-xs text-[var(--ink4)] mt-2"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel p-6">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold">LEDGER ✦ 내 명부 <span id="recCount" class="text-[var(--ink4)] font-normal"></span></p>
+          <div class="flex gap-2">
+            <button id="btnExport" class="btn btn-ghost text-xs py-2">⬇ 내보내기(JSON)</button>
+            <button id="btnRefresh" class="btn btn-ghost text-xs py-2">↻ 새로고침</button>
+          </div>
+        </div>
+        <div class="fg mb-4"><input type="text" id="search" placeholder="🔍 이름·메모·간지·태그로 검색"></div>
+        <div id="recList" class="space-y-2.5"></div>
+        <div id="recEmpty" class="text-center text-sm text-[var(--ink4)] py-8 hidden">아직 저장된 기록이 없어요. 위에서 사주를 계산하고 저장해보세요.</div>
+      </section>
+    </div>
+  </main>
+
+  <div class="top-stripe mt-12"></div>
+
+  <!-- 의존 스크립트 (카카오 로그인 불필요 — Supabase만) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js?v=20260810"></script>
+  <script src="../assets/js/supabase-client.js?v=20260810"></script>
+
+  <script>
+  // ==========================================================
+  //  만세력 엔진 — manse.html 과 100% 동일 로직 (24절기 천문계산)
+  // ==========================================================
+  const STEMS=['갑','을','병','정','무','기','경','신','임','계'];
+  const STEMS_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  const BRANS=['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  const BRANS_H=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  const STEM_E=[0,0,1,1,2,2,3,3,4,4], STEM_Y=[0,1,0,1,0,1,0,1,0,1];
+  const BRAN_E=[4,2,0,0,2,1,1,2,3,3,2,4];
+  const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[8,6,4],[6,7],[7,3,4],[0,8]];
+  const ELEM_C=['wood','fire','earth','metal','water'];
+  const GEN=[1,2,3,4,0], GEN_BY=[4,0,1,2,3], CTRL=[2,3,4,0,1], CTRL_BY=[3,4,0,1,2];
+
+  const STEM_DESC_SHORT=['곧게 자라는 나무','유연하나 안 꺾이는','분위기를 바꾸는 빛','안 꺼지는 불','넓고 무거운 산','자라게 하는 흙','다듬을수록 빛나는 원석','정밀한 보석','흐르는 깊은 강','스미는 빗물'];
+
+  function getBrGroup(bi){ if([2,6,10].includes(bi))return 0; if([5,9,1].includes(bi))return 1; if([8,0,4].includes(bi))return 2; if([11,3,7].includes(bi))return 3; return -1; }
+  const SHINSAL_MAP=[
+    {key:'겁살',arr:[11,2,5,8],icon:'⚔️',lbl:'겁살'},{key:'재살',arr:[0,3,6,9],icon:'⚠️',lbl:'재살'},
+    {key:'천살',arr:[1,4,7,10],icon:'🌩️',lbl:'천살'},{key:'지살',arr:[2,5,8,11],icon:'🌏',lbl:'지살'},
+    {key:'월살',arr:[4,7,10,1],icon:'🌾',lbl:'월살'},{key:'망신살',arr:[5,8,11,2],icon:'🔇',lbl:'망신살'},
+    {key:'장성살',arr:[6,9,0,3],icon:'🏅',lbl:'장성살'},{key:'반안살',arr:[7,10,1,4],icon:'🪜',lbl:'반안살'},
+    {key:'역마살',arr:[8,11,2,5],icon:'🌍',lbl:'역마살'},{key:'육해살',arr:[9,0,3,6],icon:'💔',lbl:'육해살'},
+    {key:'도화살',arr:[3,6,9,0],icon:'🌸',lbl:'도화살'},{key:'화개살',arr:[10,1,4,7],icon:'🎨',lbl:'화개살'}
+  ];
+  const SHINSAL_PRIORITY=['도화살','화개살','장성살','역마살','반안살','지살','월살','육해살','망신살','겁살','재살','천살'];
+  function pickBestShinsal(yP,pillars){
+    const g=getBrGroup(yP.bi); if(g<0)return null;
+    const allBi=pillars.filter(Boolean).map(p=>p.bi);
+    const found=SHINSAL_MAP.filter(s=>allBi.includes(s.arr[g]));
+    if(!found.length)return null;
+    found.sort((a,b)=>SHINSAL_PRIORITY.indexOf(a.key)-SHINSAL_PRIORITY.indexOf(b.key));
+    return found[0];
+  }
+
+  function getTG(daySi,tgtSi){
+    const de=STEM_E[daySi],te=STEM_E[tgtSi],sy=STEM_Y[daySi]===STEM_Y[tgtSi];
+    if(de===te)return sy?0:1; if(te===GEN[de])return sy?2:3; if(te===CTRL[de])return sy?4:5;
+    if(te===CTRL_BY[de])return sy?6:7; if(te===GEN_BY[de])return sy?8:9; return -1;
+  }
+  function getJDN(y,m,d){ const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3; return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045; }
+
+  const TERM_DEFS=[[1,6,1,285],[2,4,2,315],[3,6,3,345],[4,5,4,15],[5,6,5,45],[6,6,6,75],[7,7,7,105],[8,7,8,135],[9,8,9,165],[10,8,10,195],[11,7,11,225],[12,7,0,255]];
+  const _termCache={};
+  function _sunLonDeg(jd){const T=(jd-2451545)/36525;const L0=280.46646+36000.76983*T+0.0003032*T*T;const M=(357.52911+35999.05029*T-0.0001537*T*T)*Math.PI/180;const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M);const om=(125.04-1934.136*T)*Math.PI/180;let lam=(L0+C-0.00569-0.00478*Math.sin(om))%360;if(lam<0)lam+=360;return lam;}
+  function termClockJD(year,i){const key=year*100+i;if(_termCache[key])return _termCache[key];const t=TERM_DEFS[i];let jd=getJDN(year,t[0],t[1]);for(let k=0;k<6;k++){let df=_sunLonDeg(jd)-t[3];df=((df+180)%360+360)%360-180;jd-=df/0.98564736;}return _termCache[key]=jd+9/24;}
+  function _jdnToDate2(jdn){const a=jdn+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4);const dd=Math.floor((4*c+3)/1461),e=c-Math.floor(1461*dd/4),mm=Math.floor((5*e+2)/153);return{d:e-Math.floor((153*mm+2)/5)+1,m:mm+3-12*Math.floor(mm/10),y:100*b+dd-4800+Math.floor(mm/10)};}
+  function _birthClockJD(year,month,day,hour,minute){let h=(typeof hour==='number'&&hour>=0)?hour:12;if(h===23)h=0.5;return getJDN(year,month,day)+(h-12)/24+((minute||0))/1440;}
+  function getSolarTerms(year){const order=[1,2,3,4,5,6,7,8,9,10,11,0];return order.map(function(idx){const ty=(idx===0)?year+1:year;const dt=_jdnToDate2(Math.floor(termClockJD(ty,idx)+0.5));return{m:dt.m,d:dt.d,bi:TERM_DEFS[idx][2]};});}
+  function getYearPillar(year,month,day,hour,minute){const bjd=_birthClockJD(year,month,day,hour,minute);let ay=year;if(bjd<termClockJD(year,1))ay=year-1;return{si:((ay-4)%10+10)%10,bi:((ay-4)%12+12)%12,ay};}
+  function getMonthPillar(year,month,day,yearSi,hour,minute){const bjd=_birthClockJD(year,month,day,hour,minute);let bi=1,best=-Infinity;for(let yy=year-1;yy<=year;yy++){for(let i=0;i<12;i++){const tj=termClockJD(yy,i);if(tj<=bjd&&tj>best){best=tj;bi=TERM_DEFS[i][2];}}}const grp=yearSi%5,baseSi=[2,4,6,8,0][grp],off=((bi-2)+12)%12;return{si:(baseSi+off)%10,bi};}
+  function getDayPillar(year,month,day){const ref=getJDN(2000,1,1),t=getJDN(year,month,day),idx60=((54+(t-ref))%60+60)%60;return{si:idx60%10,bi:idx60%12};}
+  function getHourPillar(hour,daySi){if(hour<0)return null;const bi=(hour>=23||hour<1)?0:Math.floor((hour+1)/2);const grp=daySi%5,base=[0,2,4,6,8][grp];return{si:(base+bi)%10,bi};}
+
+  function getJieqiJDNs(year){const res=[];for(let y=year-1;y<=year+1;y++){const ts=getSolarTerms(y);for(const t of ts){const ty=(t.m===1)?y+1:y;res.push(getJDN(ty,t.m,t.d));}}return[...new Set(res)].sort((a,b)=>a-b);}
+  function calcDaewoon(year,month,day,gender,yearSi,hour){const isYang=yearSi%2===0,fwd=gender==='male'?isYang:!isYang,bJDN=getJDN(year,month,day),all=getJieqiJDNs(year);let diff;if(fwd){const nxt=all.find(j=>j>bJDN);diff=nxt?nxt-bJDN:30;}else{const s=[...all].reverse();const prv=s.find(j=>j<bJDN);diff=prv?bJDN-prv:30;}const startAge=Math.round(diff/3),mp=getMonthPillar(year,month,day,yearSi,hour),list=[];for(let i=0;i<10;i++){const off=fwd?(i+1):-(i+1);list.push({age:startAge+i*10,si:((mp.si+off)%10+10)%10,bi:((mp.bi+off)%12+12)%12});}return{startAge,fwd,list};}
+  function detectFlow(dwList,daySi){const early=dwList.filter(d=>d.age<30),late=dwList.filter(d=>d.age>=30&&d.age<70),good=[5,7,4,6];const eG=early.filter(d=>good.includes(getTG(daySi,d.si))).length,lG=late.filter(d=>good.includes(getTG(daySi,d.si))).length;if(lG>eG+1)return'ascending';if(eG>lG+1)return'descending';return'balanced';}
+  const FLOW_TAG={ascending:'후발 개화형',descending:'조기 전성형',balanced:'꾸준한 안정형'};
+
+  function getDayStrength_(yP,mP,dP,hP){const de=STEM_E[dP.si];let s=0;const rest=[yP,mP,hP].filter(Boolean);for(const p of rest){const se=STEM_E[p.si],be=BRAN_E[p.bi];if(se===de||se===GEN_BY[de])s+=1;if(be===de||be===GEN_BY[de])s+=0.7;if(se===GEN[de]||se===CTRL[de]||se===CTRL_BY[de])s-=0.5;}const mbe=BRAN_E[mP.bi];if(mbe===de||mbe===GEN_BY[de])s+=1.5;else s-=0.5;if(s>=1.5)return'신강';if(s>=0)return'중화';return'신약';}
+  function inferGyeok(dP,mP){const g=HIDDEN[mP.bi][0];if(g===dP.si)return'비견격';const t=getTG(dP.si,g);return['비견격','양인격','식신격','상관격','편재격','정재격','편관격','정관격','편인격','정인격'][t]||'비견격';}
+  const GYEOK_BIAS={'정관격':{EI:0,NS:-0.2,TF:0.2,JP:1.2},'편관격':{EI:0.5,NS:0,TF:0.4,JP:0.8},'정인격':{EI:-0.8,NS:0.6,TF:0,JP:0},'편인격':{EI:-1,NS:0.6,TF:-0.3,JP:0},'정재격':{EI:0.3,NS:-1,TF:0.3,JP:1},'편재격':{EI:1,NS:-0.8,TF:0,JP:-1},'식신격':{EI:0.8,NS:0.3,TF:-0.8,JP:-0.8},'상관격':{EI:1,NS:0.6,TF:-0.6,JP:-1.5},'비견격':{EI:-0.3,NS:-0.2,TF:0.3,JP:0.3},'양인격':{EI:1,NS:0,TF:0.6,JP:0.8}};
+  function predictMBTIType(yP,mP,dP,hP){
+    const PW={day:1.5,month:1.5,hour:0.8,year:0.6},HW=[0.7,0.3,0.1];
+    const list=[{p:yP,w:PW.year},{p:mP,w:PW.month},{p:dP,w:PW.day},{p:hP,w:PW.hour}].filter(x=>x.p);
+    const fEl=[0,0,0,0,0],tS=[0,0,0,0,0,0,0,0,0,0];
+    list.forEach(({p,w})=>{fEl[STEM_E[p.si]]+=w;fEl[BRAN_E[p.bi]]+=w*0.5;HIDDEN[p.bi].forEach((h,i)=>fEl[STEM_E[h]]+=w*HW[i]);});
+    list.forEach(({p,w})=>{if(p!==dP){const t=getTG(dP.si,p.si);if(t>=0)tS[t]+=w;}HIDDEN[p.bi].forEach((h,i)=>{if(p===dP&&i===0&&h===dP.si)return;const t=getTG(dP.si,h);if(t>=0)tS[t]+=w*HW[i];});});
+    const bigeop=tS[0]+tS[1],sikSang=tS[2]+tS[3],jae=tS[4]+tS[5],gwan=tS[6]+tS[7],inS=tS[8]+tS[9];
+    const isYang=STEM_Y[dP.si]===0,isYin=!isYang,strength=getDayStrength_(yP,mP,dP,hP),isStrong=strength==='신강',isWeak=strength==='신약',gyeok=inferGyeok(dP,mP);
+    const otherBi=[yP.bi,mP.bi,hP?hP.bi:null].filter(b=>b!==null);const LH={0:1,1:0,2:11,11:2,3:10,10:3,4:9,9:4,5:8,8:5,6:7,7:6},CH={0:6,6:0,1:7,7:1,2:8,8:2,3:9,9:3,4:10,10:4,5:11,11:5};let lihe=0,chung=0;otherBi.forEach(b=>{if(LH[dP.bi]===b)lihe++;if(CH[dP.bi]===b)chung++;});
+    let EI=(isYang?1.8:-1.8)+sikSang*0.6+jae*0.4-inS*0.7-bigeop*0.2+lihe*-0.6+chung*0.8;if(isStrong)EI+=0.5;if(isWeak)EI-=0.5;
+    let NS=fEl[1]*0.5+fEl[4]*0.7+inS*0.5+sikSang*0.7-fEl[2]*0.5-fEl[3]*0.5-jae*0.7-bigeop*0.2+(isYin?0.1:0);NS+=(GYEOK_BIAS[gyeok]?.NS||0);
+    let TF=fEl[3]*0.6+gwan*0.5+jae*0.3-fEl[1]*0.9-(isYin?0.7:0)-sikSang*0.7-inS*0.4;TF+=(GYEOK_BIAS[gyeok]?.TF||0);
+    let JP=fEl[2]*0.8+gwan*0.8-sikSang*0.8-jae*0.5-fEl[4]*0.4+lihe*0.7+chung*-0.7+bigeop*0.2;JP+=(GYEOK_BIAS[gyeok]?.JP||0);if(isStrong&&sikSang>=2)JP-=0.5;if(isWeak&&gwan>=2)JP+=0.5;EI+=(GYEOK_BIAS[gyeok]?.EI||0);
+    return{type:(EI>0?'E':'I')+(NS>0?'N':'S')+(TF>0?'T':'F')+(JP>0?'J':'P'),gyeok,strength};
+  }
+
+  function computeSaju(inp){
+    const {year,month,day,hour,gender}=inp;
+    const yP=getYearPillar(year,month,day,hour),mP=getMonthPillar(year,month,day,yP.si,hour),dP=getDayPillar(year,month,day),hP=getHourPillar(hour,dP.si);
+    const pillars=[yP,mP,dP].concat(hP?[hP]:[]);
+    const sh=pickBestShinsal(yP,pillars);
+    const dw=calcDaewoon(year,month,day,gender,yP.si,hour);
+    const flow=detectFlow(dw.list,dP.si);
+    const mbti=predictMBTIType(yP,mP,dP,hP);
+    const dayKey=STEMS[dP.si]+BRANS[dP.bi];
+    return{
+      yP,mP,dP,hP,
+      summary:{
+        dayKey, dayKeyHan:STEMS_H[dP.si]+BRANS_H[dP.bi],
+        ilgan:STEMS_H[dP.si]+'('+STEMS[dP.si]+') '+STEM_DESC_SHORT[dP.si],
+        sinsal: sh?(sh.icon+' '+sh.lbl):'뚜렷한 신살 없음',
+        mbti:mbti.type, gyeok:mbti.gyeok, strength:mbti.strength,
+        flow:FLOW_TAG[flow]
+      }
+    };
+  }
+
+  // ==========================================================
+  //  암호화 (AES-GCM / PBKDF2) — 이름·메모 보호
+  // ==========================================================
+  const CryptoBox=(function(){
+    let key=null; const te=new TextEncoder(), td=new TextDecoder();
+    const SALT=te.encode('sajudiary-manse-ledger-v1');
+    async function setPass(pass){
+      const base=await crypto.subtle.importKey('raw',te.encode(pass),'PBKDF2',false,['deriveKey']);
+      key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:SALT,iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+    }
+    function ready(){return !!key;}
+    async function enc(txt){
+      if(txt==null||txt==='')return'';
+      const iv=crypto.getRandomValues(new Uint8Array(12));
+      const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(String(txt)));
+      const buf=new Uint8Array(iv.length+ct.byteLength);buf.set(iv,0);buf.set(new Uint8Array(ct),iv.length);
+      let s='';buf.forEach(b=>s+=String.fromCharCode(b));return btoa(s);
+    }
+    async function dec(b64){
+      if(!b64)return'';
+      try{const raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));const iv=raw.slice(0,12),ct=raw.slice(12);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return td.decode(pt);}
+      catch(e){return'🔒(복호화 실패)';}
+    }
+    return{setPass,ready,enc,dec};
+  })();
+
+  // ==========================================================
+  //  Supabase 저장 계층 (단일 운영자 명부 — owner 고정)
+  // ==========================================================
+  const OWNER='manse_ledger_master';   // 단일 운영자 명부 소유자 키
+  const REM_KEY='sajudiary_manse_pass';
+  const VERIFY_MAGIC='SAJUDIARY_MANSE_OK';
+  const Store=(function(){
+    function sb(){return SajuSupa.getClient();}
+    async function getMeta(){return await sb().from('manse_meta').select('*').eq('owner_kakao_id',OWNER).maybeSingle();}
+    async function setMeta(verifier){return await sb().from('manse_meta').upsert({owner_kakao_id:OWNER,verifier});}
+    async function list(){return await sb().from('manse_records').select('*').eq('owner_kakao_id',OWNER).order('created_at',{ascending:false});}
+    async function insert(row){return await sb().from('manse_records').insert(row).select().single();}
+    async function update(id,patch){return await sb().from('manse_records').update(patch).eq('id',id).eq('owner_kakao_id',OWNER);}
+    async function remove(id){return await sb().from('manse_records').delete().eq('id',id).eq('owner_kakao_id',OWNER);}
+    return{getMeta,setMeta,list,insert,update,remove};
+  })();
+
+  // ==========================================================
+  //  상태 & UI
+  // ==========================================================
+  let RECORDS=[], LAST=null, EDIT_ID=null;
+  const $=id=>document.getElementById(id);
+
+  (function(){const s=$('bMonth');for(let m=1;m<=12;m++){const o=document.createElement('option');o.value=m;o.textContent=m+'월';s.appendChild(o);}})();
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function fmtTime(iso){if(!iso)return'';const d=new Date(iso);return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');}
+
+  function boot(){
+    if(!SajuSupa||!SajuSupa.isEnabled()){ showGate('Supabase 연결이 필요해요. ../assets/js/config.js 설정을 확인하세요.'); return; }
+    if(!window.crypto||!crypto.subtle){ showGate('이 브라우저는 암호화(Web Crypto)를 지원하지 않아요. 최신 브라우저에서 열어주세요.'); return; }
+    startLock();
+  }
+  function showGate(msg){$('gate').classList.remove('hidden');$('lock').classList.add('hidden');$('app').classList.add('hidden');$('gateMsg').innerHTML=msg;}
+
+  // ─── 잠금(암호) ───
+  async function startLock(){
+    $('gate').classList.add('hidden'); $('lock').classList.remove('hidden'); $('app').classList.add('hidden');
+    let meta=null;
+    try{
+      const res=await Store.getMeta();
+      if(res.error){
+        const m=res.error.message||'';
+        if(/relation|does not exist|schema cache|manse_meta|manse_records/i.test(m)){
+          showGate('명부 테이블이 아직 없어요.<br>Supabase SQL Editor에서 <b>manse_ledger.sql</b> 을 실행한 뒤 새로고침하세요.<br><span class="text-[11px] text-[var(--ink4)]">('+esc(m)+')</span>');
+        }else{
+          showGate('명부 서버 연결에 실패했어요: '+esc(m));
+        }
+        return;
+      }
+      meta=res.data;
+    }
+    catch(e){ showGate('명부 서버 연결에 실패했어요: '+esc(e.message)); return; }
+    if(!meta){
+      $('lockTitle').textContent='명부 암호 설정';
+      $('lockDesc').innerHTML='이 암호로 손님 이름·메모를 암호화합니다.<br>서버에 저장되지 않으니 <b>꼭 기억하세요.</b>';
+      $('passConfirmWrap').classList.remove('hidden');
+    }else{
+      $('lockTitle').textContent='명부 잠금 해제';
+      $('lockDesc').textContent='설정하신 명부 암호를 입력하세요.';
+      $('passConfirmWrap').classList.add('hidden');
+    }
+    const remembered=localStorage.getItem(REM_KEY);
+    if(remembered&&meta){ await tryUnlock(remembered,meta,true); }
+    $('passInput').focus();
+  }
+  $('btnUnlock').addEventListener('click',async()=>{
+    const meta=(await Store.getMeta()).data;
+    const pass=$('passInput').value;
+    if(!pass||pass.length<4){lockErr('암호는 4자 이상 입력하세요.');return;}
+    if(!meta){
+      if(pass!==$('passConfirm').value){lockErr('두 암호가 일치하지 않아요.');return;}
+      await CryptoBox.setPass(pass);
+      const verifier=await CryptoBox.enc(VERIFY_MAGIC);
+      const{error}=await Store.setMeta(verifier);
+      if(error){lockErr('설정 실패: '+error.message);return;}
+      if($('rememberPass').checked)localStorage.setItem(REM_KEY,pass);
+      enterApp();
+    }else{
+      await tryUnlock(pass,meta,false);
+    }
+  });
+  async function tryUnlock(pass,meta,silent){
+    await CryptoBox.setPass(pass);
+    const check=await CryptoBox.dec(meta.verifier);
+    if(check===VERIFY_MAGIC){
+      if($('rememberPass').checked)localStorage.setItem(REM_KEY,pass);
+      enterApp();
+    }else if(!silent){ lockErr('암호가 올바르지 않아요.'); localStorage.removeItem(REM_KEY); }
+  }
+  function lockErr(m){const e=$('lockErr');e.textContent=m;e.classList.remove('hidden');}
+  $('passInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('btnUnlock').click();});
+  $('passConfirm').addEventListener('keydown',e=>{if(e.key==='Enter')$('btnUnlock').click();});
+
+  $('btnLock').addEventListener('click',()=>{ localStorage.removeItem(REM_KEY); location.reload(); });
+
+  function enterApp(){
+    $('gate').classList.add('hidden'); $('lock').classList.add('hidden'); $('app').classList.remove('hidden');
+    $('btnLock').classList.remove('hidden');
+    $('whoami').textContent='운영자 명부';
+    loadRecords();
+  }
+
+  // ─── 계산 ───
+  $('btnCalc').addEventListener('click',doCalc);
+  ['bYear','bDay'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')doCalc();}));
+  function doCalc(){
+    const year=parseInt($('bYear').value,10),month=parseInt($('bMonth').value,10),day=parseInt($('bDay').value,10),hour=parseFloat($('bHour').value),gender=$('bGender').value;
+    if(!year||year<1900||year>2050){alert('출생년도를 1900~2050 사이로 입력하세요.');return;}
+    if(!month){alert('출생월을 선택하세요.');return;}
+    if(!day||day<1||day>31){alert('출생일을 1~31 사이로 입력하세요.');return;}
+    const r=computeSaju({year,month,day,hour,gender});
+    LAST={input:{year,month,day,hour,gender,name:$('bName').value.trim()},result:r};
+    renderResult(r,{year,month,day,hour,gender});
+  }
+  function pillarHtml(lab,sb,isDay){
+    if(!sb)return `<div class="pillar"><div class="lab">${lab}</div><div class="gz" style="color:var(--ink4)">?<small>모름</small></div></div>`;
+    return `<div class="pillar${isDay?' pillar-day':''}"><div class="lab">${lab}</div>
+      <div class="gz ${ELEM_C[STEM_E[sb.si]]}">${STEMS_H[sb.si]}<small>${STEMS[sb.si]}</small></div>
+      <div class="gz ${ELEM_C[BRAN_E[sb.bi]]}" style="font-size:22px;margin-top:3px">${BRANS_H[sb.bi]}<small>${BRANS[sb.bi]}</small></div></div>`;
+  }
+  function renderResult(r,inp){
+    $('resultCard').classList.remove('hidden');
+    const hLbl=inp.hour<0?'시간 미상':(BRANS[r.hP.bi]+'시');
+    $('resultDate').textContent=`${inp.year}년 ${inp.month}월 ${inp.day}일 · ${inp.gender==='male'?'남':'여'} · ${hLbl}`;
+    $('pillars').innerHTML=pillarHtml('시주',r.hP,false)+pillarHtml('일주',r.dP,true)+pillarHtml('월주',r.mP,false)+pillarHtml('연주',r.yP,false);
+    const s=r.summary;
+    $('summaryChips').innerHTML=[
+      `<span class="chip jade">일주 ${s.dayKeyHan}</span>`,
+      `<span class="chip">${esc(s.ilgan)}</span>`,
+      `<span class="chip gold">${esc(s.sinsal)}</span>`,
+      `<span class="chip plum">MBTI ${s.mbti}</span>`,
+      `<span class="chip">${s.gyeok} · ${s.strength}</span>`,
+      `<span class="chip">${s.flow}</span>`
+    ].join('');
+    if(!EDIT_ID){$('recMemo').value='';$('recTags').value='';}
+    $('saveMsg').textContent='';
+    $('resultCard').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  // ─── 저장 ───
+  $('btnSave').addEventListener('click',saveRecord);
+  $('btnSaveCancel').addEventListener('click',()=>{EDIT_ID=null;$('btnSaveCancel').classList.add('hidden');$('btnSave').textContent='＋ 명부에 저장';$('saveMsg').textContent='편집을 취소했어요.';});
+  async function saveRecord(){
+    if(!LAST){alert('먼저 사주를 계산하세요.');return;}
+    if(!CryptoBox.ready()){alert('암호가 해제되지 않았어요.');return;}
+    $('btnSave').disabled=true;$('saveMsg').innerHTML='<span class="spin"></span> 저장 중…';
+    const inp=LAST.input,r=LAST.result;
+    const name_enc=await CryptoBox.enc(inp.name||'');
+    const memo_enc=await CryptoBox.enc($('recMemo').value.trim());
+    const tags=$('recTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+    const row={
+      owner_kakao_id:OWNER, name_enc, memo_enc, gender:inp.gender,
+      birth_year:inp.year, birth_month:inp.month, birth_day:inp.day, birth_hour:inp.hour, calendar:'solar',
+      pillars:{y:[r.yP.si,r.yP.bi],m:[r.mP.si,r.mP.bi],d:[r.dP.si,r.dP.bi],h:r.hP?[r.hP.si,r.hP.bi]:null},
+      summary:r.summary, tags
+    };
+    let res;
+    if(EDIT_ID){ res=await Store.update(EDIT_ID,{name_enc,memo_enc,tags}); }
+    else{ res=await Store.insert(row); }
+    $('btnSave').disabled=false;
+    if(res.error){$('saveMsg').textContent='저장 실패: '+res.error.message;return;}
+    $('saveMsg').textContent=EDIT_ID?'수정했어요 ✓':'명부에 저장했어요 ✓';
+    EDIT_ID=null;$('btnSaveCancel').classList.add('hidden');$('btnSave').textContent='＋ 명부에 저장';
+    await loadRecords();
+  }
+
+  // ─── 목록 ───
+  $('btnRefresh').addEventListener('click',loadRecords);
+  $('search').addEventListener('input',renderList);
+  async function loadRecords(){
+    $('recList').innerHTML='<div class="text-center text-sm text-[var(--ink4)] py-6"><span class="spin"></span> 불러오는 중…</div>';
+    const{data,error}=await Store.list();
+    if(error){$('recList').innerHTML='<p class="text-sm text-[var(--vermil)]">불러오기 실패: '+esc(error.message)+'</p>';return;}
+    RECORDS=[];
+    for(const row of (data||[])){
+      row._name=await CryptoBox.dec(row.name_enc);
+      row._memo=await CryptoBox.dec(row.memo_enc);
+      RECORDS.push(row);
+    }
+    $('recCount').textContent='('+RECORDS.length+')';
+    renderList();
+  }
+  function hourLabelOf(h){return h<0?'시 모름':(['子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳','午','午','未','未','申','申','酉','酉','戌','戌','亥','亥','子'][Math.max(0,Math.min(23,Math.floor(h)))]+'시');}
+  function renderList(){
+    const q=$('search').value.trim().toLowerCase();
+    let arr=RECORDS;
+    if(q){arr=RECORDS.filter(r=>{
+      const gz=r.pillars?[r.pillars.y,r.pillars.m,r.pillars.d,r.pillars.h].filter(Boolean).map(p=>STEMS_H[p[0]]+BRANS_H[p[1]]+STEMS[p[0]]+BRANS[p[1]]).join(''):'';
+      const hay=[r._name,r._memo,(r.tags||[]).join(' '),r.summary?.dayKey,r.summary?.mbti,r.summary?.gyeok,gz,r.birth_year+''].join(' ').toLowerCase();
+      return hay.includes(q);
+    });}
+    $('recEmpty').classList.toggle('hidden',arr.length>0);
+    $('recList').innerHTML=arr.map(r=>{
+      const p=r.pillars||{};
+      const gz=[['시',p.h],['일',p.d],['월',p.m],['연',p.y]].map(([lab,x])=>x?`<b class="${ELEM_C[STEM_E[x[0]]]}">${STEMS_H[x[0]]}${BRANS_H[x[1]]}</b>`:`<span style="color:var(--ink4)">·</span>`).join(' ');
+      const s=r.summary||{};
+      const tags=(r.tags||[]).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join(' ');
+      const hh=r.birth_hour<0?'':(' '+hourLabelOf(r.birth_hour));
+      return `<div class="rec" data-id="${r.id}">
+        <div class="flex justify-between items-start gap-3 flex-wrap">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold text-[var(--ink)]">${esc(r._name||'(이름없음)')}</span>
+              <span class="text-xs text-[var(--ink4)]">${r.birth_year}.${String(r.birth_month).padStart(2,'0')}.${String(r.birth_day).padStart(2,'0')}${hh} · ${r.gender==='male'?'남':'여'}</span>
+            </div>
+            <div class="font-serif2 text-lg mt-1 tracking-wide">${gz}</div>
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              <span class="chip jade">일주 ${esc(s.dayKey||'')}</span>
+              ${s.sinsal?`<span class="chip gold">${esc(s.sinsal)}</span>`:''}
+              ${s.mbti?`<span class="chip plum">${esc(s.mbti)}</span>`:''}
+              ${s.gyeok?`<span class="chip">${esc(s.gyeok)}</span>`:''}
+            </div>
+            ${r._memo?`<p class="text-sm text-[var(--ink2)] mt-2 leading-relaxed whitespace-pre-line">${esc(r._memo)}</p>`:''}
+            ${tags?`<div class="mt-2 flex gap-1 flex-wrap">${tags}</div>`:''}
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-[11px] text-[var(--ink4)]">${fmtTime(r.created_at)}</div>
+            <div class="flex gap-1 mt-1">
+              <button class="btn btn-ghost text-xs py-1 px-2" onclick="editRec(${r.id})">편집</button>
+              <button class="btn btn-ghost text-xs py-1 px-2" onclick="delRec(${r.id})" style="color:var(--vermil)">삭제</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.editRec=function(id){
+    const r=RECORDS.find(x=>x.id===id);if(!r)return;
+    $('bName').value=r._name===('🔒(복호화 실패)')?'':(r._name||'');
+    $('bGender').value=r.gender||'male';
+    $('bYear').value=r.birth_year;$('bMonth').value=r.birth_month;$('bDay').value=r.birth_day;$('bHour').value=r.birth_hour;
+    doCalc();
+    EDIT_ID=id;
+    $('recMemo').value=r._memo===('🔒(복호화 실패)')?'':(r._memo||'');
+    $('recTags').value=(r.tags||[]).join(', ');
+    $('btnSave').textContent='✓ 수정 저장';$('btnSaveCancel').classList.remove('hidden');
+    $('saveMsg').textContent='편집 중 — 저장하면 기존 기록이 갱신돼요.';
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  window.delRec=async function(id){
+    const r=RECORDS.find(x=>x.id===id);if(!r)return;
+    if(!confirm(`"${r._name||'(이름없음)'}" 기록을 삭제할까요? 되돌릴 수 없어요.`))return;
+    const{error}=await Store.remove(id);
+    if(error){alert('삭제 실패: '+error.message);return;}
+    await loadRecords();
+  };
+
+  $('btnExport').addEventListener('click',()=>{
+    if(!RECORDS.length){alert('내보낼 기록이 없어요.');return;}
+    const out=RECORDS.map(r=>({
+      name:r._name, memo:r._memo, gender:r.gender,
+      birth:{year:r.birth_year,month:r.birth_month,day:r.birth_day,hour:r.birth_hour},
+      pillars:r.pillars, summary:r.summary, tags:r.tags, created_at:r.created_at
+    }));
+    const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    const d=new Date();const stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+    a.href=url;a.download='만세력명부_백업_'+stamp+'.json';a.click();URL.revokeObjectURL(url);
+  });
+
+  boot();
+  </script>
+</body>
+</html>
