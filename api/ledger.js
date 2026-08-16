@@ -168,6 +168,13 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
+    // ─── mail_log 조회 (마스터 전용) ───
+    if (body.action === 'maillog') {
+      if (kakaoId !== 'kakao_4876030261') return res.status(403).json({ ok: false, error: 'forbidden' });
+      const q = await supa('GET', 'mail_log?select=*&order=created_at.desc&limit=20');
+      return res.status(200).json({ ok: q.ok, status: q.status, rows: q.json });
+    }
+
     // ─── 메일 파이프라인 진단 (마스터 전용) ───
     if (body.action === 'mailtest') {
       if (kakaoId !== 'kakao_4876030261') return res.status(403).json({ ok: false, error: 'forbidden' });
