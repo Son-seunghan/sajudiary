@@ -98,15 +98,19 @@ module.exports = async (req, res) => {
           }
           await new Promise(function (rs) { setTimeout(rs, 400); });
         }
-        // 발송 결과를 Supabase mail_log에 영구 기록 (Vercel 로그 소멸 대비 — 테이블 없으면 조용히 무시)
+        // 발송 결과를 기존 coupon_redemptions 테이블에 영구 기록 (별도 테이블 불필요)
+        // code: 'maillog#주문번호#타임스탬프' / user_kakao_id: 시도 내역 텍스트
         try {
           const _SK = process.env.SUPABASE_SERVICE_KEY;
-          if (_SK) await fetch('https://hlxttdvvwftiquzqxgxs.supabase.co/rest/v1/mail_log', {
-            method: 'POST',
-            headers: { 'apikey': _SK, 'Authorization': 'Bearer ' + _SK, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ context: 'kakaopay-approve', order_id: orderId || null, detail: _mailTrace.join(' | ') })
-          });
-        } catch (_e2) { /* 기록 실패는 무시 */ }
+          if (_SK) {
+            const _lr = await fetch('https://hlxttdvvwftiquzqxgxs.supabase.co/rest/v1/coupon_redemptions', {
+              method: 'POST',
+              headers: { 'apikey': _SK, 'Authorization': 'Bearer ' + _SK, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+              body: JSON.stringify({ code: 'maillog#' + (orderId || '?') + '#' + Date.now(), user_kakao_id: _mailTrace.join(' | ').slice(0, 900) })
+            });
+            if (!_lr.ok) console.error('[mail] 기록 실패 HTTP', _lr.status);
+          }
+        } catch (_e2) { console.error('[mail] 기록 예외:', _e2); }
       } catch (e) {
         // 알림 실패해도 결제 승인 자체는 성공 처리
         console.error('[kakaopay-approve] 이메일 알림 실패:', e);

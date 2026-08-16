@@ -168,10 +168,10 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
-    // ─── mail_log 조회 (마스터 전용) ───
+    // ─── 메일 발송 기록 조회 (마스터 전용 — coupon_redemptions의 maillog# 행) ───
     if (body.action === 'maillog') {
       if (kakaoId !== 'kakao_4876030261') return res.status(403).json({ ok: false, error: 'forbidden' });
-      const q = await supa('GET', 'mail_log?select=*&order=created_at.desc&limit=20');
+      const q = await supa('GET', 'coupon_redemptions?select=*&code=like.maillog%23*&order=redeemed_at.desc&limit=20');
       return res.status(200).json({ ok: q.ok, status: q.status, rows: q.json });
     }
 
@@ -180,15 +180,30 @@ module.exports = async (req, res) => {
       if (kakaoId !== 'kakao_4876030261') return res.status(403).json({ ok: false, error: 'forbidden' });
       const RESEND = process.env.RESEND_API_KEY;
       if (!RESEND) return res.status(200).json({ ok: false, diag: 'RESEND_API_KEY 미설정' });
+      // body.full=true면 실결제 알림과 동일한 형태의 페이로드로 테스트
+      const _payload = body.full ? {
+        from: '사주다이어리 <noreply@sajudiary.com>',
+        to: [process.env.PAYMENT_NOTIFY_EMAIL || 'cleanblue99@gmail.com'],
+        subject: '💰 결제 완료 — 전문가용 (Deep) 29,900원 [실페이로드 테스트]',
+        html: '<div style="font-family:sans-serif;max-width:480px"><h2 style="color:#b13a2c">🎉 카카오페이 결제 완료</h2>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
+          '<tr><td style="padding:6px 0;color:#888">상품</td><td><b>전문가용 (Deep)</b></td></tr>' +
+          '<tr><td style="padding:6px 0;color:#888">금액</td><td><b>29,900원</b></td></tr>' +
+          '<tr><td style="padding:6px 0;color:#888">결제수단</td><td>카드(카카오페이)</td></tr>' +
+          '<tr><td style="padding:6px 0;color:#888">구매자 ID</td><td>kakao_0000000000</td></tr>' +
+          '<tr><td style="padding:6px 0;color:#888">주문번호</td><td style="font-size:12px">sajudiary_kakao_0000000000_1755300000000</td></tr>' +
+          '<tr><td style="padding:6px 0;color:#888">승인시각</td><td>2026-08-16T12:00:00</td></tr></table>' +
+          '<p style="margin-top:16px"><a href="https://pg.kakao.com" style="color:#b13a2c">→ 파트너어드민에서 상세 보기</a></p></div>'
+      } : {
+        from: '사주다이어리 <noreply@sajudiary.com>',
+        to: [process.env.PAYMENT_NOTIFY_EMAIL || 'cleanblue99@gmail.com'],
+        subject: '🔧 메일 파이프라인 테스트',
+        html: '<p>이 메일이 보이면 발송 인프라 정상입니다.</p>'
+      };
       const r = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + RESEND, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: '사주다이어리 <noreply@sajudiary.com>',
-          to: [process.env.PAYMENT_NOTIFY_EMAIL || 'cleanblue99@gmail.com'],
-          subject: '🔧 메일 파이프라인 테스트',
-          html: '<p>이 메일이 보이면 발송 인프라 정상입니다.</p>'
-        })
+        body: JSON.stringify(_payload)
       });
       const txt = await r.text();
       return res.status(200).json({ ok: true, resendStatus: r.status, resendBody: txt.slice(0, 400) });
