@@ -72,13 +72,33 @@ async function sendMail(subject, html) {
         body: JSON.stringify({ from: senders[i], to: [NOTIFY_TO], subject: subject, html: html })
       });
       const body = await r.text();
-      if (r.ok) { console.log('[mail] 발송 성공(시도 ' + (i + 1) + '):', subject); return; }
+      if (r.ok) {
+        console.log('[mail] 발송 성공(시도 ' + (i + 1) + '):', subject);
+        try {
+          const SK = process.env.SUPABASE_SERVICE_KEY;
+          if (SK) await fetch('https://hlxttdvvwftiquzqxgxs.supabase.co/rest/v1/coupon_redemptions', {
+            method: 'POST',
+            headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ code: 'maillog#coupon#' + Date.now(), user_kakao_id: ('[' + subject.slice(0, 40) + '] 시도' + (i + 1) + ':성공 ' + body.slice(0, 60)).slice(0, 900) })
+          });
+        } catch (e2) {}
+        return;
+      }
       console.error('[mail] 거절(시도 ' + (i + 1) + ') HTTP', r.status, body.slice(0, 300));
     } catch (e) {
       console.error('[mail] 연결 실패(시도 ' + (i + 1) + '):', e);
     }
     await new Promise(function (rs) { setTimeout(rs, 400); });
   }
+  // 시도 결과 영구 기록 (coupon_redemptions maillog# 행)
+  try {
+    const SK = process.env.SUPABASE_SERVICE_KEY;
+    if (SK) await fetch('https://hlxttdvvwftiquzqxgxs.supabase.co/rest/v1/coupon_redemptions', {
+      method: 'POST',
+      headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ code: 'maillog#coupon#' + Date.now(), user_kakao_id: ('[' + subject.slice(0, 40) + '] 전시도 실패').slice(0, 900) })
+    });
+  } catch (e2) {}
 }
 
 module.exports = async (req, res) => {

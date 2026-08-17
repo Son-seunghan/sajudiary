@@ -168,6 +168,13 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
+    // ─── 최근 구매 전체 조회 (마스터 전용) ───
+    if (body.action === 'recent') {
+      if (kakaoId !== 'kakao_4876030261') return res.status(403).json({ ok: false, error: 'forbidden' });
+      const q = await supa('GET', 'purchases?select=user_kakao_id,product_id,raw,created_at&order=created_at.desc&limit=10');
+      return res.status(200).json({ ok: q.ok, rows: q.json });
+    }
+
     // ─── 메일 발송 기록 조회 (마스터 전용 — coupon_redemptions의 maillog# 행) ───
     if (body.action === 'maillog') {
       if (kakaoId !== 'kakao_4876030261') return res.status(403).json({ ok: false, error: 'forbidden' });
