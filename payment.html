@@ -490,22 +490,38 @@
       }
     }
     let selectedMethod = '카드';
-    // ─── 토스(카드·계좌이체·가상계좌)는 라이브 키 전환 전까지 심사용 게스트 모드에서만 노출 ───
-    // 테스트 키 상태에서 실고객이 결제창을 통과하면 청구 없이 상품이 지급되는 사고 방지 (2026-08-17)
+    // ─── 토스(카드·계좌이체·가상계좌)는 라이브 키 전환 전까지 '준비 중' 비활성 ───
+    // 버튼은 그대로 노출(화면 구성 유지)하되 클릭만 막음 — 테스트 키 상태에서
+    // 실고객이 청구 없이 상품을 받는 사고 방지. 심사용 게스트 모드는 전부 활성 (2026-08-17)
     if (!(typeof AuthGuard !== 'undefined' && AuthGuard.isGuest && AuthGuard.isGuest())) {
       document.querySelectorAll('.pay-method-btn').forEach(btn => {
-        if (btn.dataset.method !== '카카오페이') btn.remove();
+        if (btn.dataset.method !== '카카오페이') {
+          btn.classList.remove('active');
+          btn.dataset.disabled = '1';
+          btn.style.opacity = '0.45';
+          btn.style.cursor = 'not-allowed';
+        }
       });
       const kBtn = document.querySelector('.pay-method-btn[data-method="카카오페이"]');
       if (kBtn) {
-        const grid = kBtn.closest('.grid');
-        if (grid) grid.className = 'grid grid-cols-1 gap-3';
         kBtn.classList.add('active');
         selectedMethod = '카카오페이';
+        const grid = kBtn.closest('.grid');
+        if (grid && !document.getElementById('pm-note')) {
+          const note = document.createElement('p');
+          note.id = 'pm-note';
+          note.style.cssText = 'font-size:11px;color:var(--ink4);margin-top:8px;font-family:inherit;';
+          note.textContent = '카드·계좌이체 결제는 정식 오픈 준비 중이에요. 지금은 카카오페이로 결제하실 수 있습니다.';
+          grid.after(note);
+        }
       }
     }
     document.querySelectorAll('.pay-method-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (btn.dataset.disabled) {
+          alert('카드·계좌이체 결제는 정식 오픈 준비 중이에요.\n지금은 카카오페이로 결제해주세요 🙏');
+          return;
+        }
         document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         selectedMethod = btn.dataset.method;
