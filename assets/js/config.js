@@ -129,12 +129,9 @@ window.SAJULOG_CONFIG = {
   // 친구·체험단 등에 코드로 상품 1회 무료 액세스 부여.
   // 각 디바이스(브라우저)당 1회 사용 — 같은 코드를 다른 사람에게 보내면 그쪽에서도 1회 가능.
   // 코드는 대소문자 무시. 카카오톡으로 코드만 보내면 결제 페이지에서 입력 가능.
-  FREE_COUPONS: {
-    'saju2026-light':  { productId: 'light',       label: '입문용 무료체험' },
-    'saju2026-deep':   { productId: 'deep',        label: '전문가용 무료체험' },
-    'saju2026-couple': { productId: 'couple',      label: '궁합 무료체험' },
-    'saju2026-adult':  { productId: 'couple_plus', label: '성인 궁합 무료체험' }
-  },
+  // ★ 고정 쿠폰 은퇴 (2026-08-17) — 코드 유출로 무단 사용 확인 (추적·알림·횟수제한 전무)
+  //   선물·홍보는 서명 쿠폰(gift-/promo-, tools/coupon-tool.html)으로 완전 대체됨
+  FREE_COUPONS: {},
 
   // ─────────────────────────────────────────
   // 4. 쿠폰 정의

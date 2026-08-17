@@ -490,6 +490,20 @@
       }
     }
     let selectedMethod = '카드';
+    // ─── 토스(카드·계좌이체·가상계좌)는 라이브 키 전환 전까지 심사용 게스트 모드에서만 노출 ───
+    // 테스트 키 상태에서 실고객이 결제창을 통과하면 청구 없이 상품이 지급되는 사고 방지 (2026-08-17)
+    if (!(typeof AuthGuard !== 'undefined' && AuthGuard.isGuest && AuthGuard.isGuest())) {
+      document.querySelectorAll('.pay-method-btn').forEach(btn => {
+        if (btn.dataset.method !== '카카오페이') btn.remove();
+      });
+      const kBtn = document.querySelector('.pay-method-btn[data-method="카카오페이"]');
+      if (kBtn) {
+        const grid = kBtn.closest('.grid');
+        if (grid) grid.className = 'grid grid-cols-1 gap-3';
+        kBtn.classList.add('active');
+        selectedMethod = '카카오페이';
+      }
+    }
     document.querySelectorAll('.pay-method-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('active'));
