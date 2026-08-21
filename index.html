@@ -524,6 +524,22 @@
   .reviews-marquee:hover .reviews-track {
     animation-play-state: paused;
   }
+  /* 데스크톱 스크롤러: 스크롤바 숨김 + 좌우 이동 버튼 */
+  .reviews-marquee { scrollbar-width: none; }
+  .reviews-marquee::-webkit-scrollbar { display: none; }
+  .rev-nav {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--paper-dk);
+    background: rgba(250,245,232,.94); color: var(--ink2);
+    font-size: 14px; cursor: pointer;
+    box-shadow: 0 2px 10px rgba(60,45,30,.18);
+    transition: all .2s ease;
+  }
+  .rev-nav:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .rev-nav.prev { left: -8px; }
+  .rev-nav.next { right: -8px; }
+  @media (max-width: 768px) { .rev-nav { display: none !important; } }
   @keyframes marquee {
     from { transform: translateX(0); }
     to   { transform: translateX(-50%); }
@@ -1165,11 +1181,15 @@
       </div>
     </div>
 
-    <!-- 리뷰 마키 — 자동 스크롤 (호버 시 일시정지) -->
-    <div id="reviews-marquee" class="reviews-marquee">
-      <div id="reviews-grid" class="reviews-track">
-        <!-- JS로 동적 채워짐 -->
+    <!-- 리뷰 마키 — 자동 흐름 + 드래그 + 좌우 버튼 -->
+    <div class="rev-wrap" style="position:relative">
+      <button class="rev-nav prev" id="revPrev" aria-label="이전 후기" style="display:none">◀</button>
+      <div id="reviews-marquee" class="reviews-marquee">
+        <div id="reviews-grid" class="reviews-track">
+          <!-- JS로 동적 채워짐 -->
+        </div>
       </div>
+      <button class="rev-nav next" id="revNext" aria-label="다음 후기" style="display:none">▶</button>
     </div>
 
     <!-- 빈 상태 (리뷰 0건일 때) -->
@@ -1438,8 +1458,88 @@
         grid.style.width = '100%';
         grid.style.justifyContent = 'center';
       } else {
-        // 부드러운 무한 루프를 위해 카드 두 번 복제 (마퀴 애니메이션용)
+        // 데스크톱: 카드 복제 + JS 스크롤러 (자동 흐름 · 드래그 · 좌우 버튼)
         grid.innerHTML = html + html;
+        initReviewScroller();
+      }
+
+      // ─── 데스크톱 후기 스크롤러 ───
+      // CSS 애니메이션 대신 scrollLeft를 직접 굴려서: 자동 흐름 + 마우스 드래그 +
+      // ◀▶ 버튼 이동 + 호버·조작 시 일시정지 후 재개, 무한 루프(복제 절반에서 되감기)
+      function initReviewScroller() {
+        const wrap = marquee;
+        grid.style.animation = 'none';
+        wrap.style.overflowX = 'auto';
+        wrap.style.cursor = 'grab';
+        const prevBtn = document.getElementById('revPrev');
+        const nextBtn = document.getElementById('revNext');
+        if (prevBtn) prevBtn.style.display = 'block';
+        if (nextBtn) nextBtn.style.display = 'block';
+
+        const LOOP_SECONDS = 120;   // 한 바퀴 시간 (자동 흐름 속도)
+        let paused = false, dragging = false, resumeTimer = null, lastT = null;
+
+        const halfW = () => grid.scrollWidth / 2;
+        function wrapScroll() {
+          const h = halfW();
+          if (h <= 0) return;
+          if (wrap.scrollLeft >= h) wrap.scrollLeft -= h;
+          else if (wrap.scrollLeft < 0) wrap.scrollLeft += h;
+        }
+        function tick(t) {
+          if (lastT === null) lastT = t;
+          const dt = Math.min((t - lastT) / 1000, 0.1);
+          lastT = t;
+          if (!paused && !dragging) {
+            wrap.scrollLeft += (halfW() / LOOP_SECONDS) * dt;
+            wrapScroll();
+          }
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+
+        function pauseFor(ms) {
+          paused = true;
+          clearTimeout(resumeTimer);
+          resumeTimer = setTimeout(() => { paused = false; }, ms);
+        }
+        wrap.addEventListener('mouseenter', () => { paused = true; clearTimeout(resumeTimer); });
+        wrap.addEventListener('mouseleave', () => { if (!dragging) paused = false; });
+
+        // 마우스 드래그로 좌우 이동
+        let startX = 0, startScroll = 0, movedPx = 0;
+        wrap.addEventListener('mousedown', (e) => {
+          dragging = true; movedPx = 0;
+          startX = e.pageX; startScroll = wrap.scrollLeft;
+          wrap.style.cursor = 'grabbing';
+          e.preventDefault();
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!dragging) return;
+          const dx = e.pageX - startX;
+          movedPx = Math.max(movedPx, Math.abs(dx));
+          wrap.scrollLeft = startScroll - dx;
+          wrapScroll();
+        });
+        window.addEventListener('mouseup', () => {
+          if (!dragging) return;
+          dragging = false;
+          wrap.style.cursor = 'grab';
+          pauseFor(2000);
+        });
+        // 드래그 직후에는 카드 클릭(상세 모달) 무시
+        grid.addEventListener('click', (e) => {
+          if (movedPx > 6) { e.stopPropagation(); e.preventDefault(); movedPx = 0; }
+        }, true);
+
+        // ◀▶ 버튼 — 카드 한 장 폭만큼 이동
+        function nudge(dir) {
+          pauseFor(2500);
+          wrap.scrollBy({ left: dir * 340, behavior: 'smooth' });
+          setTimeout(wrapScroll, 500);
+        }
+        if (prevBtn) prevBtn.addEventListener('click', () => nudge(-1));
+        if (nextBtn) nextBtn.addEventListener('click', () => nudge(1));
       }
 
       // ─── 후기 상세 모달 (카드 클릭 시) ───
