@@ -263,12 +263,21 @@
         </div>
       </section>
 
-      <!-- 분석: 개인별 (대운·세운) -->
-      <section id="anaCard" class="panel p-6 hidden">
-        <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold mb-4">ANALYSIS ✦ 간단 분석</p>
-        <div id="anaDw" class="mb-7"></div>
-        <div id="anaSw"></div>
-      </section>
+      <!-- 분석: 개인별 (대운·세운) — 접이식 -->
+      <details class="acc hidden" id="anaDwAcc" open>
+        <summary>📈 대운의 흐름 — 인생 그래프</summary>
+        <div class="acc-body" id="anaDw"></div>
+      </details>
+      <details class="acc hidden" id="anaSwAcc">
+        <summary>🗓 세운 — 앞뒤 5년</summary>
+        <div class="acc-body" id="anaSw"></div>
+      </details>
+
+      <!-- 개인별: 일간 기준 십성 특징 (조견표에서 추출) -->
+      <details class="acc hidden" id="tgPersonalAcc" open>
+        <summary>🌟 이 사람의 십성 — <span id="tgPersonalTitle">일간 기준</span></summary>
+        <div class="acc-body" id="tgPersonal"></div>
+      </details>
 
       <!-- 공통 참조: 개운법 · 오행별 특징 -->
       <details class="acc">
@@ -719,8 +728,7 @@
       dwComment=`<div class="sw-card cur" style="margin-top:10px"><span class="yr">★ 지금 대운 — ${STEMS_H[curDw.d.si]}${BRANS_H[curDw.d.bi]} (${curDw.d.age}~${curDw.d.age+9}세)</span>
         <div class="tx">${curDw.s.tg}운 · ${curDw.s.f12} — ${TG_DW_LINE[curDw.s.tg]||''}${chung?'<br>⚡ 일지와 충 — 이 10년 안에 큰 구조 변화(이직·이사·관계) 가능성':''}</div></div>`;
     }
-    $('anaDw').innerHTML=`<div class="ana-title">📈 대운의 흐름 — 인생 그래프</div>
-      <div class="ana-sub">${r.dw.startAge}세 시작 · ${r.dw.fwd?'순행':'역행'} · 점수는 십신·12운성 기반 상대 지표예요 (${FLOW_TAG[detectFlow(r.dw.list,dsi)]})</div>
+    $('anaDw').innerHTML=`<div class="ana-sub" style="margin-top:12px">${r.dw.startAge}세 시작 · ${r.dw.fwd?'순행':'역행'} · 점수는 십신·12운성 기반 상대 지표예요 (${FLOW_TAG[detectFlow(r.dw.list,dsi)]})</div>
       ${svgLineChart(dwPts,{w:640})}
       <div class="dw-row" style="margin-top:10px">${dwCells}</div>${dwComment}`;
 
@@ -741,12 +749,65 @@
         <div class="gaeun">🍀 ${line[1]}</div>
       </div>`;
     });
-    $('anaSw').innerHTML=`<div class="ana-title">🗓 세운 — 앞뒤 5년</div>
-      <div class="ana-sub">${curYear-5}년 ~ ${curYear+5}년 · ★=올해</div>
+    $('anaSw').innerHTML=`<div class="ana-sub" style="margin-top:12px">${curYear-5}년 ~ ${curYear+5}년 · ★=올해</div>
       ${svgLineChart(swPts,{w:640})}
       <div class="space-y-2" style="margin-top:10px">${swCards}</div>`;
 
-    $('anaCard').classList.remove('hidden');
+    renderPersonalTg(dsi);
+    ['anaDwAcc','anaSwAcc','tgPersonalAcc'].forEach(id=>$(id).classList.remove('hidden'));
+  }
+
+  // ══════════════════════════════════════════════
+  //  십성 조견표 데이터 (사람공부 클래스 「五行&十星」 PDF)
+  //  열 인덱스 = 일간 오행 (0木 1火 2土 3金 4水)
+  // ══════════════════════════════════════════════
+  const TG_HEAD=['甲乙 木','丙丁 火','戊己 土','庚辛 金','壬癸 水'];
+  const TG_TABLE=[
+    ['比劫 비겁',[
+      '<b>木</b> 명예욕·경쟁심, 사람 중심, 시작 빠름, 리더 기질',
+      '<b>火</b> 강한 자신감, 예의·서열 중시, 화려·요란, 참을성 부족',
+      '<b>土</b> 중용·진중·무게감, 고집, 융통성 부족 <b>(비겁다운 비겁)</b>',
+      '<b>金</b> 증거 중시, 일>사람, 성과 중심, 간섭 못 견딤',
+      '<b>水</b> 예지력·감수성, 예민, 속내 노출 X, 문화·예술 적합']],
+    ['食傷 식상',[
+      '<b>火</b> 민첩·쉽게 시작, 친화력(수다), 드러내기, 火상관은 까칠',
+      '<b>土</b> 일 벌림 선호, 단기 심취, 조직생활 곤란, 중개·중재 분야 <b>(오락가락 식상)</b>',
+      '<b>金</b> 신경예민·잔소리·냉철, 구조화, 사업적 일욕심, 완벽추구',
+      '<b>水</b> 직관력, 다방면 호기심, 깊은 탐구심 <b>(식상 같지 않은 식상)</b>',
+      '<b>木</b> 아이디어, 추진력>결과, 언어구사력, 표현 많음 <b>(식상다운 식상)</b>']],
+    ['財星 재성',[
+      '<b>土</b> 뿌리 튼튼해야 재물 기대, 재물 수시 변화(불안정), 부동산',
+      '<b>金</b> 자본 투자, 위험 감수, 완벽주의, 마무리 중시',
+      '<b>水</b> 큰돈을 제어하고 만짐, 불안정, 크게 얻거나 잃거나',
+      '<b>木</b> 정교한 기획력·집행력, 정신·예술 분야 결실',
+      '<b>火</b> <b>(편재적 재성)</b> 민첩·추진력, 무형 서비스·인간관계 기반, 취득 후 유지 곤란']],
+    ['官星 관성',[
+      '<b>金</b> 타협 곤란, 일욕심 多, 숙살지기, 金운에 극단성 잠재',
+      '<b>水</b> 아이디어, 작은 일에 예민, 정교한 분야 적합',
+      '<b>木</b> 명예욕·자의식, 인정받으면 큰 능력, 강한 책임감, 스트레스 多',
+      '<b>火</b> 겉은 차분·속앓이, 감정조절 곤란, 쉽게 흥분 <b>(편관적 관성)</b>',
+      '<b>土</b> 전문분야>일반, 한 우물·은둔형, 성실·우직, 능력치 불균일']],
+    ['印星 인성',[
+      '<b>水</b> 숫기 부족, 약자에 연민, 깊은 생각 <b>(인성다운 인성)</b>',
+      '<b>木</b> 인성의 긍정성 발휘, 우유부단·의존성↓, 머리 복잡',
+      '<b>火</b> 혁신적인 힘, 감정·생각 노출, 계획 지속성 떨어짐',
+      '<b>土</b> 끈질긴 성향, 종교성, 크고 작은 정신적 문제 가능',
+      '<b>金</b> <b>(편인적 편향)</b> 심오·심취, 외골수, 지적욕구, 수련·단련']]
+  ];
+  const TG_ROLE={'比劫 비겁':'나·자아·형제·경쟁','食傷 식상':'표현·재능·일','財星 재성':'재물·현실·이성(남)','官星 관성':'직장·명예·통제·이성(여)','印星 인성':'학문·문서·수용'};
+
+  // ── 개인화: 이 사람 일간 기준 십성 특징 추출 ──
+  function renderPersonalTg(dsi){
+    const e=STEM_E[dsi]; // 일간 오행 열
+    const EL_H=['木','火','土','金','水'];
+    $('tgPersonalTitle').textContent=`일간 ${STEMS_H[dsi]}(${STEMS[dsi]}·${EL_H[e]}) 기준`;
+    let h=`<p class="ana-sub" style="margin-top:12px">사람공부 「五行&十星」 조견표에서 <b>${TG_HEAD[e]}</b> 열만 추출한 거예요. 원국 십성 분포(위 원국 표)와 함께 보세요.</p>`;
+    h+='<table class="ref-table"><tr><th style="width:110px">십성 (영역)</th><th>이 사람에게의 발현</th></tr>';
+    TG_TABLE.forEach(([lbl,cells])=>{
+      h+=`<tr><td class="rowh">${lbl}<br><span style="font-weight:400;font-size:10.5px;color:var(--ink4)">${TG_ROLE[lbl]||''}</span></td><td>${cells[e]}</td></tr>`;
+    });
+    h+='</table>';
+    $('tgPersonal').innerHTML=h;
   }
 
   // ══════════════════════════════════════════════
@@ -771,40 +832,9 @@
     g+=`<p class="ana-sub" style="margin-top:10px">과다한 오행은 반대로 — 그 기운 관련 활동에의 집착·과잉을 의식적으로 내려놓기.</p>`;
     $('gaeunBody').innerHTML=g;
 
-    // ④ 오행별 특징 — 십성 조견표 (사람공부 클래스 「오행별 십성」 PDF + saju.html 직업 로직)
-    const HEAD=['甲乙 木','丙丁 火','戊己 土','庚辛 金','壬癸 水'];
-    const ROWS=[
-      ['比劫 비겁',[
-        '<b>木</b> 명예욕·경쟁심, 사람 중심, 시작 빠름, 리더 기질',
-        '<b>火</b> 강한 자신감, 예의·서열 중시, 화려·요란, 참을성 부족',
-        '<b>土</b> 중용·진중·무게감, 고집, 융통성 부족 <b>(비겁다운 비겁)</b>',
-        '<b>金</b> 증거 중시, 일>사람, 성과 중심, 간섭 못 견딤',
-        '<b>水</b> 예지력·감수성, 예민, 속내 노출 X, 문화·예술 적합']],
-      ['食傷 식상',[
-        '<b>火</b> 민첩·쉽게 시작, 친화력(수다), 드러내기, 火상관은 까칠',
-        '<b>土</b> 일 벌림 선호, 단기 심취, 조직생활 곤란, 중개·중재 분야 <b>(오락가락 식상)</b>',
-        '<b>金</b> 신경예민·잔소리·냉철, 구조화, 사업적 일욕심, 완벽추구',
-        '<b>水</b> 직관력, 다방면 호기심, 깊은 탐구심 <b>(식상 같지 않은 식상)</b>',
-        '<b>木</b> 아이디어, 추진력>결과, 언어구사력, 표현 많음 <b>(식상다운 식상)</b>']],
-      ['財星 재성',[
-        '<b>土</b> 뿌리 튼튼해야 재물 기대, 재물 수시 변화(불안정), 부동산',
-        '<b>金</b> 자본 투자, 위험 감수, 완벽주의, 마무리 중시',
-        '<b>水</b> 큰돈을 제어하고 만짐, 불안정, 크게 얻거나 잃거나',
-        '<b>木</b> 정교한 기획력·집행력, 정신·예술 분야 결실',
-        '<b>火</b> <b>(편재적 재성)</b> 민첩·추진력, 무형 서비스·인간관계 기반, 취득 후 유지 곤란']],
-      ['官星 관성',[
-        '<b>金</b> 타협 곤란, 일욕심 多, 숙살지기, 金운에 극단성 잠재',
-        '<b>水</b> 아이디어, 작은 일에 예민, 정교한 분야 적합',
-        '<b>木</b> 명예욕·자의식, 인정받으면 큰 능력, 강한 책임감, 스트레스 多',
-        '<b>火</b> 겉은 차분·속앓이, 감정조절 곤란, 쉽게 흥분 <b>(편관적 관성)</b>',
-        '<b>土</b> 전문분야>일반, 한 우물·은둔형, 성실·우직, 능력치 불균일']],
-      ['印星 인성',[
-        '<b>水</b> 숫기 부족, 약자에 연민, 깊은 생각 <b>(인성다운 인성)</b>',
-        '<b>木</b> 인성의 긍정성 발휘, 우유부단·의존성↓, 머리 복잡',
-        '<b>火</b> 혁신적인 힘, 감정·생각 노출, 계획 지속성 떨어짐',
-        '<b>土</b> 끈질긴 성향, 종교성, 크고 작은 정신적 문제 가능',
-        '<b>金</b> <b>(편인적 편향)</b> 심오·심취, 외골수, 지적욕구, 수련·단련']]
-    ];
+    // ④ 오행별 특징 — 십성 조견표 (TG_TABLE 상수 사용)
+    const HEAD=TG_HEAD;
+    const ROWS=TG_TABLE;
     let o='<p class="ana-sub" style="margin-top:12px">일간 오행별로 각 십성이 어떤 오행이 되어 어떻게 발현되는지 — 사람공부 클래스 「五行&十星」 자료 기준.</p>';
     o+='<div class="tbl-scroll"><table class="ref-table"><tr><th style="width:76px">십성</th>';
     HEAD.forEach(h=>o+=`<th>${h}</th>`); o+='</tr>';
@@ -918,7 +948,8 @@
     $('bMonth').value='';$('bHour').value='-1';$('bGender').value='male';
     $('recMemo').value='';$('recTags').value='';
     $('btnSave').textContent='＋ 명부에 저장';$('btnSaveCancel').classList.add('hidden');
-    $('resultCard').classList.add('hidden');$('anaCard').classList.add('hidden');
+    $('resultCard').classList.add('hidden');
+    ['anaDwAcc','anaSwAcc','tgPersonalAcc'].forEach(id=>$(id).classList.add('hidden'));
     renderList();
     $('bName').focus();
   });
