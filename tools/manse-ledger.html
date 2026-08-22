@@ -59,6 +59,56 @@
 
   .hidden{ display:none !important; }
   textarea{ resize:vertical; min-height:60px; }
+
+  /* ━━ 좌측 명부 사이드바 레이아웃 ━━ */
+  .layout{ display:grid; grid-template-columns:290px minmax(0,1fr); gap:18px; align-items:start; }
+  .sidebar{ position:sticky; top:66px; max-height:calc(100vh - 84px); overflow-y:auto; }
+  @media(max-width:900px){
+    .layout{ display:block; }
+    .sidebar{ position:static; max-height:none; margin-bottom:18px; }
+    #sideList{ max-height:300px; overflow-y:auto; }
+  }
+  .side-rec{ border:1px solid var(--paper-dk); border-radius:10px; background:#fff;
+    padding:10px 12px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+  .side-rec:hover{ border-color:var(--jade3); }
+  .side-rec.sel{ border-color:var(--jade); box-shadow:0 0 0 1px var(--jade); background:rgba(90,138,152,.06); }
+  .side-rec .nm{ font-weight:700; font-size:13.5px; color:var(--ink); }
+  .side-rec .bt{ font-size:11px; color:var(--ink4); }
+  .side-rec .gz{ font-family:'Noto Serif KR',serif; font-size:14px; letter-spacing:1px; margin-top:2px; }
+  .side-rec .del{ font-size:11px; color:var(--ink4); padding:2px 6px; border-radius:6px; }
+  .side-rec .del:hover{ color:var(--vermil); background:var(--paper3); }
+
+  /* ━━ 분석 섹션 ━━ */
+  .ana-title{ font-family:'Noto Serif KR',serif; font-weight:700; font-size:15px; color:var(--ink);
+    display:flex; align-items:center; gap:7px; margin-bottom:10px; }
+  .ana-sub{ font-size:11.5px; color:var(--ink4); margin:-6px 0 10px; }
+  .dw-row{ display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; }
+  .dw-cell{ min-width:74px; text-align:center; background:#fff; border:1px solid var(--paper-dk);
+    border-radius:9px; padding:8px 4px; flex:1; }
+  .dw-cell.cur{ border-color:var(--vermil); box-shadow:0 0 0 1px var(--vermil); background:rgba(177,58,44,.05); }
+  .dw-cell .age{ font-size:10px; color:var(--ink4); }
+  .dw-cell .gz{ font-family:'Noto Serif KR',serif; font-size:17px; font-weight:700; line-height:1.15; }
+  .dw-cell .tg{ font-size:10.5px; color:var(--ink3); margin-top:2px; }
+  .dw-cell .f12{ font-size:10px; color:var(--ink4); }
+  .sw-card{ border:1px solid var(--paper-dk); border-left:4px solid var(--jade3); border-radius:0 9px 9px 0;
+    background:#fff; padding:9px 12px; }
+  .sw-card.cur{ border-left-color:var(--vermil); background:rgba(177,58,44,.04); }
+  .sw-card .yr{ font-weight:700; font-size:13px; }
+  .sw-card .tx{ font-size:12px; color:var(--ink2); line-height:1.6; margin-top:2px; }
+  .sw-card .gaeun{ font-size:11px; color:var(--jade2); margin-top:3px; }
+  .ref-table{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; font-size:12px; }
+  .ref-table th{ background:var(--ink); color:var(--paper2); padding:7px 8px; font-size:11.5px; white-space:nowrap; }
+  .ref-table td{ border:1px solid var(--paper-dk); padding:7px 8px; vertical-align:top; line-height:1.55; color:var(--ink2); }
+  .ref-table td b{ color:var(--ink); }
+  .ref-table .rowh{ background:var(--paper3); font-weight:700; white-space:nowrap; color:var(--ink); }
+  .tbl-scroll{ overflow-x:auto; border-radius:10px; border:1px solid var(--paper-dk); }
+  .tbl-scroll .ref-table{ min-width:760px; }
+  details.acc{ border:1px solid var(--paper-dk); border-radius:10px; background:var(--paper2); }
+  details.acc>summary{ cursor:pointer; padding:12px 16px; font-weight:700; font-size:14px;
+    font-family:'Noto Serif KR',serif; color:var(--ink); list-style:none; display:flex; align-items:center; gap:8px; }
+  details.acc>summary::after{ content:'▾'; margin-left:auto; color:var(--ink4); transition:transform .2s; }
+  details.acc[open]>summary::after{ transform:rotate(180deg); }
+  details.acc .acc-body{ padding:0 16px 16px; }
   .spin{ width:18px;height:18px;border:2px solid var(--paper-dk);border-top-color:var(--jade);border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:middle }
   @keyframes sp{to{transform:rotate(360deg)}}
 </style>
@@ -115,7 +165,26 @@
     </div>
 
     <!-- 앱 본체 -->
-    <div id="app" class="hidden space-y-6">
+    <div id="app" class="hidden">
+     <div class="layout">
+
+      <!-- ◀ 좌측: 명부 리스트 -->
+      <aside class="sidebar panel p-4">
+        <div class="flex items-center justify-between mb-3">
+          <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold">LEDGER ✦ 명부 <span id="recCount" class="text-[var(--ink4)] font-normal"></span></p>
+          <button id="btnNew" class="btn btn-ghost text-xs py-1 px-2" title="입력 비우고 새 기록">＋ 새로</button>
+        </div>
+        <div class="fg mb-3"><input type="text" id="search" placeholder="🔍 이름·간지·태그 검색"></div>
+        <div id="sideList" class="space-y-2"></div>
+        <div id="recEmpty" class="text-center text-sm text-[var(--ink4)] py-6 hidden">저장된 기록이 없어요.<br>오른쪽에서 계산 후 저장하세요.</div>
+        <div class="flex gap-2 mt-3">
+          <button id="btnExport" class="btn btn-ghost text-xs py-2 flex-1">⬇ 내보내기</button>
+          <button id="btnRefresh" class="btn btn-ghost text-xs py-2 flex-1">↻ 새로고침</button>
+        </div>
+      </aside>
+
+      <!-- ▶ 우측 메인 -->
+      <div class="space-y-6 min-w-0">
 
       <section class="panel panel-jade p-6">
         <div class="flex items-center justify-between mb-4">
@@ -171,18 +240,25 @@
         </div>
       </section>
 
-      <section class="panel p-6">
-        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold">LEDGER ✦ 내 명부 <span id="recCount" class="text-[var(--ink4)] font-normal"></span></p>
-          <div class="flex gap-2">
-            <button id="btnExport" class="btn btn-ghost text-xs py-2">⬇ 내보내기(JSON)</button>
-            <button id="btnRefresh" class="btn btn-ghost text-xs py-2">↻ 새로고침</button>
-          </div>
-        </div>
-        <div class="fg mb-4"><input type="text" id="search" placeholder="🔍 이름·메모·간지·태그로 검색"></div>
-        <div id="recList" class="space-y-2.5"></div>
-        <div id="recEmpty" class="text-center text-sm text-[var(--ink4)] py-8 hidden">아직 저장된 기록이 없어요. 위에서 사주를 계산하고 저장해보세요.</div>
+      <!-- 분석: 개인별 (대운·세운) -->
+      <section id="anaCard" class="panel p-6 hidden">
+        <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold mb-4">ANALYSIS ✦ 간단 분석</p>
+        <div id="anaDw" class="mb-7"></div>
+        <div id="anaSw"></div>
       </section>
+
+      <!-- 공통 참조: 개운법 · 오행별 특징 -->
+      <details class="acc">
+        <summary>🍀 개운법 — 오행별 실천 가이드 <span class="text-[11px] font-normal text-[var(--ink4)]">(공통 참조)</span></summary>
+        <div class="acc-body" id="gaeunBody"></div>
+      </details>
+      <details class="acc">
+        <summary>🌳 오행별 특징 · 십성 조견표 <span class="text-[11px] font-normal text-[var(--ink4)]">(공통 참조)</span></summary>
+        <div class="acc-body" id="ohaengBody"></div>
+      </details>
+
+      </div><!-- /우측 메인 -->
+     </div><!-- /layout -->
     </div>
   </main>
 
@@ -208,6 +284,36 @@
   const GEN=[1,2,3,4,0], GEN_BY=[4,0,1,2,3], CTRL=[2,3,4,0,1], CTRL_BY=[3,4,0,1,2];
 
   const STEM_DESC_SHORT=['곧게 자라는 나무','유연하나 안 꺾이는','분위기를 바꾸는 빛','안 꺼지는 불','넓고 무거운 산','자라게 하는 흙','다듬을수록 빛나는 원석','정밀한 보석','흐르는 깊은 강','스미는 빗물'];
+
+  // ── 십신·12운성·점수 (saju.html 로직 포팅) ──
+  const TG_N=['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
+  const F12S=[11,6,2,9,2,9,5,0,8,3], F12D=[1,-1,1,-1,1,-1,1,-1,1,-1];
+  const F12N=['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
+  function getF12(si,bi){const p=(((bi-F12S[si])*F12D[si])%12+12)%12;return F12N[p];}
+  function isChungBr(a,b){return Math.abs(a-b)===6;}
+  const TG_SCORE={'비견':45,'겁재':35,'식신':90,'상관':55,'편재':65,'정재':80,'편관':30,'정관':80,'편인':40,'정인':70};
+  const F12_ADJ={'장생':8,'목욕':0,'관대':5,'건록':12,'제왕':15,'쇠':-8,'병':-12,'사':-12,'묘':-10,'절':-10,'태':-5,'양':0};
+  function woonScore(daySi,si,bi){
+    const tg=TG_N[getTG(daySi,si)]||'비견';
+    const f12=getF12(daySi,bi);
+    let sc=(TG_SCORE[tg]||50)+(F12_ADJ[f12]||0);
+    return{score:Math.max(5,Math.min(100,sc)),tg,f12};
+  }
+  // 십신별 대운 한줄 요약 (saju.html core 축약)
+  const TG_DW_LINE={'비견':'독립·자아 강화. 동업·재물 관리 주의','겁재':'승부욕 폭발. 투기·보증 금물','식신':'재능·인복이 피는 황금기','상관':'변화·혁신 욕구. 창의적 전환 유리','편재':'재물 기회 확대. 과욕 경계','정재':'착실한 축적. 정착·결혼에 좋음','편관':'압박·격동. 견디면 큰 도약','정관':'명예·승진·안정의 시기','편인':'전문성·직관 심화. 고독 주의','정인':'배움·귀인·성장의 시기'};
+  // 십신별 세운 한줄 + 개운팁 (saju.html 세운 로직 축약)
+  const TG_SW_LINE={
+    '정관':['직업·성취의 해. 승진·인정 기회','네트워크를 넓히고 공식 석상에서 역량을 보여주세요'],
+    '편관':['도전·경쟁의 해. 압박이 성장 발판','스트레스 관리가 핵심. 규칙적 생활 유지'],
+    '정재':['재물 흐름이 좋아지는 해. 이성 인연 활발','소비·저축 균형, 수입 루트 다양화'],
+    '편재':['재물·기회가 크게 움직이는 해','검증 안 된 투자 주의. 분산 투자'],
+    '식신':['창의력·표현력·인기가 사는 해','재능을 글·말·콘텐츠로 풀어내세요'],
+    '상관':['틀을 벗어나고 싶은 해. 윗사람 충돌 주의','창의 활동·취미에 에너지를 쏟으세요'],
+    '정인':['공부·자격증·내면 성장의 해. 멘토 도움','독서·공부·명상으로 내면을 채우세요'],
+    '편인':['전문성·독창성이 깊어지는 해','고립보다 선택적 교류. 수면 루틴'],
+    '비견':['자신감·독립 욕구가 강해지는 해','동업보다 나만의 강점 분야에 집중'],
+    '겁재':['경쟁 치열, 지출·손실 가능성','보증·대출 금물. 절제가 중요']
+  };
 
   function getBrGroup(bi){ if([2,6,10].includes(bi))return 0; if([5,9,1].includes(bi))return 1; if([8,0,4].includes(bi))return 2; if([11,3,7].includes(bi))return 3; return -1; }
   const SHINSAL_MAP=[
@@ -281,7 +387,7 @@
     const mbti=predictMBTIType(yP,mP,dP,hP);
     const dayKey=STEMS[dP.si]+BRANS[dP.bi];
     return{
-      yP,mP,dP,hP,
+      yP,mP,dP,hP,dw,
       summary:{
         dayKey, dayKeyHan:STEMS_H[dP.si]+BRANS_H[dP.bi],
         ilgan:STEMS_H[dP.si]+'('+STEMS[dP.si]+') '+STEM_DESC_SHORT[dP.si],
@@ -418,6 +524,7 @@
     $('gate').classList.add('hidden'); $('lock').classList.add('hidden'); $('app').classList.remove('hidden');
     $('btnLock').classList.remove('hidden');
     $('whoami').textContent='운영자 명부';
+    renderCommonRefs();
     loadRecords();
   }
 
@@ -455,7 +562,165 @@
     ].join('');
     if(!EDIT_ID){$('recMemo').value='';$('recTags').value='';}
     $('saveMsg').textContent='';
+    renderAnalysis(r,inp);
     $('resultCard').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  // ══════════════════════════════════════════════
+  //  간단 분석 — ① 대운 흐름·그래프  ② 세운 ±5년·그래프
+  // ══════════════════════════════════════════════
+  function svgLineChart(pts,opts){
+    // pts:[{x라벨, y점수, cur?}] — 꺾은선 + 현재 강조
+    const W=opts.w||640,H=160,padL=28,padR=14,padT=14,padB=26;
+    const iw=W-padL-padR, ih=H-padT-padB;
+    const n=pts.length; if(n<2)return'';
+    const X=i=>padL+iw*i/(n-1);
+    const Y=v=>padT+ih*(1-(v-0)/100);
+    let line='',dots='',labels='';
+    pts.forEach((p,i)=>{
+      const x=X(i),y=Y(p.y);
+      line+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';
+      dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${p.cur?5:3}" fill="${p.cur?'#b13a2c':'#5a8a98'}"${p.cur?' stroke="#fff" stroke-width="1.5"':''}/>`;
+      dots+=`<text x="${x.toFixed(1)}" y="${(y-8).toFixed(1)}" font-size="9" fill="${p.cur?'#b13a2c':'#8a7d6b'}" text-anchor="middle"${p.cur?' font-weight="bold"':''}>${p.y}</text>`;
+      labels+=`<text x="${x.toFixed(1)}" y="${H-8}" font-size="9.5" fill="${p.cur?'#b13a2c':'#6b5d4f'}" text-anchor="middle"${p.cur?' font-weight="bold"':''}>${p.x}</text>`;
+    });
+    let grid='';
+    [25,50,75].forEach(v=>{grid+=`<line x1="${padL}" y1="${Y(v)}" x2="${W-padR}" y2="${Y(v)}" stroke="#ebe1c4" stroke-width="1" stroke-dasharray="3 3"/>`;
+      grid+=`<text x="${padL-4}" y="${Y(v)+3}" font-size="8.5" fill="#8a7d6b" text-anchor="end">${v}</text>`;});
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;display:block" xmlns="http://www.w3.org/2000/svg">
+      ${grid}<path d="${line}" fill="none" stroke="#5a8a98" stroke-width="2"/>${dots}${labels}</svg>`;
+  }
+
+  function renderAnalysis(r,inp){
+    const dsi=r.dP.si;
+    const curYear=new Date().getFullYear();
+    const curAge=curYear-inp.year+1; // 세는나이
+
+    // ── ① 대운 ──
+    const dwPts=r.dw.list.map(d=>{
+      const s=woonScore(dsi,d.si,d.bi);
+      return{x:d.age+'세',y:s.score,cur:(curAge>=d.age&&curAge<=d.age+9),d,s};
+    });
+    let dwCells='';
+    dwPts.forEach(p=>{
+      dwCells+=`<div class="dw-cell${p.cur?' cur':''}">
+        <div class="age">${p.d.age}~${p.d.age+9}세${p.cur?' ★':''}</div>
+        <div class="gz"><span class="${ELEM_C[STEM_E[p.d.si]]}">${STEMS_H[p.d.si]}</span><span class="${ELEM_C[BRAN_E[p.d.bi]]}">${BRANS_H[p.d.bi]}</span></div>
+        <div class="tg">${p.s.tg}</div><div class="f12">${p.s.f12}</div>
+      </div>`;
+    });
+    // 현재·다음 대운 코멘트
+    const curDw=dwPts.find(p=>p.cur);
+    let dwComment='';
+    if(curDw){
+      const chung=isChungBr(r.dP.bi,curDw.d.bi);
+      dwComment=`<div class="sw-card cur" style="margin-top:10px"><span class="yr">★ 지금 대운 — ${STEMS_H[curDw.d.si]}${BRANS_H[curDw.d.bi]} (${curDw.d.age}~${curDw.d.age+9}세)</span>
+        <div class="tx">${curDw.s.tg}운 · ${curDw.s.f12} — ${TG_DW_LINE[curDw.s.tg]||''}${chung?'<br>⚡ 일지와 충 — 이 10년 안에 큰 구조 변화(이직·이사·관계) 가능성':''}</div></div>`;
+    }
+    $('anaDw').innerHTML=`<div class="ana-title">📈 대운의 흐름 — 인생 그래프</div>
+      <div class="ana-sub">${r.dw.startAge}세 시작 · ${r.dw.fwd?'순행':'역행'} · 점수는 십신·12운성 기반 상대 지표예요 (${FLOW_TAG[detectFlow(r.dw.list,dsi)]})</div>
+      ${svgLineChart(dwPts,{w:640})}
+      <div class="dw-row" style="margin-top:10px">${dwCells}</div>${dwComment}`;
+
+    // ── ② 세운 ±5년 ──
+    const swPts=[];
+    for(let y=curYear-5;y<=curYear+5;y++){
+      const si=((y-4)%10+10)%10, bi=((y-4)%12+12)%12;
+      const s=woonScore(dsi,si,bi);
+      swPts.push({x:String(y).slice(2)+"'",y:s.score,cur:y===curYear,year:y,si,bi,s});
+    }
+    let swCards='';
+    swPts.filter(p=>p.year>=curYear-1).forEach(p=>{
+      const line=TG_SW_LINE[p.s.tg]||['',''];
+      const chungD=isChungBr(r.dP.bi,p.bi);
+      swCards+=`<div class="sw-card${p.cur?' cur':''}">
+        <span class="yr">${p.cur?'★ ':''}${p.year}년 <span style="font-weight:400;color:var(--ink4)">${STEMS_H[p.si]}${BRANS_H[p.bi]} · ${p.s.tg} · ${p.s.f12}</span></span>
+        <div class="tx">${line[0]}${chungD?' ⚡ 일지 충 — 변화·이동수':''}</div>
+        <div class="gaeun">🍀 ${line[1]}</div>
+      </div>`;
+    });
+    $('anaSw').innerHTML=`<div class="ana-title">🗓 세운 — 앞뒤 5년</div>
+      <div class="ana-sub">${curYear-5}년 ~ ${curYear+5}년 · ★=올해</div>
+      ${svgLineChart(swPts,{w:640})}
+      <div class="space-y-2" style="margin-top:10px">${swCards}</div>`;
+
+    $('anaCard').classList.remove('hidden');
+  }
+
+  // ══════════════════════════════════════════════
+  //  공통 참조 — ③ 개운법  ④ 오행별 특징 (saju.html + 사람공부 PDF 융합)
+  // ══════════════════════════════════════════════
+  function renderCommonRefs(){
+    // ③ 개운법
+    const GAEUN_ELEM={
+      '木(목)':'새 시작·도전 활동에 에너지를 쏟기. 나무·화분 가까이, 동쪽에 책상·침대, 초록·청색 포인트',
+      '火(화)':'자신을 표현하는 활동(강의·발표·글·무대). 따뜻한 조명, 붉은·주황 소품, 활발한 교류',
+      '土(토)':'규칙적인 루틴, 한 분야 꾸준히 파기. 흙·도자기 가까이, 황색·베이지 인테리어',
+      '金(금)':'하루 한 가지 완료하는 마무리 훈련, 정리정돈, 단호한 결정. 흰색·금속 소품, 서쪽 채광',
+      '水(수)':'독서·명상·사색 시간 만들기. 검정·짙은 파랑 소품, 물이 있는 공간(어항 등), 북쪽 방향'
+    };
+    let g='<p class="ana-sub" style="margin-top:12px">원국의 오행 분포에서 <b>부족한 오행</b> 행을 찾아 실천하는 방식이에요. (전문가용 saju.html 개운법 로직 기준)</p>';
+    g+='<table class="ref-table"><tr><th style="width:70px">오행</th><th>기운 채우는 법</th></tr>';
+    for(const[k,v]of Object.entries(GAEUN_ELEM))g+=`<tr><td class="rowh">${k}</td><td>${v}</td></tr>`;
+    g+='</table>';
+    g+=`<table class="ref-table" style="margin-top:10px"><tr><th style="width:70px">강약</th><th>개운 방향</th></tr>
+      <tr><td class="rowh">신약</td><td>에너지를 아끼는 것이 개운의 시작. 혼자 다 하지 말고 조력자·멘토와 함께. 충분한 수면과 선택·집중</td></tr>
+      <tr><td class="rowh">신강</td><td>넘치는 에너지를 한 방향으로 집중. 운동·창작·도전 프로젝트에서 능력이 꽃핌. 상대의 말을 끝까지 듣는 습관</td></tr></table>`;
+    g+=`<p class="ana-sub" style="margin-top:10px">과다한 오행은 반대로 — 그 기운 관련 활동에의 집착·과잉을 의식적으로 내려놓기.</p>`;
+    $('gaeunBody').innerHTML=g;
+
+    // ④ 오행별 특징 — 십성 조견표 (사람공부 클래스 「오행별 십성」 PDF + saju.html 직업 로직)
+    const HEAD=['甲乙 木','丙丁 火','戊己 土','庚辛 金','壬癸 水'];
+    const ROWS=[
+      ['比劫 비겁',[
+        '<b>木</b> 명예욕·경쟁심, 사람 중심, 시작 빠름, 리더 기질',
+        '<b>火</b> 강한 자신감, 예의·서열 중시, 화려·요란, 참을성 부족',
+        '<b>土</b> 중용·진중·무게감, 고집, 융통성 부족 <b>(비겁다운 비겁)</b>',
+        '<b>金</b> 증거 중시, 일>사람, 성과 중심, 간섭 못 견딤',
+        '<b>水</b> 예지력·감수성, 예민, 속내 노출 X, 문화·예술 적합']],
+      ['食傷 식상',[
+        '<b>火</b> 민첩·쉽게 시작, 친화력(수다), 드러내기, 火상관은 까칠',
+        '<b>土</b> 일 벌림 선호, 단기 심취, 조직생활 곤란, 중개·중재 분야 <b>(오락가락 식상)</b>',
+        '<b>金</b> 신경예민·잔소리·냉철, 구조화, 사업적 일욕심, 완벽추구',
+        '<b>水</b> 직관력, 다방면 호기심, 깊은 탐구심 <b>(식상 같지 않은 식상)</b>',
+        '<b>木</b> 아이디어, 추진력>결과, 언어구사력, 표현 많음 <b>(식상다운 식상)</b>']],
+      ['財星 재성',[
+        '<b>土</b> 뿌리 튼튼해야 재물 기대, 재물 수시 변화(불안정), 부동산',
+        '<b>金</b> 자본 투자, 위험 감수, 완벽주의, 마무리 중시',
+        '<b>水</b> 큰돈을 제어하고 만짐, 불안정, 크게 얻거나 잃거나',
+        '<b>木</b> 정교한 기획력·집행력, 정신·예술 분야 결실',
+        '<b>火</b> <b>(편재적 재성)</b> 민첩·추진력, 무형 서비스·인간관계 기반, 취득 후 유지 곤란']],
+      ['官星 관성',[
+        '<b>金</b> 타협 곤란, 일욕심 多, 숙살지기, 金운에 극단성 잠재',
+        '<b>水</b> 아이디어, 작은 일에 예민, 정교한 분야 적합',
+        '<b>木</b> 명예욕·자의식, 인정받으면 큰 능력, 강한 책임감, 스트레스 多',
+        '<b>火</b> 겉은 차분·속앓이, 감정조절 곤란, 쉽게 흥분 <b>(편관적 관성)</b>',
+        '<b>土</b> 전문분야>일반, 한 우물·은둔형, 성실·우직, 능력치 불균일']],
+      ['印星 인성',[
+        '<b>水</b> 숫기 부족, 약자에 연민, 깊은 생각 <b>(인성다운 인성)</b>',
+        '<b>木</b> 인성의 긍정성 발휘, 우유부단·의존성↓, 머리 복잡',
+        '<b>火</b> 혁신적인 힘, 감정·생각 노출, 계획 지속성 떨어짐',
+        '<b>土</b> 끈질긴 성향, 종교성, 크고 작은 정신적 문제 가능',
+        '<b>金</b> <b>(편인적 편향)</b> 심오·심취, 외골수, 지적욕구, 수련·단련']]
+    ];
+    let o='<p class="ana-sub" style="margin-top:12px">일간 오행별로 각 십성이 어떤 오행이 되어 어떻게 발현되는지 — 사람공부 클래스 「五行&十星」 자료 기준.</p>';
+    o+='<div class="tbl-scroll"><table class="ref-table"><tr><th style="width:76px">십성</th>';
+    HEAD.forEach(h=>o+=`<th>${h}</th>`); o+='</tr>';
+    ROWS.forEach(([lbl,cells])=>{
+      o+=`<tr><td class="rowh">${lbl}</td>`;
+      cells.forEach(c=>o+=`<td>${c}</td>`);
+      o+='</tr>';
+    });
+    o+='</table></div>';
+    // 오행별 직업·방향·색 (saju.html yongCareerMap·yongLifeMap 융합)
+    o+='<p class="ana-sub" style="margin-top:14px">오행별 잘 맞는 분야·방향·색 — saju.html 용신 직업 로직 기준. 용신(필요한 오행)에 해당하는 행을 참고하세요.</p>';
+    o+=`<table class="ref-table"><tr><th style="width:64px">오행</th><th>적합 분야</th><th style="width:60px">방향</th><th style="width:120px">색</th><th>키워드</th></tr>
+      <tr><td class="rowh wood">木</td><td>교육·출판·환경·기획·상담</td><td>동쪽</td><td>초록·청색</td><td>새 시작·성장·아침 루틴</td></tr>
+      <tr><td class="rowh fire">火</td><td>방송·광고·IT·연예·디자인</td><td>남쪽</td><td>빨강·주황</td><td>표현·열정·밝은 조명</td></tr>
+      <tr><td class="rowh earth">土</td><td>부동산·금융·의료·행정·요식업</td><td>중앙</td><td>황색·베이지</td><td>안정·신뢰·규칙적 루틴</td></tr>
+      <tr><td class="rowh metal">金</td><td>법무·기계·제조·IT·스포츠</td><td>서쪽</td><td>흰색·회색·금색</td><td>결단·집중·정돈된 환경</td></tr>
+      <tr><td class="rowh water">水</td><td>무역·여행·연구·학문·철학</td><td>북쪽</td><td>검정·짙은 파랑</td><td>지혜·통찰·사색 시간</td></tr></table>`;
+    $('ohaengBody').innerHTML=o;
   }
 
   // ─── 저장 ───
@@ -489,9 +754,9 @@
   $('btnRefresh').addEventListener('click',loadRecords);
   $('search').addEventListener('input',renderList);
   async function loadRecords(){
-    $('recList').innerHTML='<div class="text-center text-sm text-[var(--ink4)] py-6"><span class="spin"></span> 불러오는 중…</div>';
+    $('sideList').innerHTML='<div class="text-center text-sm text-[var(--ink4)] py-6"><span class="spin"></span> 불러오는 중…</div>';
     const{data,error}=await Store.list();
-    if(error){$('recList').innerHTML='<p class="text-sm text-[var(--vermil)]">불러오기 실패: '+esc(error.message)+'</p>';return;}
+    if(error){$('sideList').innerHTML='<p class="text-sm text-[var(--vermil)]">불러오기 실패: '+esc(error.message)+'</p>';return;}
     RECORDS=[];
     for(const row of (data||[])){
       row._name=await CryptoBox.dec(row.name_enc);
@@ -511,54 +776,50 @@
       return hay.includes(q);
     });}
     $('recEmpty').classList.toggle('hidden',arr.length>0);
-    $('recList').innerHTML=arr.map(r=>{
+    $('sideList').innerHTML=arr.map(r=>{
       const p=r.pillars||{};
-      const gz=[['시',p.h],['일',p.d],['월',p.m],['연',p.y]].map(([lab,x])=>x?`<b class="${ELEM_C[STEM_E[x[0]]]}">${STEMS_H[x[0]]}${BRANS_H[x[1]]}</b>`:`<span style="color:var(--ink4)">·</span>`).join(' ');
+      const gz=[p.h,p.d,p.m,p.y].map(x=>x?`<span class="${ELEM_C[STEM_E[x[0]]]}">${STEMS_H[x[0]]}${BRANS_H[x[1]]}</span>`:`<span style="color:var(--ink4)">·</span>`).join(' ');
       const s=r.summary||{};
-      const tags=(r.tags||[]).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join(' ');
+      const tags=(r.tags||[]).slice(0,3).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join(' ');
       const hh=r.birth_hour<0?'':(' '+hourLabelOf(r.birth_hour));
-      return `<div class="rec" data-id="${r.id}">
-        <div class="flex justify-between items-start gap-3 flex-wrap">
-          <div class="min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-bold text-[var(--ink)]">${esc(r._name||'(이름없음)')}</span>
-              <span class="text-xs text-[var(--ink4)]">${r.birth_year}.${String(r.birth_month).padStart(2,'0')}.${String(r.birth_day).padStart(2,'0')}${hh} · ${r.gender==='male'?'남':'여'}</span>
-            </div>
-            <div class="font-serif2 text-lg mt-1 tracking-wide">${gz}</div>
-            <div class="flex flex-wrap gap-1.5 mt-2">
-              <span class="chip jade">일주 ${esc(s.dayKey||'')}</span>
-              ${s.sinsal?`<span class="chip gold">${esc(s.sinsal)}</span>`:''}
-              ${s.mbti?`<span class="chip plum">${esc(s.mbti)}</span>`:''}
-              ${s.gyeok?`<span class="chip">${esc(s.gyeok)}</span>`:''}
-            </div>
-            ${r._memo?`<p class="text-sm text-[var(--ink2)] mt-2 leading-relaxed whitespace-pre-line">${esc(r._memo)}</p>`:''}
-            ${tags?`<div class="mt-2 flex gap-1 flex-wrap">${tags}</div>`:''}
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-[11px] text-[var(--ink4)]">${fmtTime(r.created_at)}</div>
-            <div class="flex gap-1 mt-1">
-              <button class="btn btn-ghost text-xs py-1 px-2" onclick="editRec(${r.id})">편집</button>
-              <button class="btn btn-ghost text-xs py-1 px-2" onclick="delRec(${r.id})" style="color:var(--vermil)">삭제</button>
-            </div>
-          </div>
+      const sel=(EDIT_ID===r.id)?' sel':'';
+      return `<div class="side-rec${sel}" data-id="${r.id}" onclick="loadRec(${r.id})">
+        <div class="flex items-center justify-between gap-2">
+          <span class="nm">${esc(r._name||'(이름없음)')}</span>
+          <span class="del" onclick="event.stopPropagation();delRec(${r.id})" title="삭제">✕</span>
         </div>
+        <div class="bt">${r.birth_year}.${String(r.birth_month).padStart(2,'0')}.${String(r.birth_day).padStart(2,'0')}${hh} · ${r.gender==='male'?'남':'여'} · ${esc(s.dayKey||'')}일주</div>
+        <div class="gz">${gz}</div>
+        ${tags?`<div class="mt-1 flex gap-1 flex-wrap">${tags}</div>`:''}
       </div>`;
     }).join('');
   }
 
-  window.editRec=function(id){
+  window.loadRec=function(id){
     const r=RECORDS.find(x=>x.id===id);if(!r)return;
     $('bName').value=r._name===('🔒(복호화 실패)')?'':(r._name||'');
     $('bGender').value=r.gender||'male';
     $('bYear').value=r.birth_year;$('bMonth').value=r.birth_month;$('bDay').value=r.birth_day;$('bHour').value=r.birth_hour;
-    doCalc();
     EDIT_ID=id;
+    doCalc();
     $('recMemo').value=r._memo===('🔒(복호화 실패)')?'':(r._memo||'');
     $('recTags').value=(r.tags||[]).join(', ');
     $('btnSave').textContent='✓ 수정 저장';$('btnSaveCancel').classList.remove('hidden');
-    $('saveMsg').textContent='편집 중 — 저장하면 기존 기록이 갱신돼요.';
-    window.scrollTo({top:0,behavior:'smooth'});
+    $('saveMsg').textContent='명부에서 불러옴 — 메모를 고치고 저장하면 갱신돼요.';
+    renderList(); // 선택 하이라이트 갱신
   };
+  window.editRec=window.loadRec; // 하위 호환
+
+  $('btnNew').addEventListener('click',()=>{
+    EDIT_ID=null;
+    ['bName','bYear','bDay'].forEach(id=>$(id).value='');
+    $('bMonth').value='';$('bHour').value='-1';$('bGender').value='male';
+    $('recMemo').value='';$('recTags').value='';
+    $('btnSave').textContent='＋ 명부에 저장';$('btnSaveCancel').classList.add('hidden');
+    $('resultCard').classList.add('hidden');$('anaCard').classList.add('hidden');
+    renderList();
+    $('bName').focus();
+  });
   window.delRec=async function(id){
     const r=RECORDS.find(x=>x.id===id);if(!r)return;
     if(!confirm(`"${r._name||'(이름없음)'}" 기록을 삭제할까요? 되돌릴 수 없어요.`))return;
