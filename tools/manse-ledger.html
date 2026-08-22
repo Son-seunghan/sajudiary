@@ -63,11 +63,20 @@
   /* ━━ 좌측 명부 사이드바 레이아웃 ━━ */
   .layout{ display:grid; grid-template-columns:290px minmax(0,1fr); gap:18px; align-items:start; }
   .sidebar{ position:sticky; top:66px; max-height:calc(100vh - 84px); overflow-y:auto; }
+  /* 모바일: 사이드바 = 슬라이드 서랍 (클로드 앱 채팅방 스타일) */
+  .drawer-btn{ display:none; }
   @media(max-width:900px){
     .layout{ display:block; }
-    .sidebar{ position:static; max-height:none; margin-bottom:18px; }
-    #sideList{ max-height:300px; overflow-y:auto; }
+    .sidebar{
+      position:fixed; top:0; left:0; bottom:0; width:300px; max-width:85vw;
+      z-index:70; margin:0; border-radius:0 16px 16px 0; max-height:none;
+      overflow-y:auto; box-shadow:6px 0 24px rgba(44,37,32,.18);
+      transform:translateX(-110%); transition:transform .25s ease;
+    }
+    .sidebar.open{ transform:translateX(0); }
+    .drawer-btn{ display:inline-flex; align-items:center; gap:5px; }
   }
+  #drawerBg{ position:fixed; inset:0; background:rgba(44,37,32,.45); z-index:60; }
   .side-rec{ border:1px solid var(--paper-dk); border-radius:10px; background:#fff;
     padding:10px 12px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
   .side-rec:hover{ border-color:var(--jade3); }
@@ -137,10 +146,13 @@
 
   <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
     <div class="max-w-4xl mx-auto px-5 py-3 flex justify-between items-center">
-      <a href="../index.html" class="flex items-center gap-2.5">
-        <span class="font-hanja text-xl text-[var(--vermil)]">四柱日記</span>
-        <span class="hidden sm:inline text-xs px-2 py-0.5 rounded bg-[var(--ink)] text-[var(--paper2)] tracking-wide">명부 · 운영자</span>
-      </a>
+      <div class="flex items-center gap-2">
+        <button id="btnDrawer" class="drawer-btn hidden btn btn-ghost text-sm py-1.5 px-2.5" title="저장된 명부 열기">☰ <span class="text-xs">명부</span></button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="font-hanja text-xl text-[var(--vermil)]">四柱日記</span>
+          <span class="hidden sm:inline text-xs px-2 py-0.5 rounded bg-[var(--ink)] text-[var(--paper2)] tracking-wide">명부 · 운영자</span>
+        </a>
+      </div>
       <div class="flex items-center gap-1 text-sm">
         <a href="../manse.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">공개 만세력</a>
         <a href="../index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">← 홈</a>
@@ -187,8 +199,9 @@
     <div id="app" class="hidden">
      <div class="layout">
 
-      <!-- ◀ 좌측: 명부 리스트 -->
-      <aside class="sidebar panel p-4">
+      <!-- ◀ 좌측: 명부 리스트 (모바일에선 ☰ 서랍) -->
+      <div id="drawerBg" class="hidden"></div>
+      <aside class="sidebar panel p-4" id="sidebarEl">
         <div class="flex items-center justify-between mb-3">
           <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold">LEDGER ✦ 명부 <span id="recCount" class="text-[var(--ink4)] font-normal"></span></p>
           <button id="btnNew" class="btn btn-ghost text-xs py-1 px-2" title="입력 비우고 새 기록">＋ 새로</button>
@@ -556,10 +569,21 @@
   function enterApp(){
     $('gate').classList.add('hidden'); $('lock').classList.add('hidden'); $('app').classList.remove('hidden');
     $('btnLock').classList.remove('hidden');
+    $('btnDrawer').classList.remove('hidden');
     $('whoami').textContent='운영자 명부';
     renderCommonRefs();
     loadRecords();
   }
+
+  // ── 모바일 서랍 (☰ 명부) ──
+  function toggleDrawer(open){
+    const sb=$('sidebarEl');
+    const on=(open!==undefined)?open:!sb.classList.contains('open');
+    sb.classList.toggle('open',on);
+    $('drawerBg').classList.toggle('hidden',!on);
+  }
+  $('btnDrawer').addEventListener('click',()=>toggleDrawer());
+  $('drawerBg').addEventListener('click',()=>toggleDrawer(false));
 
   // ─── 계산 ───
   $('btnCalc').addEventListener('click',doCalc);
@@ -984,6 +1008,7 @@
     $('btnSave').textContent='✓ 수정 저장';$('btnSaveCancel').classList.remove('hidden');
     $('saveMsg').textContent='명부에서 불러옴 — 메모를 고치고 저장하면 갱신돼요.';
     renderList(); // 선택 하이라이트 갱신
+    toggleDrawer(false); // 모바일: 선택하면 서랍 닫기
   };
   window.editRec=window.loadRec; // 하위 호환
 
@@ -996,6 +1021,7 @@
     $('resultCard').classList.add('hidden');
     ['anaDwAcc','anaSwAcc','tgPersonalAcc'].forEach(id=>$(id).classList.add('hidden'));
     renderList();
+    toggleDrawer(false);
     $('bName').focus();
   });
   window.delRec=async function(id){
