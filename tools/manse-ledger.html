@@ -109,6 +109,25 @@
   details.acc>summary::after{ content:'▾'; margin-left:auto; color:var(--ink4); transition:transform .2s; }
   details.acc[open]>summary::after{ transform:rotate(180deg); }
   details.acc .acc-body{ padding:0 16px 16px; }
+
+  /* ━━ 원국 표 (saju.html 스타일 이식) ━━ */
+  .guk-wrap{ overflow-x:auto; }
+  .guk-table{ width:100%; min-width:430px; border-collapse:collapse; background:#fff; }
+  .guk-table th{ background:var(--ink); color:var(--paper2); font-size:12px; padding:7px 4px; font-weight:700; }
+  .guk-table td{ border:1px solid var(--paper-dk); text-align:center; padding:5px 4px; }
+  .guk-table td.day-col{ background:rgba(90,138,152,.08); }
+  .guk-table .rlbl{ background:var(--paper3); font-size:10px; color:var(--ink3); white-space:nowrap;
+    padding:4px 8px; text-align:left; font-weight:700; }
+  .guk-table .tg{ font-size:12px; color:var(--jade2); font-weight:700; }
+  .guk-table .big{ font-family:'Noto Serif KR',serif; font-size:26px; font-weight:700; line-height:1.1; display:block; }
+  .guk-table .rd{ font-size:10px; color:var(--ink4); display:block; }
+  .guk-table .f12{ font-size:12px; font-weight:700; color:var(--gold2); background:rgba(184,146,60,.09); display:block; margin:-5px -4px; padding:5px 4px; }
+  .guk-table .sal{ font-size:11.5px; font-weight:700; color:var(--jade2); background:rgba(90,138,152,.09); display:block; margin:-5px -4px; padding:5px 4px; }
+  .guk-table .sal.none{ color:var(--ink4); font-weight:400; background:none; }
+  .guk-table .jjg{ font-size:11px; letter-spacing:1px; }
+  .sp-chip{ display:inline-flex; align-items:center; gap:4px; font-size:12px; padding:4px 10px;
+    border-radius:999px; background:#fff; border:1px solid var(--gold3); color:var(--ink2); cursor:help; }
+  .sp-chip b{ color:var(--gold2); }
   .spin{ width:18px;height:18px;border:2px solid var(--paper-dk);border-top-color:var(--jade);border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:middle }
   @keyframes sp{to{transform:rotate(360deg)}}
 </style>
@@ -223,8 +242,12 @@
       <section id="resultCard" class="panel p-6 hidden">
         <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold mb-1">RESULT ✦ 사주팔자</p>
         <p id="resultDate" class="text-sm text-[var(--ink3)] mb-4"></p>
-        <div class="pillar-grid mb-4" id="pillars"></div>
-        <div class="flex flex-wrap gap-2 mb-5" id="summaryChips"></div>
+        <div class="guk-wrap mb-4" id="pillars"></div>
+        <div class="flex flex-wrap gap-2 mb-3" id="summaryChips"></div>
+        <div class="mb-5">
+          <div class="ana-sub" style="margin:0 0 6px">⚡ 특수 신살·귀인 — 성립 조건(일주 성립·일지 첩신·월지 삼합 기준 등) 충족 항목만 표시 · 항목에 마우스를 올리면 설명</div>
+          <div class="flex flex-wrap gap-1.5" id="specialChips"></div>
+        </div>
 
         <div class="grid sm:grid-cols-2 gap-3">
           <div class="fg"><label>메모 🔒 (상담 내용·특징 등)</label><textarea id="recMemo" placeholder="예: 편관격, 재성 약함. 이직 상담. 무진일주 특유의 뚝심."></textarea></div>
@@ -287,6 +310,7 @@
 
   // ── 십신·12운성·점수 (saju.html 로직 포팅) ──
   const TG_N=['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
+  const MAIN_H=[9,5,0,1,4,2,3,5,6,7,4,8]; // 지지 본기 천간 (지지 십성용)
   const F12S=[11,6,2,9,2,9,5,0,8,3], F12D=[1,-1,1,-1,1,-1,1,-1,1,-1];
   const F12N=['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
   function getF12(si,bi){const p=(((bi-F12S[si])*F12D[si])%12+12)%12;return F12N[p];}
@@ -540,17 +564,95 @@
     LAST={input:{year,month,day,hour,gender,name:$('bName').value.trim()},result:r};
     renderResult(r,{year,month,day,hour,gender});
   }
-  function pillarHtml(lab,sb,isDay){
-    if(!sb)return `<div class="pillar"><div class="lab">${lab}</div><div class="gz" style="color:var(--ink4)">?<small>모름</small></div></div>`;
-    return `<div class="pillar${isDay?' pillar-day':''}"><div class="lab">${lab}</div>
-      <div class="gz ${ELEM_C[STEM_E[sb.si]]}">${STEMS_H[sb.si]}<small>${STEMS[sb.si]}</small></div>
-      <div class="gz ${ELEM_C[BRAN_E[sb.bi]]}" style="font-size:22px;margin-top:3px">${BRANS_H[sb.bi]}<small>${BRANS[sb.bi]}</small></div></div>`;
+  // ══════════════════════════════════════════════
+  //  원국 표 — saju.html renderSajuChart + buildMiniGukTableF12 이식
+  //  행: 십성(천간)/천간/지지/십성(지지)/12운성/12신살/지장간
+  // ══════════════════════════════════════════════
+  function renderGukTable(r){
+    const dsi=r.dP.si;
+    const cols=[['시주 (時)',r.hP],['일주 (日)',r.dP],['월주 (月)',r.mP],['년주 (年)',r.yP]].filter(c=>c[1]);
+    const yG=getBrGroup(r.yP.bi);
+    const sal12=bi=>{ if(yG<0)return null; const hit=SHINSAL_MAP.find(s=>s.arr[yG]===bi); return hit?hit.lbl:null; };
+    const dc=p=>(p===r.dP)?' class="day-col"':'';
+    const row=(lbl,cellFn)=>`<tr><td class="rlbl">${lbl}</td>${cols.map(([_,p])=>`<td${dc(p)}>${cellFn(p)}</td>`).join('')}</tr>`;
+    let h=`<table class="guk-table"><tr><th style="width:64px"></th>${cols.map(([l,p])=>`<th>${l}${p===r.dP?' ★':''}</th>`).join('')}</tr>`;
+    h+=row('십성',p=>`<span class="tg">${p===r.dP?'일간(나)':TG_N[getTG(dsi,p.si)]}</span>`);
+    h+=row('천간',p=>`<span class="big ${ELEM_C[STEM_E[p.si]]}">${STEMS_H[p.si]}</span><span class="rd">${STEMS[p.si]}</span>`);
+    h+=row('지지',p=>`<span class="big ${ELEM_C[BRAN_E[p.bi]]}">${BRANS_H[p.bi]}</span><span class="rd">${BRANS[p.bi]}</span>`);
+    h+=row('십성(지지)',p=>`<span class="tg" style="color:var(--ink3)">${TG_N[getTG(dsi,MAIN_H[p.bi])]}</span>`);
+    h+=row('12운성',p=>`<span class="f12">${getF12(dsi,p.bi)}</span>`);
+    h+=row('12신살',p=>{const s=sal12(p.bi);return s?`<span class="sal">${s}</span>`:`<span class="sal none">─</span>`;});
+    h+=row('지장간',p=>`<span class="jjg">${HIDDEN[p.bi].map(x=>`<span class="${ELEM_C[STEM_E[x]]}">${STEMS_H[x]}</span>`).join(' ')}</span>`);
+    h+=`</table><div class="ana-sub" style="margin-top:6px">십성=일간(${STEMS_H[dsi]}) 기준 · 12운성=일간 기준 · 12신살=년지(${BRANS_H[r.yP.bi]}) 기준</div>`;
+    return h;
+  }
+
+  // ══════════════════════════════════════════════
+  //  특수 신살·귀인 — saju.html 성립 조건 로직 이식 (사람공부 신살기준)
+  // ══════════════════════════════════════════════
+  function calcSpecial(r){
+    const dsi=r.dP.si, db=r.dP.bi;
+    const pillars=[r.yP,r.mP,r.dP].concat(r.hP?[r.hP]:[]);
+    const allBi=pillars.map(p=>p.bi), allSi=pillars.map(p=>p.si);
+    const dayAdj=[r.mP.bi].concat(r.hP?[r.hP.bi]:[]); // 일지와 첩신 = 월지·시지
+    const pairHit=pairs=>dayAdj.some(b=>pairs.some(([x,y])=>(db===x&&b===y)||(db===y&&b===x)));
+    const out=[];
+    const add=(icon,lbl,pos,desc)=>out.push({icon,lbl,pos,desc});
+    // 귀인 4종 (일간 기준 지지)
+    const CHUNEUL=[[1,7],[0,8],[11,9],[11,9],[1,7],[0,8],[1,7],[2,6],[3,5],[3,5]];
+    const MUNCHANG=[5,6,8,9,8,9,11,0,2,3], HAKDANG=[11,6,2,9,2,9,5,0,8,3], GEUMYEO=[4,5,7,8,7,8,10,11,1,2];
+    const fnd=CHUNEUL[dsi].filter(b=>allBi.includes(b));
+    if(fnd.length)add('⭐','천을귀인',fnd.map(b=>BRANS_H[b]).join('·'),'위기마다 도움의 손길. 인덕이 두텁고 흉사에서 빠져나오는 힘');
+    if(allBi.includes(MUNCHANG[dsi]))add('📚','문창귀인',BRANS_H[MUNCHANG[dsi]],'글·학문·시험·문서 운. 지식 기반 직업에 유리');
+    if(allBi.includes(HAKDANG[dsi]))add('🎓','학당귀인',BRANS_H[HAKDANG[dsi]],'공부·스승 인연. 자격·학위 취득에 유리');
+    if(allBi.includes(GEUMYEO[dsi]))add('💎','금여록',BRANS_H[GEUMYEO[dsi]],'단정·품위. 배우자 복과 풍요의 기운');
+    // 양인·음인
+    const YANGIN={0:3,2:6,4:6,6:9,8:0}, EUMIN={1:4,3:7,5:7,7:10,9:1};
+    if(YANGIN[dsi]!==undefined&&allBi.includes(YANGIN[dsi]))add('🗡️','양인',BRANS_H[YANGIN[dsi]],'사주의 칼. 강한 추진력·결단. 의료·군경·법조·정밀기술에서 길');
+    if(EUMIN[dsi]!==undefined&&allBi.includes(EUMIN[dsi]))add('🔪','음인',BRANS_H[EUMIN[dsi]],'정밀·기술 집약·특수 분야 잠재성');
+    // 백호·괴강 (일주 성립)
+    const BAEKHO=[[0,4],[4,4],[2,10],[8,10],[1,7],[3,1],[9,1]];
+    if(BAEKHO.some(([s,b])=>dsi===s&&db===b))add('🐯','백호대살','일주 '+STEMS_H[dsi]+BRANS_H[db],'혈광살. 급작 사고수·중대 질병 잠재. Risk 감수 기질');
+    const GOEGANG=[[6,4],[8,4],[4,4],[6,10],[8,10],[4,10]];
+    if(GOEGANG.some(([s,b])=>dsi===s&&db===b))add('⚡','괴강','일주 '+STEMS_H[dsi]+BRANS_H[db],'비상한 머리·리더십·극단성·결벽. 진폭이 큰 사주');
+    // 일지 첩신류
+    if(pairHit([[1,3],[4,6],[7,9],[10,0]]))add('🚪','격각','일지 첩신','고독·이별. 결혼 전 부모와, 결혼 후 배우자와 물리적 거리');
+    if(pairHit([[0,7],[1,6],[2,9],[3,8],[4,11],[5,10]]))add('💢','원진','일지 첩신','가까운 관계의 원망·배척·다툼');
+    if(pairHit([[0,9],[1,6],[2,7],[3,8],[4,11],[5,10]])){
+      const strong=dayAdj.some(b=>(db===4&&b===11)||(db===11&&b===4));
+      add('🌙','귀문관살'+(strong?'(辰亥·最강)':''),'일지 첩신','신경 예민·직관 발달. 연구·예술·상담·역학에서 재능화');
+    }
+    if(pairHit([[10,11]]))add('🕸️','천라','戌亥 첩신','비세속성. 종교·영성·명리·힐링 분야 인연');
+    if(pairHit([[4,5]]))add('🕷️','지망','辰巳 첩신','세속성 짙음. 송사↑ — 계약·법무는 전문가 검토');
+    // 월덕귀인·월공 (월지 삼합 기준)
+    const mBi=r.mP.bi;
+    const WD_MAP={8:8,0:8,4:8,2:2,6:2,10:2,11:0,3:0,7:0,5:6,9:6,1:6};
+    const WG_MAP={5:0,9:0,1:0,8:2,0:2,4:2,11:6,3:6,7:6,2:8,6:8,10:8};
+    const wd=WD_MAP[mBi];
+    if(wd!==undefined&&allSi.includes(wd)&&[6,7].includes(getTG(dsi,wd)))add('🌕','월덕귀인','천간 '+STEMS_H[wd],'고결한 성품. 흉사 시 도움. 높은 자리에서 명예');
+    const wg=WG_MAP[mBi];
+    if(wg!==undefined&&allSi.includes(wg)){
+      const jae=[4,5].includes(getTG(dsi,wg));
+      add('✨','월공'+(jae?'(재성·빛남)':''),'천간 '+STEMS_H[wg],'시선 집중·주목·인기. 발전·퇴각 빠르고 지속성 없음');
+    }
+    // 귀삼합
+    const GWISAM=[[[1,2,3],'木貴',1,[8,9]],[[4,5,6],'火貴',4,[0,11]],[[7,8,9],'金貴',7,[2,3]],[[10,11,0],'水貴',10,[5,6]]];
+    for(const[trio,nm,earth,opp]of GWISAM){
+      if(trio.every(b=>allBi.includes(b))&&[r.yP.bi,r.mP.bi].includes(earth)&&!allBi.some(b=>opp.includes(b))){
+        add('👑','귀삼합 '+nm,trio.map(b=>BRANS_H[b]).join(''),'오행이 귀해지는 드문 구조');break;
+      }
+    }
+    return out;
   }
   function renderResult(r,inp){
     $('resultCard').classList.remove('hidden');
     const hLbl=inp.hour<0?'시간 미상':(BRANS[r.hP.bi]+'시');
     $('resultDate').textContent=`${inp.year}년 ${inp.month}월 ${inp.day}일 · ${inp.gender==='male'?'남':'여'} · ${hLbl}`;
-    $('pillars').innerHTML=pillarHtml('시주',r.hP,false)+pillarHtml('일주',r.dP,true)+pillarHtml('월주',r.mP,false)+pillarHtml('연주',r.yP,false);
+    $('pillars').innerHTML=renderGukTable(r);
+    const sp=calcSpecial(r);
+    $('specialChips').innerHTML=sp.length
+      ? sp.map(x=>`<span class="sp-chip" title="${esc(x.desc)}">${x.icon} <b>${esc(x.lbl)}</b> ${esc(x.pos)}</span>`).join('')
+      : '<span class="ana-sub">성립 조건을 충족하는 특수 신살·귀인 없음 — 담백하고 안정적인 구조</span>';
     const s=r.summary;
     $('summaryChips').innerHTML=[
       `<span class="chip jade">일주 ${s.dayKeyHan}</span>`,
