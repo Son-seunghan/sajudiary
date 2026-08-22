@@ -136,6 +136,7 @@
     <span class="cnt" id="rowCnt"></span>
     <button class="btn" onclick="downloadXlsx()">엑셀 저장</button>
     <button class="btn" style="background:var(--gold)" onclick="copyTable()">표 복사</button>
+    <button class="btn" style="background:var(--vermil)" onclick="sendToLedger()">📒 명부로 보내기</button>
     <button class="btn dark" onclick="window.print()">인쇄</button>
   </div>
   <div class="tbl-wrap">
@@ -149,6 +150,28 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 명부 암호 모달 -->
+<div id="passModal" style="display:none;position:fixed;inset:0;background:rgba(44,37,32,.55);z-index:20;align-items:center;justify-content:center;padding:20px">
+  <div class="card" style="max-width:380px;width:100%;margin:0">
+    <label style="font-size:14px;margin-bottom:2px">🔐 명부 암호</label>
+    <p style="font-size:11.5px;color:var(--ink4);margin-bottom:10px" id="passDesc">만세력 명부에 저장하려면 명부 암호가 필요해요. (이름·메모 암호화용)</p>
+    <input type="password" id="ledgerPass" placeholder="명부 암호 입력" autocomplete="off"
+      style="width:100%;padding:10px 12px;border:1px solid var(--paper-dk);border-radius:8px;font-size:14px;background:#fff">
+    <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3);margin:10px 0;font-weight:400;cursor:pointer">
+      <input type="checkbox" id="ledgerPassRemember" checked> 이 기기에서 암호 기억
+    </label>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;background:var(--vermil)" onclick="confirmPass()">확인</button>
+      <button class="btn dark" onclick="closePassModal()">취소</button>
+    </div>
+    <p id="passErr" style="display:none;font-size:12px;color:var(--vermil);margin-top:8px"></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/config.js?v=20260822"></script>
+<script src="../assets/js/supabase-client.js?v=20260822"></script>
 
 <script>
 /* ━━━ 만세력 엔진 (manse.html과 동일 로직) ━━━ */
@@ -307,6 +330,12 @@ function toGender(g) {
   const s = String(g).toLowerCase();
   return s.startsWith('m') || s === '남' ? '남' : (s.startsWith('f') || s === '여' ? '여' : '');
 }
+// 명부 저장용: 'male' | 'female' | ''
+function toML(g) {
+  if (!g) return '';
+  const s = String(g).toLowerCase();
+  return s.startsWith('m') || s === '남' ? 'male' : (s.startsWith('f') || s === '여' ? 'female' : '');
+}
 function padDate(s) {
   const m = String(s || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (!m) return null;
@@ -337,7 +366,8 @@ function personObj(p) {
     gender: toGender(p.gender),
     birthTxt: p.year + '-' + String(p.month).padStart(2, '0') + '-' + String(p.day).padStart(2, '0'),
     hourTxt: hourLabel(h),
-    pillars: pillarsOf(+p.year, +p.month, +p.day, h)
+    pillars: pillarsOf(+p.year, +p.month, +p.day, h),
+    y: +p.year, mo: +p.month, d: +p.day, h: h, ml: toML(p.gender)
   };
 }
 
@@ -402,24 +432,28 @@ function buildRows(rows) {
     const birth = padDate(get(iBirth));
     if (birth) {
       const hour = parseInt(get(iHour), 10);
+      const hh = isNaN(hour) ? -1 : hour;
       persons.push({
         name: get(iName) || '(무명)',
         gender: toGender(get(iGender)),
         birthTxt: birth.txt,
         hourTxt: hourLabel(hour),
-        pillars: pillarsOf(birth.y, birth.mo, birth.d, isNaN(hour) ? -1 : hour)
+        pillars: pillarsOf(birth.y, birth.mo, birth.d, hh),
+        y: birth.y, mo: birth.mo, d: birth.d, h: hh, ml: toML(get(iGender))
       });
     }
     // 궁합 상대방 → 같은 행에 묶음
     const bBirth = padDate(get(iBBirth));
     if (bBirth) {
       const bHour = parseInt(get(iBHour), 10);
+      const bh = isNaN(bHour) ? -1 : bHour;
       persons.push({
         name: (get(iBName) || '(상대)'),
         gender: toGender(get(iBGender)),
         birthTxt: bBirth.txt,
         hourTxt: hourLabel(bHour),
-        pillars: pillarsOf(bBirth.y, bBirth.mo, bBirth.d, isNaN(bHour) ? -1 : bHour)
+        pillars: pillarsOf(bBirth.y, bBirth.mo, bBirth.d, bh),
+        y: bBirth.y, mo: bBirth.mo, d: bBirth.d, h: bh, ml: toML(get(iBGender))
       });
     }
     if (persons.length) allRows.push({ persons, product, dt });
@@ -560,6 +594,190 @@ function parseFromPaste() {
   const t = document.getElementById('pasteBox').value.trim();
   if (!t) { alert('붙여넣은 내용이 없어요.'); return; }
   buildRows(parseCSV(t));
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📒 명부로 보내기 — tools/manse-ledger.html 과 동일한
+   암호(AES-GCM)·소유자 키·테이블(manse_records)을 사용
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+// ── 요약 계산용 미니 엔진 (manse-ledger.html 포팅) ──
+const STEM_E=[0,0,1,1,2,2,3,3,4,4], STEM_Y=[0,1,0,1,0,1,0,1,0,1];
+const BRAN_E=[4,2,0,0,2,1,1,2,3,3,2,4];
+const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[8,6,4],[6,7],[7,3,4],[0,8]];
+const GEN=[1,2,3,4,0], GEN_BY=[4,0,1,2,3], CTRL=[2,3,4,0,1], CTRL_BY=[3,4,0,1,2];
+const STEM_DESC_SHORT=['곧게 자라는 나무','유연하나 안 꺾이는','분위기를 바꾸는 빛','안 꺼지는 불','넓고 무거운 산','자라게 하는 흙','다듬을수록 빛나는 원석','정밀한 보석','흐르는 깊은 강','스미는 빗물'];
+function getBrGroup(bi){ if([2,6,10].includes(bi))return 0; if([5,9,1].includes(bi))return 1; if([8,0,4].includes(bi))return 2; if([11,3,7].includes(bi))return 3; return -1; }
+const SHINSAL_MAP=[
+  {key:'겁살',arr:[11,2,5,8],icon:'⚔️',lbl:'겁살'},{key:'재살',arr:[0,3,6,9],icon:'⚠️',lbl:'재살'},
+  {key:'천살',arr:[1,4,7,10],icon:'🌩️',lbl:'천살'},{key:'지살',arr:[2,5,8,11],icon:'🌏',lbl:'지살'},
+  {key:'월살',arr:[4,7,10,1],icon:'🌾',lbl:'월살'},{key:'망신살',arr:[5,8,11,2],icon:'🔇',lbl:'망신살'},
+  {key:'장성살',arr:[6,9,0,3],icon:'🏅',lbl:'장성살'},{key:'반안살',arr:[7,10,1,4],icon:'🪜',lbl:'반안살'},
+  {key:'역마살',arr:[8,11,2,5],icon:'🌍',lbl:'역마살'},{key:'육해살',arr:[9,0,3,6],icon:'💔',lbl:'육해살'},
+  {key:'도화살',arr:[3,6,9,0],icon:'🌸',lbl:'도화살'},{key:'화개살',arr:[10,1,4,7],icon:'🎨',lbl:'화개살'}
+];
+const SHINSAL_PRIORITY=['도화살','화개살','장성살','역마살','반안살','지살','월살','육해살','망신살','겁살','재살','천살'];
+function pickBestShinsal(yP,pillars){
+  const g=getBrGroup(yP.bi); if(g<0)return null;
+  const allBi=pillars.filter(Boolean).map(p=>p.bi);
+  const found=SHINSAL_MAP.filter(s=>allBi.includes(s.arr[g]));
+  if(!found.length)return null;
+  found.sort((a,b)=>SHINSAL_PRIORITY.indexOf(a.key)-SHINSAL_PRIORITY.indexOf(b.key));
+  return found[0];
+}
+function getTG(daySi,tgtSi){
+  const de=STEM_E[daySi],te=STEM_E[tgtSi],sy=STEM_Y[daySi]===STEM_Y[tgtSi];
+  if(de===te)return sy?0:1; if(te===GEN[de])return sy?2:3; if(te===CTRL[de])return sy?4:5;
+  if(te===CTRL_BY[de])return sy?6:7; if(te===GEN_BY[de])return sy?8:9; return -1;
+}
+function getSolarTerms(year){const order=[1,2,3,4,5,6,7,8,9,10,11,0];return order.map(function(idx){const ty=(idx===0)?year+1:year;const dt=_jdnToDate2(Math.floor(termClockJD(ty,idx)+0.5));return{m:dt.m,d:dt.d,bi:TERM_DEFS[idx][2]};});}
+function getJieqiJDNs(year){const res=[];for(let y=year-1;y<=year+1;y++){const ts=getSolarTerms(y);for(const t of ts){const ty=(t.m===1)?y+1:y;res.push(getJDN(ty,t.m,t.d));}}return[...new Set(res)].sort((a,b)=>a-b);}
+function calcDaewoon(year,month,day,gender,yearSi,hour){const isYang=yearSi%2===0,fwd=gender==='male'?isYang:!isYang,bJDN=getJDN(year,month,day),all=getJieqiJDNs(year);let diff;if(fwd){const nxt=all.find(j=>j>bJDN);diff=nxt?nxt-bJDN:30;}else{const s=[...all].reverse();const prv=s.find(j=>j<bJDN);diff=prv?bJDN-prv:30;}const startAge=Math.round(diff/3),mp=getMonthPillar(year,month,day,yearSi,hour),list=[];for(let i=0;i<10;i++){const off=fwd?(i+1):-(i+1);list.push({age:startAge+i*10,si:((mp.si+off)%10+10)%10,bi:((mp.bi+off)%12+12)%12});}return{startAge,fwd,list};}
+function detectFlow(dwList,daySi){const early=dwList.filter(d=>d.age<30),late=dwList.filter(d=>d.age>=30&&d.age<70),good=[5,7,4,6];const eG=early.filter(d=>good.includes(getTG(daySi,d.si))).length,lG=late.filter(d=>good.includes(getTG(daySi,d.si))).length;if(lG>eG+1)return'ascending';if(eG>lG+1)return'descending';return'balanced';}
+const FLOW_TAG={ascending:'후발 개화형',descending:'조기 전성형',balanced:'꾸준한 안정형'};
+function getDayStrength_(yP,mP,dP,hP){const de=STEM_E[dP.si];let s=0;const rest=[yP,mP,hP].filter(Boolean);for(const p of rest){const se=STEM_E[p.si],be=BRAN_E[p.bi];if(se===de||se===GEN_BY[de])s+=1;if(be===de||be===GEN_BY[de])s+=0.7;if(se===GEN[de]||se===CTRL[de]||se===CTRL_BY[de])s-=0.5;}const mbe=BRAN_E[mP.bi];if(mbe===de||mbe===GEN_BY[de])s+=1.5;else s-=0.5;if(s>=1.5)return'신강';if(s>=0)return'중화';return'신약';}
+function inferGyeok(dP,mP){const g=HIDDEN[mP.bi][0];if(g===dP.si)return'비견격';const t=getTG(dP.si,g);return['비견격','양인격','식신격','상관격','편재격','정재격','편관격','정관격','편인격','정인격'][t]||'비견격';}
+const GYEOK_BIAS={'정관격':{EI:0,NS:-0.2,TF:0.2,JP:1.2},'편관격':{EI:0.5,NS:0,TF:0.4,JP:0.8},'정인격':{EI:-0.8,NS:0.6,TF:0,JP:0},'편인격':{EI:-1,NS:0.6,TF:-0.3,JP:0},'정재격':{EI:0.3,NS:-1,TF:0.3,JP:1},'편재격':{EI:1,NS:-0.8,TF:0,JP:-1},'식신격':{EI:0.8,NS:0.3,TF:-0.8,JP:-0.8},'상관격':{EI:1,NS:0.6,TF:-0.6,JP:-1.5},'비견격':{EI:-0.3,NS:-0.2,TF:0.3,JP:0.3},'양인격':{EI:1,NS:0,TF:0.6,JP:0.8}};
+function predictMBTIType(yP,mP,dP,hP){
+  const PW={day:1.5,month:1.5,hour:0.8,year:0.6},HW=[0.7,0.3,0.1];
+  const list=[{p:yP,w:PW.year},{p:mP,w:PW.month},{p:dP,w:PW.day},{p:hP,w:PW.hour}].filter(x=>x.p);
+  const fEl=[0,0,0,0,0],tS=[0,0,0,0,0,0,0,0,0,0];
+  list.forEach(({p,w})=>{fEl[STEM_E[p.si]]+=w;fEl[BRAN_E[p.bi]]+=w*0.5;HIDDEN[p.bi].forEach((hh,i)=>fEl[STEM_E[hh]]+=w*HW[i]);});
+  list.forEach(({p,w})=>{if(p!==dP){const t=getTG(dP.si,p.si);if(t>=0)tS[t]+=w;}HIDDEN[p.bi].forEach((hh,i)=>{if(p===dP&&i===0&&hh===dP.si)return;const t=getTG(dP.si,hh);if(t>=0)tS[t]+=w*HW[i];});});
+  const bigeop=tS[0]+tS[1],sikSang=tS[2]+tS[3],jae=tS[4]+tS[5],gwan=tS[6]+tS[7],inS=tS[8]+tS[9];
+  const isYang=STEM_Y[dP.si]===0,isYin=!isYang,strength=getDayStrength_(yP,mP,dP,hP),isStrong=strength==='신강',isWeak=strength==='신약',gyeok=inferGyeok(dP,mP);
+  const otherBi=[yP.bi,mP.bi,hP?hP.bi:null].filter(b=>b!==null);const LH={0:1,1:0,2:11,11:2,3:10,10:3,4:9,9:4,5:8,8:5,6:7,7:6},CH={0:6,6:0,1:7,7:1,2:8,8:2,3:9,9:3,4:10,10:4,5:11,11:5};let lihe=0,chung=0;otherBi.forEach(b=>{if(LH[dP.bi]===b)lihe++;if(CH[dP.bi]===b)chung++;});
+  let EI=(isYang?1.8:-1.8)+sikSang*0.6+jae*0.4-inS*0.7-bigeop*0.2+lihe*-0.6+chung*0.8;if(isStrong)EI+=0.5;if(isWeak)EI-=0.5;
+  let NS=fEl[1]*0.5+fEl[4]*0.7+inS*0.5+sikSang*0.7-fEl[2]*0.5-fEl[3]*0.5-jae*0.7-bigeop*0.2+(isYin?0.1:0);NS+=(GYEOK_BIAS[gyeok]?.NS||0);
+  let TF=fEl[3]*0.6+gwan*0.5+jae*0.3-fEl[1]*0.9-(isYin?0.7:0)-sikSang*0.7-inS*0.4;TF+=(GYEOK_BIAS[gyeok]?.TF||0);
+  let JP=fEl[2]*0.8+gwan*0.8-sikSang*0.8-jae*0.5-fEl[4]*0.4+lihe*0.7+chung*-0.7+bigeop*0.2;JP+=(GYEOK_BIAS[gyeok]?.JP||0);if(isStrong&&sikSang>=2)JP-=0.5;if(isWeak&&gwan>=2)JP+=0.5;EI+=(GYEOK_BIAS[gyeok]?.EI||0);
+  return{type:(EI>0?'E':'I')+(NS>0?'N':'S')+(TF>0?'T':'F')+(JP>0?'J':'P'),gyeok,strength};
+}
+function summaryFor(p){
+  const [yP,mP,dP,hP]=p.pillars.ymdh;
+  const sh=pickBestShinsal(yP,[yP,mP,dP].concat(hP?[hP]:[]));
+  const dw=calcDaewoon(p.y,p.mo,p.d,p.ml||'male',yP.si,p.h);
+  const flow=detectFlow(dw.list,dP.si);
+  const mbti=predictMBTIType(yP,mP,dP,hP);
+  return{
+    dayKey:STEMS[dP.si]+BRANS[dP.bi], dayKeyHan:STEMS_H[dP.si]+BRANS_H[dP.bi],
+    ilgan:STEMS_H[dP.si]+'('+STEMS[dP.si]+') '+STEM_DESC_SHORT[dP.si],
+    sinsal: sh?(sh.icon+' '+sh.lbl):'뚜렷한 신살 없음',
+    mbti:mbti.type, gyeok:mbti.gyeok, strength:mbti.strength, flow:FLOW_TAG[flow]
+  };
+}
+
+// ── 암호화 (manse-ledger.html 과 동일: PBKDF2 + AES-GCM, 같은 salt) ──
+const LedgerCrypto=(function(){
+  let key=null; const te=new TextEncoder(), td=new TextDecoder();
+  const SALT=te.encode('sajudiary-manse-ledger-v1');
+  async function setPass(pass){
+    const base=await crypto.subtle.importKey('raw',te.encode(pass),'PBKDF2',false,['deriveKey']);
+    key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:SALT,iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  }
+  function ready(){return !!key;}
+  async function enc(txt){
+    if(txt==null||txt==='')return'';
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(String(txt)));
+    const buf=new Uint8Array(iv.length+ct.byteLength);buf.set(iv,0);buf.set(new Uint8Array(ct),iv.length);
+    let s='';buf.forEach(b=>s+=String.fromCharCode(b));return btoa(s);
+  }
+  async function dec(b64){
+    if(!b64)return'';
+    try{const raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));const iv=raw.slice(0,12),ct=raw.slice(12);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return td.decode(pt);}
+    catch(e){return null;}
+  }
+  return{setPass,ready,enc,dec};
+})();
+
+const LEDGER_OWNER='manse_ledger_master';
+const LEDGER_REM_KEY='sajudiary_manse_pass';
+const LEDGER_MAGIC='SAJUDIARY_MANSE_OK';
+function ledgerSb(){return SajuSupa.getClient();}
+
+function sendToLedger(){
+  const list=currentList();
+  if(!list.length){alert('보낼 이력이 없어요. 먼저 CSV를 정리하세요.');return;}
+  if(typeof SajuSupa==='undefined'||!SajuSupa.isEnabled()){alert('Supabase 연결이 안 돼요. ../assets/js/config.js 를 확인하세요.');return;}
+  if(LedgerCrypto.ready()){doSendToLedger();return;}
+  // 기기에 기억된 암호로 조용히 시도
+  const remembered=localStorage.getItem(LEDGER_REM_KEY);
+  if(remembered){
+    verifyLedgerPass(remembered).then(ok=>{ ok?doSendToLedger():openPassModal(); });
+  }else openPassModal();
+}
+function openPassModal(){document.getElementById('passModal').style.display='flex';document.getElementById('passErr').style.display='none';document.getElementById('ledgerPass').focus();}
+function closePassModal(){document.getElementById('passModal').style.display='none';}
+async function verifyLedgerPass(pass){
+  await LedgerCrypto.setPass(pass);
+  const{data,error}=await ledgerSb().from('manse_meta').select('*').eq('owner_kakao_id',LEDGER_OWNER).maybeSingle();
+  if(error)throw new Error(error.message);
+  if(!data)return 'nometa';
+  return (await LedgerCrypto.dec(data.verifier))===LEDGER_MAGIC;
+}
+async function confirmPass(){
+  const pass=document.getElementById('ledgerPass').value;
+  const errEl=document.getElementById('passErr');
+  if(!pass||pass.length<4){errEl.textContent='암호는 4자 이상이에요.';errEl.style.display='block';return;}
+  let ok;
+  try{ ok=await verifyLedgerPass(pass); }
+  catch(e){errEl.textContent='서버 오류: '+e.message;errEl.style.display='block';return;}
+  if(ok==='nometa'){
+    if(!confirm('명부 암호가 아직 설정되지 않았어요.\n지금 입력한 암호를 명부 암호로 새로 설정할까요?'))return;
+    const verifier=await LedgerCrypto.enc(LEDGER_MAGIC);
+    const{error}=await ledgerSb().from('manse_meta').upsert({owner_kakao_id:LEDGER_OWNER,verifier});
+    if(error){errEl.textContent='설정 실패: '+error.message;errEl.style.display='block';return;}
+    ok=true;
+  }
+  if(!ok){errEl.textContent='암호가 올바르지 않아요. (만세력 명부에서 설정한 암호)';errEl.style.display='block';localStorage.removeItem(LEDGER_REM_KEY);return;}
+  if(document.getElementById('ledgerPassRemember').checked)localStorage.setItem(LEDGER_REM_KEY,pass);
+  closePassModal();
+  doSendToLedger();
+}
+document.getElementById('ledgerPass').addEventListener('keydown',e=>{if(e.key==='Enter')confirmPass();});
+
+async function doSendToLedger(){
+  showToast('명부로 보내는 중…');
+  // 1) 기존 명부 기록 → 중복 방지 키 (이름|생년월일|시)
+  const{data:existing,error:listErr}=await ledgerSb().from('manse_records')
+    .select('id,name_enc,birth_year,birth_month,birth_day,birth_hour').eq('owner_kakao_id',LEDGER_OWNER);
+  if(listErr){alert('명부 조회 실패: '+listErr.message);return;}
+  const existKeys=new Set();
+  for(const r of (existing||[])){
+    const nm=await LedgerCrypto.dec(r.name_enc);
+    if(nm===null)continue; // 다른 암호로 저장된 기록은 중복 판단 불가 → 건너뜀
+    existKeys.add([nm,r.birth_year,r.birth_month,r.birth_day,r.birth_hour].join('|'));
+  }
+  // 2) 현재 목록 → insert rows (배치 내 중복도 제거)
+  const rows=[]; let dup=0;
+  for(const r of currentList()){
+    for(const p of r.persons){
+      if(!p.y||!p.mo||!p.d)continue;
+      const key=[p.name,p.y,p.mo,p.d,p.h].join('|');
+      if(existKeys.has(key)){dup++;continue;}
+      existKeys.add(key);
+      const partners=r.persons.filter(x=>x!==p).map(x=>x.name);
+      let memo='발행이력 가져옴 · '+r.product+(r.dt?' · 분석일 '+r.dt:'');
+      if(partners.length)memo+='\n함께 본 사람: '+partners.join(', ');
+      const [yP,mP,dP,hP]=p.pillars.ymdh;
+      rows.push({
+        owner_kakao_id:LEDGER_OWNER,
+        name_enc:await LedgerCrypto.enc(p.name),
+        memo_enc:await LedgerCrypto.enc(memo),
+        gender:p.ml||'',
+        birth_year:p.y, birth_month:p.mo, birth_day:p.d, birth_hour:p.h, calendar:'solar',
+        pillars:{y:[yP.si,yP.bi],m:[mP.si,mP.bi],d:[dP.si,dP.bi],h:hP?[hP.si,hP.bi]:null},
+        summary:summaryFor(p),
+        tags:['발행이력',r.product]
+      });
+    }
+  }
+  if(!rows.length){showToast('보낼 새 기록이 없어요'+(dup?' (이미 '+dup+'명 명부에 있음)':''));return;}
+  // 3) 배치 insert
+  const{error:insErr}=await ledgerSb().from('manse_records').insert(rows);
+  if(insErr){alert('명부 저장 실패: '+insErr.message);return;}
+  showToast('✓ '+rows.length+'명을 명부로 보냈어요'+(dup?' ('+dup+'명은 이미 있어 건너뜀)':''));
 }
 </script>
 </body>
