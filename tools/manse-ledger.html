@@ -122,6 +122,7 @@
   /* ━━ 원국 표 (saju.html 스타일 이식) ━━ */
   .guk-wrap{ overflow-x:auto; }
   .guk-table{ width:100%; min-width:430px; border-collapse:collapse; background:#fff; }
+  .guk-table .thc{ width:64px; }
   .guk-table th{ background:var(--ink); color:var(--paper2); font-size:12px; padding:7px 4px; font-weight:700; }
   .guk-table td{ border:1px solid var(--paper-dk); text-align:center; padding:5px 4px; }
   .guk-table td.day-col{ background:rgba(90,138,152,.08); }
@@ -137,6 +138,20 @@
   .sp-chip{ display:inline-flex; align-items:center; gap:4px; font-size:12px; padding:4px 10px;
     border-radius:999px; background:#fff; border:1px solid var(--gold3); color:var(--ink2); cursor:help; }
   .sp-chip b{ color:var(--gold2); }
+  /* 모바일: 원국 표를 화면 폭에 맞게 축소 (가로 스크롤 제거) */
+  @media(max-width:520px){
+    .guk-table{ min-width:0; }
+    .guk-table .thc{ width:42px; }
+    .guk-table th{ font-size:10px; padding:5px 2px; }
+    .guk-table td{ padding:3px 2px; }
+    .guk-table .rlbl{ font-size:9px; padding:3px 4px; letter-spacing:-.02em; }
+    .guk-table .big{ font-size:17px; }
+    .guk-table .rd{ font-size:8.5px; }
+    .guk-table .tg{ font-size:10px; letter-spacing:-.03em; }
+    .guk-table .f12{ font-size:10px; margin:-3px -2px; padding:3px 2px; }
+    .guk-table .sal{ font-size:9.5px; margin:-3px -2px; padding:3px 1px; letter-spacing:-.04em; }
+    .guk-table .jjg{ font-size:9.5px; letter-spacing:0; }
+  }
   .spin{ width:18px;height:18px;border:2px solid var(--paper-dk);border-top-color:var(--jade);border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:middle }
   @keyframes sp{to{transform:rotate(360deg)}}
 </style>
@@ -210,8 +225,9 @@
         <div id="sideList" class="space-y-2"></div>
         <div id="recEmpty" class="text-center text-sm text-[var(--ink4)] py-6 hidden">저장된 기록이 없어요.<br>오른쪽에서 계산 후 저장하세요.</div>
         <div class="flex gap-2 mt-3">
+          <button id="btnBulk" class="btn btn-ghost text-xs py-2 flex-1">📥 일괄 추가</button>
           <button id="btnExport" class="btn btn-ghost text-xs py-2 flex-1">⬇ 내보내기</button>
-          <button id="btnRefresh" class="btn btn-ghost text-xs py-2 flex-1">↻ 새로고침</button>
+          <button id="btnRefresh" class="btn btn-ghost text-xs py-2 flex-1">↻</button>
         </div>
       </aside>
 
@@ -304,6 +320,23 @@
 
       </div><!-- /우측 메인 -->
      </div><!-- /layout -->
+    </div>
+
+    <!-- 일괄 추가 모달 -->
+    <div id="bulkModal" class="hidden" style="position:fixed;inset:0;background:rgba(44,37,32,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px">
+      <div class="panel p-5" style="max-width:560px;width:100%;max-height:88vh;overflow-y:auto">
+        <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold mb-2">📥 일괄 추가</p>
+        <p class="text-[11.5px] text-[var(--ink3)] leading-relaxed mb-2">
+          한 줄에 한 명씩: <b>이름, 성별, 생년월일, 시간</b><br>
+          예) <code style="background:var(--paper3);padding:1px 5px;border-radius:4px">김성진, 남, 1990-09-27, 3시30분</code> · 시간 모르면 비움 · <b>양력 기준</b>(음력은 변환 후)
+        </p>
+        <textarea id="bulkText" style="width:100%;min-height:140px;padding:10px;border:1px solid var(--paper-dk);border-radius:8px;font-size:13px;font-family:monospace" placeholder="김성진, 남, 1990-09-27, 3시30분&#10;윤세라, 여, 1997.10.03, 16시&#10;조서준, 남, 2023년 6월 26일, 9시21분&#10;박지연, 여, 1988-05-11"></textarea>
+        <div class="flex gap-2 mt-2">
+          <button id="btnBulkPreview" class="btn btn-jade flex-1">미리보기</button>
+          <button id="btnBulkClose" class="btn btn-ghost">닫기</button>
+        </div>
+        <div id="bulkPreview" class="mt-3"></div>
+      </div>
     </div>
   </main>
 
@@ -585,6 +618,83 @@
   $('btnDrawer').addEventListener('click',()=>toggleDrawer());
   $('drawerBg').addEventListener('click',()=>toggleDrawer(false));
 
+  // ══════════════════════════════════════════════
+  //  📥 일괄 추가 — 텍스트 붙여넣기 → 파싱 → 미리보기 → 일괄 저장
+  // ══════════════════════════════════════════════
+  let BULK_ROWS=[];
+  $('btnBulk').addEventListener('click',()=>{ $('bulkModal').classList.remove('hidden'); toggleDrawer(false); $('bulkText').focus(); });
+  $('btnBulkClose').addEventListener('click',()=>{ $('bulkModal').classList.add('hidden'); $('bulkPreview').innerHTML=''; BULK_ROWS=[]; });
+
+  function parseBulk(text){
+    const rows=[],errs=[];
+    text.split(/\n/).forEach((line,i)=>{
+      const t=line.trim(); if(!t)return;
+      if(/\(음\)|음력/.test(t)){errs.push((i+1)+'행: 음력 표기 — 양력으로 변환해서 넣어주세요');return;}
+      const dm=t.match(/(\d{4})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})/);
+      if(!dm){errs.push((i+1)+'행: 생년월일을 못 찾음 — "'+t.slice(0,24)+'"');return;}
+      const y=+dm[1],mo=+dm[2],d=+dm[3];
+      if(y<1900||y>2050||mo<1||mo>12||d<1||d>31){errs.push((i+1)+'행: 날짜 범위 오류 ('+y+'-'+mo+'-'+d+')');return;}
+      const rest=t.slice(dm.index+dm[0].length);
+      let h=-1;
+      const hm=rest.match(/(\d{1,2})\s*[시:]\s*(\d{1,2})?/);
+      if(hm){const hh=+hm[1],mm=+(hm[2]||0);if(hh>=0&&hh<24)h=(hh>=23)?23.75:hh+(mm>=30?0.5:0);}
+      const gm=t.match(/(^|[\s,|(])(남|여)([\s,|)]|$)/);
+      const ml=gm?(gm[2]==='남'?'male':'female'):'';
+      let name=t.slice(0,dm.index).replace(/[,|\t]/g,' ').replace(/\(?(남|여)\)?/g,'').replace(/\(양\)/g,'').replace(/\s+/g,' ').trim();
+      if(!name)name='(무명)';
+      rows.push({name,ml,y,mo,d,h});
+    });
+    return{rows,errs};
+  }
+
+  $('btnBulkPreview').addEventListener('click',()=>{
+    const{rows,errs}=parseBulk($('bulkText').value);
+    BULK_ROWS=rows;
+    let h='';
+    if(errs.length)h+=`<div class="text-[11.5px] text-[var(--vermil)] mb-2 leading-relaxed">⚠ ${errs.join('<br>⚠ ')}</div>`;
+    if(rows.length){
+      h+=`<table class="ref-table"><tr><th>이름</th><th>성별</th><th>생년월일</th><th>시</th><th>일주</th></tr>`;
+      rows.forEach(p=>{
+        const dP=getDayPillar(p.y,p.mo,p.d);
+        h+=`<tr><td><b>${esc(p.name)}</b></td><td>${p.ml==='male'?'남':p.ml==='female'?'여':'<span style="color:var(--vermil)">?</span>'}</td><td>${p.y}-${String(p.mo).padStart(2,'0')}-${String(p.d).padStart(2,'0')}</td><td>${p.h<0?'모름':(p.h>=23?'자(밤)':Math.floor(p.h)+'시'+(p.h%1?'30분':''))}</td><td>${STEMS_H[dP.si]}${BRANS_H[dP.bi]}</td></tr>`;
+      });
+      h+='</table>';
+      h+=`<button id="btnBulkSave" class="btn btn-vermil w-full mt-3">✓ ${rows.length}명 명부에 저장</button>`;
+      h+=`<p class="ana-sub" style="margin-top:6px">이름·생년월일이 같은 기존 기록은 자동으로 건너뛰어요. 성별 ? 는 남자로 계산돼요(대운 방향) — 필요하면 저장 후 불러와서 수정.</p>`;
+    }else if(!errs.length){h='<p class="ana-sub">내용이 없어요.</p>';}
+    $('bulkPreview').innerHTML=h;
+    const b=document.getElementById('btnBulkSave');
+    if(b)b.addEventListener('click',doBulkSave);
+  });
+
+  async function doBulkSave(){
+    if(!BULK_ROWS.length)return;
+    if(!CryptoBox.ready()){alert('암호가 해제되지 않았어요.');return;}
+    const btn=document.getElementById('btnBulkSave');
+    btn.disabled=true;btn.innerHTML='<span class="spin"></span> 저장 중…';
+    const exist=new Set(RECORDS.map(r=>[r._name,r.birth_year,r.birth_month,r.birth_day].join('|')));
+    const ins=[];let dup=0;
+    for(const p of BULK_ROWS){
+      const key=[p.name,p.y,p.mo,p.d].join('|');
+      if(exist.has(key)){dup++;continue;}
+      exist.add(key);
+      const r=computeSaju({year:p.y,month:p.mo,day:p.d,hour:p.h,gender:p.ml||'male'});
+      ins.push({
+        owner_kakao_id:OWNER,
+        name_enc:await CryptoBox.enc(p.name), memo_enc:await CryptoBox.enc(''),
+        gender:p.ml, birth_year:p.y, birth_month:p.mo, birth_day:p.d, birth_hour:p.h, calendar:'solar',
+        pillars:{y:[r.yP.si,r.yP.bi],m:[r.mP.si,r.mP.bi],d:[r.dP.si,r.dP.bi],h:r.hP?[r.hP.si,r.hP.bi]:null},
+        summary:r.summary, tags:['일괄']
+      });
+    }
+    if(!ins.length){btn.disabled=false;btn.textContent='저장할 새 기록 없음'+(dup?' (중복 '+dup+')':'');return;}
+    const{error}=await SajuSupa.getClient().from('manse_records').insert(ins);
+    if(error){btn.disabled=false;btn.textContent='실패: '+error.message;return;}
+    $('bulkModal').classList.add('hidden');$('bulkPreview').innerHTML='';$('bulkText').value='';BULK_ROWS=[];
+    await loadRecords();
+    alert('✓ '+ins.length+'명 저장 완료'+(dup?' ('+dup+'명은 이미 있어 건너뜀)':''));
+  }
+
   // ─── 계산 ───
   $('btnCalc').addEventListener('click',doCalc);
   ['bYear','bDay'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')doCalc();}));
@@ -608,7 +718,7 @@
     const sal12=bi=>{ if(yG<0)return null; const hit=SHINSAL_MAP.find(s=>s.arr[yG]===bi); return hit?hit.lbl:null; };
     const dc=p=>(p===r.dP)?' class="day-col"':'';
     const row=(lbl,cellFn)=>`<tr><td class="rlbl">${lbl}</td>${cols.map(([_,p])=>`<td${dc(p)}>${cellFn(p)}</td>`).join('')}</tr>`;
-    let h=`<table class="guk-table"><tr><th style="width:64px"></th>${cols.map(([l,p])=>`<th>${l}${p===r.dP?' ★':''}</th>`).join('')}</tr>`;
+    let h=`<table class="guk-table"><tr><th class="thc"></th>${cols.map(([l,p])=>`<th>${l}${p===r.dP?' ★':''}</th>`).join('')}</tr>`;
     h+=row('십성',p=>`<span class="tg">${p===r.dP?'일간(나)':TG_N[getTG(dsi,p.si)]}</span>`);
     h+=row('천간',p=>`<span class="big ${ELEM_C[STEM_E[p.si]]}">${STEMS_H[p.si]}</span><span class="rd">${STEMS[p.si]}</span>`);
     h+=row('지지',p=>`<span class="big ${ELEM_C[BRAN_E[p.bi]]}">${BRANS_H[p.bi]}</span><span class="rd">${BRANS[p.bi]}</span>`);
@@ -942,7 +1052,14 @@
       summary:r.summary, tags
     };
     let res;
-    if(EDIT_ID){ res=await Store.update(EDIT_ID,{name_enc,memo_enc,tags}); }
+    if(EDIT_ID){
+      // 이름·메모·태그뿐 아니라 생년월일·사주·요약까지 통째로 갱신
+      res=await Store.update(EDIT_ID,{
+        name_enc,memo_enc,tags,gender:inp.gender,
+        birth_year:inp.year,birth_month:inp.month,birth_day:inp.day,birth_hour:inp.hour,
+        pillars:row.pillars,summary:row.summary
+      });
+    }
     else{ res=await Store.insert(row); }
     $('btnSave').disabled=false;
     if(res.error){$('saveMsg').textContent='저장 실패: '+res.error.message;return;}
