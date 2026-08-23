@@ -136,6 +136,16 @@
   .guk-table .tg{ font-size:12px; color:var(--jade2); font-weight:700; }
   .guk-table .big{ font-family:'Noto Serif KR',serif; font-size:26px; font-weight:700; line-height:1.1; display:block; }
   .guk-table .rd{ font-size:10px; color:var(--ink4); display:block; }
+  /* 오행 색 타일 (만세력 앱 스타일): 木초록 火빨강 土황토 金흰 水흑 */
+  .el-tile{ display:inline-flex; align-items:center; justify-content:center;
+    width:40px; height:40px; border-radius:9px; margin:1px auto;
+    font-family:'Noto Serif KR',serif; font-weight:700; font-size:25px; line-height:1; color:#fff;
+    box-shadow:0 1px 3px rgba(44,37,32,.15); }
+  .el-tile.e0{ background:linear-gradient(180deg,#5aa85a,#3f8a3f); }
+  .el-tile.e1{ background:linear-gradient(180deg,#dd5f52,#c1443a); }
+  .el-tile.e2{ background:linear-gradient(180deg,#e0b04a,#c99433); color:#3a2c10; }
+  .el-tile.e3{ background:linear-gradient(180deg,#fbfaf5,#e8e6df); color:#6b6b66; border:1.5px solid #c4c2b8; }
+  .el-tile.e4{ background:linear-gradient(180deg,#4a4f5c,#31353f); }
   .guk-table .f12{ font-size:12px; font-weight:700; color:var(--gold2); background:rgba(184,146,60,.09); display:block; margin:-5px -4px; padding:5px 4px; }
   .guk-table .sal{ font-size:11.5px; font-weight:700; color:var(--jade2); background:rgba(90,138,152,.09); display:block; margin:-5px -4px; padding:5px 4px; }
   .guk-table .sal.none{ color:var(--ink4); font-weight:400; background:none; }
@@ -152,6 +162,7 @@
     .guk-table .rlbl{ font-size:9px; padding:3px 4px; letter-spacing:-.02em; }
     .guk-table .big{ font-size:17px; }
     .guk-table .rd{ font-size:8.5px; }
+    .el-tile{ width:30px; height:30px; font-size:19px; border-radius:7px; }
     .guk-table .tg{ font-size:10px; letter-spacing:-.03em; }
     .guk-table .f12{ font-size:10px; margin:-3px -2px; padding:3px 2px; }
     .guk-table .sal{ font-size:9.5px; margin:-3px -2px; padding:3px 1px; letter-spacing:-.04em; }
@@ -854,8 +865,8 @@
     const row=(lbl,cellFn)=>`<tr><td class="rlbl">${lbl}</td>${cols.map(([_,p])=>`<td${dc(p)}>${cellFn(p)}</td>`).join('')}</tr>`;
     let h=`<table class="guk-table"><tr><th class="thc"></th>${cols.map(([l,p])=>`<th>${l}${p===r.dP?' ★':''}</th>`).join('')}</tr>`;
     h+=row('십성',p=>`<span class="tg">${p===r.dP?'일간(나)':TG_N[getTG(dsi,p.si)]}</span>`);
-    h+=row('천간',p=>`<span class="big ${ELEM_C[STEM_E[p.si]]}">${STEMS_H[p.si]}</span><span class="rd">${STEMS[p.si]}</span>`);
-    h+=row('지지',p=>`<span class="big ${ELEM_C[BRAN_E[p.bi]]}">${BRANS_H[p.bi]}</span><span class="rd">${BRANS[p.bi]}</span>`);
+    h+=row('천간',p=>`<span class="el-tile e${STEM_E[p.si]}">${STEMS_H[p.si]}</span><span class="rd">${STEMS[p.si]}</span>`);
+    h+=row('지지',p=>`<span class="el-tile e${BRAN_E[p.bi]}">${BRANS_H[p.bi]}</span><span class="rd">${BRANS[p.bi]}</span>`);
     h+=row('십성(지지)',p=>`<span class="tg" style="color:var(--ink3)">${TG_N[getTG(dsi,MAIN_H[p.bi])]}</span>`);
     h+=row('12운성',p=>`<span class="f12">${getF12(dsi,p.bi)}</span>`);
     h+=row('12신살',p=>{const s=sal12(p.bi);return s?`<span class="sal">${s}</span>`:`<span class="sal none">─</span>`;});
