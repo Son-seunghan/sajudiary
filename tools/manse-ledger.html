@@ -81,6 +81,11 @@
     padding:10px 12px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
   .side-rec:hover{ border-color:var(--jade3); }
   .side-rec.sel{ border-color:var(--jade); box-shadow:0 0 0 1px var(--jade); background:rgba(90,138,152,.06); }
+  .side-rec.sel-pair{ border-color:var(--plum); box-shadow:0 0 0 1px var(--plum); background:rgba(184,96,122,.08); }
+  #btnPair.on{ background:linear-gradient(180deg,var(--plum),var(--wine)); color:#fff; border-color:var(--wine); }
+  .pair-score{ font-family:'Noto Serif KR',serif; font-size:40px; font-weight:900; line-height:1; }
+  .pair-bar{ height:8px; border-radius:4px; background:var(--paper3); overflow:hidden; }
+  .pair-bar>div{ height:100%; border-radius:4px; background:linear-gradient(90deg,var(--plum),var(--wine)); }
   .side-rec .nm{ font-weight:700; font-size:13.5px; color:var(--ink); }
   .side-rec .bt{ font-size:11px; color:var(--ink4); }
   .side-rec .gz{ font-family:'Noto Serif KR',serif; font-size:14px; letter-spacing:1px; margin-top:2px; }
@@ -219,9 +224,13 @@
       <aside class="sidebar panel p-4" id="sidebarEl">
         <div class="flex items-center justify-between mb-3">
           <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold">LEDGER ✦ 명부 <span id="recCount" class="text-[var(--ink4)] font-normal"></span></p>
-          <button id="btnNew" class="btn btn-ghost text-xs py-1 px-2" title="입력 비우고 새 기록">＋ 새로</button>
+          <div class="flex gap-1">
+            <button id="btnPair" class="btn btn-ghost text-xs py-1 px-2" title="두 명을 골라 궁합 보기">💞 궁합</button>
+            <button id="btnNew" class="btn btn-ghost text-xs py-1 px-2" title="입력 비우고 새 기록">＋ 새로</button>
+          </div>
         </div>
         <div class="fg mb-3"><input type="text" id="search" placeholder="🔍 이름·간지·태그 검색"></div>
+        <div id="pairBar" class="hidden text-[11.5px] text-[var(--wine)] font-bold mb-3 p-2 rounded-lg" style="background:rgba(184,96,122,.08);border:1px solid var(--plum)"></div>
         <div id="sideList" class="space-y-2"></div>
         <div id="recEmpty" class="text-center text-sm text-[var(--ink4)] py-6 hidden">저장된 기록이 없어요.<br>오른쪽에서 계산 후 저장하세요.</div>
         <div class="flex gap-2 mt-3">
@@ -266,6 +275,15 @@
           </div>
         </div>
         <button id="btnCalc" class="btn btn-jade w-full mt-4">사주 계산 →</button>
+      </section>
+
+      <!-- 💞 궁합 보기 (명부 두 명 선택) -->
+      <section id="pairCard" class="panel p-6 hidden" style="border-top:3px solid var(--plum)">
+        <div class="flex items-center justify-between mb-3">
+          <p class="font-serif2 text-sm text-[var(--wine)] tracking-widest font-bold">PAIR ✦ 궁합 보기</p>
+          <button id="btnPairClose" class="btn btn-ghost text-xs py-1 px-2">닫기 ✕</button>
+        </div>
+        <div id="pairBody"></div>
       </section>
 
       <section id="resultCard" class="panel p-6 hidden">
@@ -619,6 +637,103 @@
   $('drawerBg').addEventListener('click',()=>toggleDrawer(false));
 
   // ══════════════════════════════════════════════
+  //  💞 궁합 모드 — 명부에서 두 명 선택 → 비교 분석
+  // ══════════════════════════════════════════════
+  let PAIR_MODE=false, PAIR_SEL=[];
+  $('btnPair').addEventListener('click',()=>{
+    PAIR_MODE=!PAIR_MODE; PAIR_SEL=[];
+    $('btnPair').classList.toggle('on',PAIR_MODE);
+    updatePairBar(); renderList();
+  });
+  $('btnPairClose').addEventListener('click',()=>{ $('pairCard').classList.add('hidden'); });
+  function updatePairBar(){
+    const bar=$('pairBar');
+    if(!PAIR_MODE){bar.classList.add('hidden');return;}
+    bar.classList.remove('hidden');
+    bar.innerHTML=`💞 궁합 모드 — 두 명 선택 (${PAIR_SEL.length}/2)`+
+      (PAIR_SEL.length===2
+        ?`<button class="btn btn-vermil text-xs py-1.5 w-full mt-1.5" style="background:linear-gradient(180deg,var(--plum),var(--wine));border-color:var(--wine)" onclick="showPair()">궁합 보기 →</button>`
+        :`<div style="font-weight:400;color:var(--ink4);margin-top:2px">리스트에서 탭해서 고르세요</div>`);
+  }
+  window.pairSel=function(id){
+    const i=PAIR_SEL.indexOf(id);
+    if(i>=0)PAIR_SEL.splice(i,1);
+    else{ if(PAIR_SEL.length>=2)PAIR_SEL.shift(); PAIR_SEL.push(id); }
+    updatePairBar(); renderList();
+  };
+  function recToR(rec){const p=rec.pillars||{};const o=a=>a?{si:a[0],bi:a[1]}:null;return{yP:o(p.y),mP:o(p.m),dP:o(p.d),hP:o(p.h)};}
+
+  window.showPair=function(){
+    const A=RECORDS.find(x=>x.id===PAIR_SEL[0]), B=RECORDS.find(x=>x.id===PAIR_SEL[1]);
+    if(!A||!B)return;
+    const a=recToR(A), b=recToR(B);
+    if(!a.dP||!b.dP){alert('사주 정보가 없는 기록이에요.');return;}
+    const nA=A._name||'(이름없음)', nB=B._name||'(이름없음)';
+    const res=pairAnalysis(nA,a,nB,b);
+    const info=r=>`${r.birth_year}.${String(r.birth_month).padStart(2,'0')}.${String(r.birth_day).padStart(2,'0')} · ${r.gender==='male'?'남':r.gender==='female'?'여':'?'}`;
+    let h=`<div class="text-center mb-4">
+      <div class="font-serif2 text-lg font-bold">${esc(nA)} <span style="color:var(--plum)">💞</span> ${esc(nB)}</div>
+      <div class="ana-sub" style="margin-top:2px">${info(A)} · ${STEMS_H[a.dP.si]}${BRANS_H[a.dP.bi]}일주 &nbsp;|&nbsp; ${info(B)} · ${STEMS_H[b.dP.si]}${BRANS_H[b.dP.bi]}일주</div>
+      <div class="pair-score" style="color:var(--wine);margin-top:8px">${res.score}<span style="font-size:16px;color:var(--ink4)">점</span></div>
+      <div class="font-serif2 font-bold" style="color:var(--wine)">${res.grade}</div>
+      <div class="pair-bar mt-2" style="max-width:280px;margin-left:auto;margin-right:auto"><div style="width:${res.score}%"></div></div>
+    </div>`;
+    h+=`<div class="grid sm:grid-cols-2 gap-3 mb-4">
+      <div><div class="ana-sub" style="margin:0 0 4px">◀ ${esc(nA)}</div><div class="guk-wrap">${renderGukTable(a)}</div></div>
+      <div><div class="ana-sub" style="margin:0 0 4px">▶ ${esc(nB)}</div><div class="guk-wrap">${renderGukTable(b)}</div></div>
+    </div>`;
+    h+=`<div class="space-y-2">`+res.notes.map(([type,title,desc])=>{
+      const col=type==='good'?'var(--jade)':type==='bad'?'var(--vermil)':type==='warn'?'var(--gold)':'var(--paper-dk)';
+      return `<div class="sw-card" style="border-left-color:${col}"><span class="yr" style="font-size:12.5px">${title}</span>${desc?`<div class="tx">${desc}</div>`:''}</div>`;
+    }).join('')+`</div>`;
+    h+=`<p class="ana-sub" style="margin-top:10px">※ 일간·일지(배우자궁)·년지 중심의 간단 궁합이에요. 전체 오행 균형·대운 흐름까지 보려면 궁합 분석기를 함께 참고하세요.</p>`;
+    $('pairBody').innerHTML=h;
+    $('resultCard').classList.add('hidden');
+    ['anaDwAcc','anaSwAcc','tgPersonalAcc'].forEach(id=>$(id).classList.add('hidden'));
+    $('pairCard').classList.remove('hidden');
+    toggleDrawer(false);
+    $('pairCard').scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  function pairAnalysis(nA,a,nB,b){
+    const dA=a.dP,dB=b.dP;
+    const notes=[];let score=60;
+    // ① 일간 천간합
+    const SH=[[0,5,'甲己合(土)'],[1,6,'乙庚合(金)'],[2,7,'丙辛合(水)'],[3,8,'丁壬合(木)'],[4,9,'戊癸合(火)']];
+    const sh=SH.find(([x,y])=>(dA.si===x&&dB.si===y)||(dA.si===y&&dB.si===x));
+    if(sh){score+=12;notes.push(['good','💞 일간 천간합 — '+sh[2],'두 사람의 중심 기운이 서로 끌려 합하는 관계예요. 처음부터 잘 통하는 조합.']);}
+    // ② 상호 십신
+    const tAB=TG_N[getTG(dB.si,dA.si)], tBA=TG_N[getTG(dA.si,dB.si)];
+    const TG_SC={'정재':6,'정관':6,'정인':5,'식신':5,'편재':4,'편관':3,'편인':3,'상관':1,'비견':0,'겁재':-4};
+    score+=(TG_SC[tAB]||0)+(TG_SC[tBA]||0);
+    notes.push(['info',`🔁 서로의 십신 관계`,`${esc(nA)}에게 ${esc(nB)}은(는) <b>${tAB}</b> · ${esc(nB)}에게 ${esc(nA)}은(는) <b>${tBA}</b><br><span style="font-size:11px;color:var(--ink4)">정재·정관·정인 관계면 안정적, 비겁·겁재면 경쟁·소모가 섞여요.</span>`]);
+    // ③ 일간 오행 상생·상극
+    const ea=STEM_E[dA.si],eb=STEM_E[dB.si],EL=['木','火','土','金','水'];
+    if(ea!==eb){
+      if(GEN[ea]===eb){score+=5;notes.push(['good',`🌱 일간 상생 — ${EL[ea]}生${EL[eb]}`,`${esc(nA)}의 기운이 ${esc(nB)}을(를) 살려주는 흐름이에요.`]);}
+      else if(GEN[eb]===ea){score+=5;notes.push(['good',`🌱 일간 상생 — ${EL[eb]}生${EL[ea]}`,`${esc(nB)}의 기운이 ${esc(nA)}을(를) 살려주는 흐름이에요.`]);}
+      else if(CTRL[ea]===eb||CTRL[eb]===ea){score-=4;notes.push(['warn','⚔ 일간 상극','기운이 부딪히는 구조 — 역할·영역이 정리되면 오히려 생산적 긴장이 돼요.']);}
+    }
+    // ④ 일지(배우자궁) 관계
+    const LIU={0:1,1:0,2:11,11:2,3:10,10:3,4:9,9:4,5:8,8:5,6:7,7:6};
+    if(LIU[dA.bi]===dB.bi){score+=12;notes.push(['good','🤝 일지 육합 — 배우자궁이 합','생활·정서 밀착이 좋은 조합. 부부·연인 궁합에서 가장 반기는 요소예요.']);}
+    if(getBrGroup(dA.bi)>=0&&getBrGroup(dA.bi)===getBrGroup(dB.bi)&&dA.bi!==dB.bi){score+=8;notes.push(['good','🤝 일지 삼합 — 같은 목적 그룹','지향점이 비슷해 함께 도모하기 좋은 관계예요.']);}
+    if(Math.abs(dA.bi-dB.bi)===6){score-=12;notes.push(['bad','⚡ 일지 충 — 배우자궁 충돌','생활 패턴·가치관 충돌이 잦을 수 있어요. 역할 분리·물리적 거리가 완충이 됩니다.']);}
+    const WJ=[[0,7],[1,6],[2,9],[3,8],[4,11],[5,10]];
+    if(WJ.some(([x,y])=>(dA.bi===x&&dB.bi===y)||(dA.bi===y&&dB.bi===x))){score-=8;notes.push(['bad','💢 일지 원진','이유 모를 반목·서운함이 반복되기 쉬운 조합 — 기운의 작용임을 아는 것만으로 소모가 줄어요.']);}
+    const GM=[[0,9],[1,6],[2,7],[3,8],[4,11],[5,10]];
+    if(GM.some(([x,y])=>(dA.bi===x&&dB.bi===y)||(dA.bi===y&&dB.bi===x))){score-=5;notes.push(['warn','🌙 일지 귀문','서로에게 극도로 예민해지는 조합 — 깊이 통하거나 깊이 소모되거나.']);}
+    // ⑤ 년지(띠) 관계
+    if(a.yP&&b.yP){
+      if(LIU[a.yP.bi]===b.yP.bi){score+=5;notes.push(['good','🐾 띠 육합','기본 기질·집안 분위기가 잘 맞는 조합이에요.']);}
+      if(Math.abs(a.yP.bi-b.yP.bi)===6){score-=5;notes.push(['warn','🐾 띠 충','기본 기질이 반대라 초반 마찰이 있을 수 있어요. 익숙해지면 상호 보완이 됩니다.']);}
+    }
+    score=Math.max(20,Math.min(96,Math.round(score)));
+    const grade=score>=82?'천생연분급 합':score>=68?'좋은 합':score>=52?'무난한 합':score>=38?'노력이 필요한 합':'주의가 필요한 합';
+    return{score,grade,notes};
+  }
+
+  // ══════════════════════════════════════════════
   //  📥 일괄 추가 — 텍스트 붙여넣기 → 파싱 → 미리보기 → 일괄 저장
   // ══════════════════════════════════════════════
   let BULK_ROWS=[];
@@ -788,6 +903,7 @@
     return out;
   }
   function renderResult(r,inp){
+    $('pairCard').classList.add('hidden');
     $('resultCard').classList.remove('hidden');
     const hLbl=inp.hour<0?'시간 미상':(BRANS[r.hP.bi]+'시');
     $('resultDate').textContent=`${inp.year}년 ${inp.month}월 ${inp.day}일 · ${inp.gender==='male'?'남':'여'} · ${hLbl}`;
@@ -1100,8 +1216,8 @@
       const s=r.summary||{};
       const tags=(r.tags||[]).slice(0,3).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join(' ');
       const hh=r.birth_hour<0?'':(' '+hourLabelOf(r.birth_hour));
-      const sel=(EDIT_ID===r.id)?' sel':'';
-      return `<div class="side-rec${sel}" data-id="${r.id}" onclick="loadRec(${r.id})">
+      const sel=PAIR_MODE?(PAIR_SEL.includes(r.id)?' sel-pair':''):((EDIT_ID===r.id)?' sel':'');
+      return `<div class="side-rec${sel}" data-id="${r.id}" onclick="${PAIR_MODE?'pairSel':'loadRec'}(${r.id})">
         <div class="flex items-center justify-between gap-2">
           <span class="nm">${esc(r._name||'(이름없음)')}</span>
           <span class="del" onclick="event.stopPropagation();delRec(${r.id})" title="삭제">✕</span>
