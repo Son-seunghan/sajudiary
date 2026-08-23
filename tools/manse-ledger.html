@@ -346,7 +346,8 @@
         <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold mb-2">📥 일괄 추가</p>
         <p class="text-[11.5px] text-[var(--ink3)] leading-relaxed mb-2">
           한 줄에 한 명씩: <b>이름, 성별, 생년월일, 시간</b><br>
-          예) <code style="background:var(--paper3);padding:1px 5px;border-radius:4px">김성진, 남, 1990-09-27, 3시30분</code> · 시간 모르면 비움 · <b>양력 기준</b>(음력은 변환 후)
+          예) <code style="background:var(--paper3);padding:1px 5px;border-radius:4px">김성진, 남, 1990-09-27, 3시30분</code> · 시간 모르면 비움 · <b>양력 기준</b>(음력은 변환 후)<br>
+          📱 <b>만세력 천을귀인 앱 백업</b>(<code style="background:var(--paper3);padding:1px 4px;border-radius:4px">이름::M::19940727::…</code>)도 통째로 붙여넣으면 자동 인식돼요 (양력 날짜 사용, 3000=시간 모름 처리)
         </p>
         <textarea id="bulkText" style="width:100%;min-height:140px;padding:10px;border:1px solid var(--paper-dk);border-radius:8px;font-size:13px;font-family:monospace" placeholder="김성진, 남, 1990-09-27, 3시30분&#10;윤세라, 여, 1997.10.03, 16시&#10;조서준, 남, 2023년 6월 26일, 9시21분&#10;박지연, 여, 1988-05-11"></textarea>
         <div class="flex gap-2 mt-2">
@@ -744,6 +745,24 @@
     const rows=[],errs=[];
     text.split(/\n/).forEach((line,i)=>{
       const t=line.trim(); if(!t)return;
+      // ── 만세력 천을귀인 앱 백업 형식: name::sex::syyyymmdd::lyyyymmdd::hhmm::leap::... ──
+      if(t.includes('::')){
+        const f=t.split('::');
+        if(f[0].trim().toLowerCase()==='name')return; // 헤더 행 무시
+        const name=(f[0]||'').trim()||'(무명)';
+        const sex=(f[1]||'').trim().toUpperCase();
+        const sd=(f[2]||'').trim();
+        const dm2=sd.match(/^(\d{4})(\d{2})(\d{2})$/);
+        if(!dm2){errs.push((i+1)+'행: 양력 날짜(syyyymmdd) 형식 오류 — "'+t.slice(0,30)+'"');return;}
+        const y=+dm2[1],mo=+dm2[2],d=+dm2[3];
+        if(y<1900||y>2050||mo<1||mo>12||d<1||d>31){errs.push((i+1)+'행: 날짜 범위 오류 ('+y+'-'+mo+'-'+d+')');return;}
+        let h=-1;
+        const tm=((f[4]||'').trim()).match(/^(\d{2})(\d{2})$/);
+        if(tm){const hh=+tm[1],mm=+tm[2];if(hh<24)h=(hh>=23)?23.75:hh+(mm>=30?0.5:0);} // 3000 등 = 시간 모름
+        const ml=sex==='M'?'male':sex==='F'?'female':'';
+        rows.push({name,ml,y,mo,d,h});
+        return;
+      }
       if(/\(음\)|음력/.test(t)){errs.push((i+1)+'행: 음력 표기 — 양력으로 변환해서 넣어주세요');return;}
       const dm=t.match(/(\d{4})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})/);
       if(!dm){errs.push((i+1)+'행: 생년월일을 못 찾음 — "'+t.slice(0,24)+'"');return;}
