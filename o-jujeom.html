@@ -166,8 +166,9 @@
         </div>
         <div class="guk-wrap" id="ojuTable"></div>
         <p class="text-[11px] text-[var(--ink4)] mt-3 leading-relaxed">
-          기준: 시진 경계 30분(자시 23:30 시작) · 일주는 23:30에 다음 날로(정자시법) · 연/월주는 절기 절입 시각 판정 ·
-          분주(分柱)는 시진을 10분씩 12등분(시진 시작=子), 분간은 시간(時干)에서 오자둔 · 십성·12운성은 일간 기준, 12신살은 년지 기준
+          기준(오주괘): 시진 경계 정각 — 자시 23:01~01:00, 오시 11:01~13:00 · 일주는 23:01에 다음 날로(정자시법) ·
+          연/월주는 절기 절입 시각 판정 · 분지(分支)는 홀수시 정각부터 00분00초~09분59초=子, 10분마다 진행 ·
+          분간(分干)은 시간(時干) 기준 오자둔(둔월둔시법과 같은 원리) · 십성·12운성은 일간 기준
         </p>
       </section>
     </div>
@@ -222,31 +223,26 @@ function computeOju(dt){
   let mbi=1,best=-Infinity;
   for(let yy=y-1;yy<=y;yy++){for(let i=0;i<12;i++){const tj=termClockJD(yy,i);if(tj<=bjd&&tj>best){best=tj;mbi=TERM_DEFS[i][2];}}}
   const mP={si:(([2,4,6,8,0][yP.si%5])+(((mbi-2)+12)%12))%10, bi:mbi};
-  // 일주: 23:30(자시 시작)에 다음 날로 — 정자시법
+  // 일주: 자시 시작(23:01)에 다음 날로 — 정자시법 (오주괘 기준: 시진 경계 = 정각)
   let dayJDN=getJDN(y,mo,d);
-  if(minOfDay>=23*60+30) dayJDN+=1;
+  if(minOfDay>=23*60+1) dayJDN+=1;
   const idx60=((54+(dayJDN-getJDN(2000,1,1)))%60+60)%60;
   const dP={si:idx60%10, bi:idx60%12};
-  // 시주: 경계 X시30분 — 자시 23:30~01:30
-  const hbi=Math.floor(((minOfDay+30)%1440)/120);
+  // 시주: 오주괘 경계 — XX:01~(XX+2):00 (자시 23:01~01:00, 오시 11:01~13:00)
+  const e2=minOfDay-1;                              // 정각(:00)은 이전 시진에 귀속
+  const hbi=Math.floor((((e2-1380)%1440)+1440)%1440/120);
   const hP={si:(([0,2,4,6,8][dP.si%5])+hbi)%10, bi:hbi};
-  // 분주: 시진 시작부터 10분=1지지(子→亥), 분간은 時干에서 오자둔
-  const elapsed=((minOfDay-90)%120+120)%120;        // 시진 내 경과 분 0~119
-  const minIdx=Math.floor(elapsed/10);
+  // 분주: 시계 분 기준 — 홀수시 정각부터 00분00초~09분59초=子, 10분마다 丑→亥
+  const oddElapsed=(hh%2===1)?mm:60+mm;             // 홀수시 정각 이후 경과 분 0~119
+  const minIdx=Math.floor(oddElapsed/10);
   const minP={si:(([0,2,4,6,8][hP.si%5])+minIdx)%10, bi:minIdx};
-  return{yP,mP,dP,hP,minP,elapsed};
+  return{yP,mP,dP,hP,minP,elapsed:oddElapsed};
 }
-
-// ── 12신살 (년지 기준) ──
-function getBrGroup(bi){if([2,6,10].includes(bi))return 0;if([5,9,1].includes(bi))return 1;if([8,0,4].includes(bi))return 2;if([11,3,7].includes(bi))return 3;return -1;}
-const SSAL12=[{k:'겁살',arr:[11,2,5,8]},{k:'재살',arr:[0,3,6,9]},{k:'천살',arr:[1,4,7,10]},{k:'지살',arr:[2,5,8,11]},{k:'월살',arr:[4,7,10,1]},{k:'망신살',arr:[5,8,11,2]},{k:'장성살',arr:[6,9,0,3]},{k:'반안살',arr:[7,10,1,4]},{k:'역마살',arr:[8,11,2,5]},{k:'육해살',arr:[9,0,3,6]},{k:'도화살',arr:[3,6,9,0]},{k:'화개살',arr:[10,1,4,7]}];
 
 // ── 오주 표 렌더 ──
 function renderOjuTable(r){
   const dsi=r.dP.si;
   const cols=[['분주 (分)',r.minP,'minute'],['시주 (時)',r.hP,''],['일주 (日)',r.dP,'day'],['월주 (月)',r.mP,''],['년주 (年)',r.yP,'']];
-  const yG=getBrGroup(r.yP.bi);
-  const sal12=bi=>{if(yG<0)return null;const hit=SSAL12.find(s=>s.arr[yG]===bi);return hit?hit.k:null;};
   const tdCls=k=>k==='day'?' class="day-col"':k==='minute'?' class="minute-col"':'';
   const row=(lbl,fn)=>`<tr><td class="rlbl">${lbl}</td>${cols.map(([_,p,k])=>`<td${tdCls(k)}>${fn(p)}</td>`).join('')}</tr>`;
   let h=`<table class="guk-table"><tr><th class="thc"></th>${cols.map(([l,p,k])=>`<th${k==='minute'?' class="min-col"':''}>${l}${k==='day'?' ★':''}</th>`).join('')}</tr>`;
@@ -255,7 +251,6 @@ function renderOjuTable(r){
   h+=row('지지',p=>`<span class="el-tile e${BRAN_E[p.bi]}">${BRANS_H[p.bi]}</span><span class="rd">${BRANS[p.bi]}</span>`);
   h+=row('십성(지지)',p=>`<span class="tg" style="color:var(--ink3)">${TG_N[getTG(dsi,MAIN_H[p.bi])]}</span>`);
   h+=row('12운성',p=>`<span class="f12">${getF12(dsi,p.bi)}</span>`);
-  h+=row('12신살',p=>{const s=sal12(p.bi);return s?`<span class="sal">${s}</span>`:`<span class="sal none">─</span>`;});
   h+=row('지장간',p=>`<span class="jjg">${HIDDEN[p.bi].map(x=>`<span class="${ELEM_C[STEM_E[x]]}">${STEMS_H[x]}</span>`).join(' ')}</span>`);
   h+=`</table>`;
   return h;
