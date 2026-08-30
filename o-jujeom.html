@@ -296,10 +296,9 @@ function tick(){
 $('btnInputMode').addEventListener('click',()=>{
   $('inputPanel').classList.toggle('hidden');
   if(!$('inputPanel').classList.contains('hidden')){
-    const n=nowDt();
-    $('iYear').value=n.y;$('iMonth').value=n.mo;$('iDay').value=n.d;
-    $('iHM').value=String(n.hh).padStart(2,'0')+String(n.mm).padStart(2,'0');
-    $('iHM').focus();$('iHM').select();
+    ['iYear','iMonth','iDay','iHM'].forEach(id=>$(id).value='');
+    $('inputErr').classList.add('hidden');
+    $('iYear').focus();
   }
 });
 $('btnApply').addEventListener('click',applyInput);
