@@ -387,7 +387,7 @@
   const BRANS_H=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   const STEM_E=[0,0,1,1,2,2,3,3,4,4], STEM_Y=[0,1,0,1,0,1,0,1,0,1];
   const BRAN_E=[4,2,0,0,2,1,1,2,3,3,2,4];
-  const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[8,6,4],[6,7],[7,3,4],[0,8]];
+  const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[4,8,6],[6,7],[7,3,4],[4,0,8]];
   const ELEM_C=['wood','fire','earth','metal','water'];
   const GEN=[1,2,3,4,0], GEN_BY=[4,0,1,2,3], CTRL=[2,3,4,0,1], CTRL_BY=[3,4,0,1,2];
 
@@ -468,14 +468,14 @@
   const FLOW_TAG={ascending:'후발 개화형',descending:'조기 전성형',balanced:'꾸준한 안정형'};
 
   function getDayStrength_(yP,mP,dP,hP){const de=STEM_E[dP.si];let s=0;const rest=[yP,mP,hP].filter(Boolean);for(const p of rest){const se=STEM_E[p.si],be=BRAN_E[p.bi];if(se===de||se===GEN_BY[de])s+=1;if(be===de||be===GEN_BY[de])s+=0.7;if(se===GEN[de]||se===CTRL[de]||se===CTRL_BY[de])s-=0.5;}const mbe=BRAN_E[mP.bi];if(mbe===de||mbe===GEN_BY[de])s+=1.5;else s-=0.5;if(s>=1.5)return'신강';if(s>=0)return'중화';return'신약';}
-  function inferGyeok(dP,mP){const g=HIDDEN[mP.bi][0];if(g===dP.si)return'비견격';const t=getTG(dP.si,g);return['비견격','양인격','식신격','상관격','편재격','정재격','편관격','정관격','편인격','정인격'][t]||'비견격';}
+  function inferGyeok(dP,mP){const g=MAIN_H[mP.bi];/* 월지 본기 */if(g===dP.si)return'비견격';const t=getTG(dP.si,g);return['비견격','양인격','식신격','상관격','편재격','정재격','편관격','정관격','편인격','정인격'][t]||'비견격';}
   const GYEOK_BIAS={'정관격':{EI:0,NS:-0.2,TF:0.2,JP:1.2},'편관격':{EI:0.5,NS:0,TF:0.4,JP:0.8},'정인격':{EI:-0.8,NS:0.6,TF:0,JP:0},'편인격':{EI:-1,NS:0.6,TF:-0.3,JP:0},'정재격':{EI:0.3,NS:-1,TF:0.3,JP:1},'편재격':{EI:1,NS:-0.8,TF:0,JP:-1},'식신격':{EI:0.8,NS:0.3,TF:-0.8,JP:-0.8},'상관격':{EI:1,NS:0.6,TF:-0.6,JP:-1.5},'비견격':{EI:-0.3,NS:-0.2,TF:0.3,JP:0.3},'양인격':{EI:1,NS:0,TF:0.6,JP:0.8}};
   function predictMBTIType(yP,mP,dP,hP){
     const PW={day:1.5,month:1.5,hour:0.8,year:0.6},HW=[0.7,0.3,0.1];
     const list=[{p:yP,w:PW.year},{p:mP,w:PW.month},{p:dP,w:PW.day},{p:hP,w:PW.hour}].filter(x=>x.p);
     const fEl=[0,0,0,0,0],tS=[0,0,0,0,0,0,0,0,0,0];
     list.forEach(({p,w})=>{fEl[STEM_E[p.si]]+=w;fEl[BRAN_E[p.bi]]+=w*0.5;HIDDEN[p.bi].forEach((h,i)=>fEl[STEM_E[h]]+=w*HW[i]);});
-    list.forEach(({p,w})=>{if(p!==dP){const t=getTG(dP.si,p.si);if(t>=0)tS[t]+=w;}HIDDEN[p.bi].forEach((h,i)=>{if(p===dP&&i===0&&h===dP.si)return;const t=getTG(dP.si,h);if(t>=0)tS[t]+=w*HW[i];});});
+    list.forEach(({p,w})=>{if(p!==dP){const t=getTG(dP.si,p.si);if(t>=0)tS[t]+=w;}HIDDEN[p.bi].forEach((h,i)=>{if(p===dP&&h===dP.si&&MAIN_H[p.bi]===dP.si)return;/* 일지 본기=일간 중복 방지 */const t=getTG(dP.si,h);if(t>=0)tS[t]+=w*HW[i];});});
     const bigeop=tS[0]+tS[1],sikSang=tS[2]+tS[3],jae=tS[4]+tS[5],gwan=tS[6]+tS[7],inS=tS[8]+tS[9];
     const isYang=STEM_Y[dP.si]===0,isYin=!isYang,strength=getDayStrength_(yP,mP,dP,hP),isStrong=strength==='신강',isWeak=strength==='신약',gyeok=inferGyeok(dP,mP);
     const otherBi=[yP.bi,mP.bi,hP?hP.bi:null].filter(b=>b!==null);const LH={0:1,1:0,2:11,11:2,3:10,10:3,4:9,9:4,5:8,8:5,6:7,7:6},CH={0:6,6:0,1:7,7:1,2:8,8:2,3:9,9:3,4:10,10:4,5:11,11:5};let lihe=0,chung=0;otherBi.forEach(b=>{if(LH[dP.bi]===b)lihe++;if(CH[dP.bi]===b)chung++;});

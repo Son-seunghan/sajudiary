@@ -449,7 +449,7 @@ const STEM_E=[0,0,1,1,2,2,3,3,4,4];
 const BRAN_E=[4,2,0,0,2,1,1,2,3,3,2,4];
 const STEM_Y=[0,1,0,1,0,1,0,1,0,1];
 const GEN=[1,2,3,4,0];const GEN_BY=[4,0,1,2,3];const CTRL=[2,3,4,0,1];const CTRL_BY=[3,4,0,1,2];
-const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[8,6,4],[6,7],[7,3,4],[0,8]];
+const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[4,8,6],[6,7],[7,3,4],[4,0,8]];
 const MAIN_H=[9,5,0,1,4,2,3,5,6,7,4,8];
 
 function getJDN(y,m,d){const a=Math.floor((14-m)/12);const yy=y+4800-a;const mm=m+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
