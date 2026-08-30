@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>오주괘 만세력 — 사주다이어리 五柱占</title>
+<meta name="description" content="지금 이 순간을 다섯 기둥으로 — 실시간 오주괘(五柱卦) 만세력. 분주(分柱)까지 자동 계산합니다.">
+<link rel="canonical" href="https://sajudiary.com/o-jujeom">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --paper:#f7f0df; --paper2:#faf5e8; --paper3:#f0e8d2; --paper-dk:#ebe1c4;
+    --ink:#2c2520; --ink2:#4a3f33; --ink3:#6b5d4f; --ink4:#8a7d6b;
+    --vermil:#b13a2c; --vermil2:#8a2418; --vermil3:#d05848;
+    --gold:#b8923c; --gold2:#9b7728; --gold3:#d6b660;
+    --jade:#5a8a98; --jade2:#406878; --jade3:#7aa8b5;
+    --plum:#b8607a; --wine:#8a3a4d;
+    --wood:#5a9a5a; --fire:#c85040; --earth:#b88030; --metal:#9098b0; --water:#4878a8;
+  }
+  html,body{ background:var(--paper); color:var(--ink); font-family:'Pretendard',sans-serif; -webkit-font-smoothing:antialiased; }
+  .font-hanja{ font-family:'Noto Serif KR',serif; font-weight:700; letter-spacing:.05em; }
+  .font-serif2{ font-family:'Noto Serif KR',serif; }
+  .top-stripe{ height:3px; background:linear-gradient(90deg,var(--jade) 0 20%,var(--vermil) 20% 40%,var(--gold) 40% 60%,var(--plum) 60% 80%,var(--ink) 80% 100%); }
+  .panel{ background:linear-gradient(180deg,var(--paper2),var(--paper)); border:1px solid var(--paper-dk); border-radius:14px; box-shadow:0 4px 20px rgba(60,45,30,.06); }
+  .panel-jade{ border-color:var(--jade3); border-top:3px solid var(--jade); }
+  .btn{ padding:11px 18px; border-radius:9px; font-weight:700; font-size:14px; cursor:pointer; border:1px solid transparent; transition:all .2s; }
+  .btn-jade{ background:linear-gradient(180deg,var(--jade3),var(--jade)); color:#fff; border-color:var(--jade2); }
+  .btn-jade:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(64,104,120,.28); }
+  .btn-ghost{ background:#fff; color:var(--ink2); border-color:var(--paper-dk); }
+  .btn-ghost:hover{ border-color:var(--jade); color:var(--jade2); }
+  .fg label{ display:block; font-size:12px; color:var(--ink3); margin-bottom:5px; }
+  .fg input,.fg select{ width:100%; padding:10px 12px; border:1px solid var(--paper-dk); border-radius:8px; background:#fff; font-size:14px; color:var(--ink); font-family:inherit; }
+  .fg input:focus,.fg select:focus{ outline:none; border-color:var(--jade); box-shadow:0 0 0 3px rgba(90,138,152,.12); }
+
+  /* ━━ 좌: 디지털 시계 ━━ */
+  .clock-date{ font-size:15px; color:var(--ink3); letter-spacing:.06em; }
+  .clock-time{ font-family:'Pretendard',monospace; font-variant-numeric:tabular-nums;
+    font-size:52px; font-weight:800; letter-spacing:.02em; color:var(--ink); line-height:1.1; }
+  .clock-time .sec{ color:var(--jade2); }
+  .clock-time .colon{ color:var(--ink4); animation:blink 1s steps(1) infinite; }
+  @keyframes blink{ 50%{opacity:.25} }
+  .live-badge{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700;
+    padding:3px 11px; border-radius:999px; }
+  .live-badge.on{ background:rgba(90,138,152,.13); color:var(--jade2); border:1px solid var(--jade3); }
+  .live-badge.on .dot{ width:7px;height:7px;border-radius:50%;background:#3f8a3f; animation:blink 1.4s steps(1) infinite; }
+  .live-badge.fix{ background:rgba(184,146,60,.14); color:var(--gold2); border:1px solid var(--gold3); }
+  .bunju-gauge{ height:6px; border-radius:3px; background:var(--paper3); overflow:hidden; }
+  .bunju-gauge>div{ height:100%; background:linear-gradient(90deg,var(--jade3),var(--jade)); border-radius:3px; transition:width 1s linear; }
+
+  /* ━━ 우: 오주 표 ━━ */
+  .guk-wrap{ overflow-x:auto; }
+  .guk-table{ width:100%; min-width:470px; border-collapse:collapse; background:#fff; }
+  .guk-table .thc{ width:60px; }
+  .guk-table th{ background:var(--ink); color:var(--paper2); font-size:12px; padding:7px 4px; font-weight:700; }
+  .guk-table th.min-col{ background:var(--jade2); }
+  .guk-table td{ border:1px solid var(--paper-dk); text-align:center; padding:5px 4px; }
+  .guk-table td.day-col{ background:rgba(90,138,152,.08); }
+  .guk-table td.minute-col{ background:rgba(90,138,152,.04); }
+  .guk-table .rlbl{ background:var(--paper3); font-size:10px; color:var(--ink3); white-space:nowrap; padding:4px 8px; text-align:left; font-weight:700; }
+  .guk-table .tg{ font-size:12px; color:var(--jade2); font-weight:700; }
+  .guk-table .rd{ font-size:10px; color:var(--ink4); display:block; }
+  .guk-table .f12{ font-size:12px; font-weight:700; color:var(--gold2); background:rgba(184,146,60,.09); display:block; margin:-5px -4px; padding:5px 4px; }
+  .guk-table .sal{ font-size:11.5px; font-weight:700; color:var(--jade2); background:rgba(90,138,152,.09); display:block; margin:-5px -4px; padding:5px 4px; }
+  .guk-table .sal.none{ color:var(--ink4); font-weight:400; background:none; }
+  .guk-table .jjg{ font-size:11px; letter-spacing:1px; }
+  .wood{color:var(--wood)} .fire{color:var(--fire)} .earth{color:var(--earth)} .metal{color:var(--metal)} .water{color:var(--water)}
+  .el-tile{ display:inline-flex; align-items:center; justify-content:center;
+    width:40px; height:40px; border-radius:9px; margin:1px auto;
+    font-family:'Noto Serif KR',serif; font-weight:700; font-size:25px; line-height:1; color:#fff;
+    box-shadow:0 1px 3px rgba(44,37,32,.15); }
+  .el-tile.e0{ background:linear-gradient(180deg,#5aa85a,#3f8a3f); }
+  .el-tile.e1{ background:linear-gradient(180deg,#dd5f52,#c1443a); }
+  .el-tile.e2{ background:linear-gradient(180deg,#e0b04a,#c99433); color:#3a2c10; }
+  .el-tile.e3{ background:linear-gradient(180deg,#fbfaf5,#e8e6df); color:#6b6b66; border:1.5px solid #c4c2b8; }
+  .el-tile.e4{ background:linear-gradient(180deg,#4a4f5c,#31353f); }
+  @media(max-width:560px){
+    .guk-table{ min-width:0; }
+    .guk-table .thc{ width:40px; }
+    .guk-table th{ font-size:10px; padding:5px 2px; }
+    .guk-table td{ padding:3px 2px; }
+    .guk-table .rlbl{ font-size:9px; padding:3px 4px; }
+    .guk-table .rd{ font-size:8.5px; }
+    .guk-table .tg{ font-size:10px; letter-spacing:-.03em; }
+    .guk-table .f12{ font-size:10px; margin:-3px -2px; padding:3px 2px; }
+    .guk-table .sal{ font-size:9px; margin:-3px -2px; padding:3px 1px; letter-spacing:-.04em; }
+    .guk-table .jjg{ font-size:9px; letter-spacing:0; }
+    .el-tile{ width:28px; height:28px; font-size:18px; border-radius:6px; }
+    .clock-time{ font-size:40px; }
+  }
+  .hidden{ display:none !important; }
+</style>
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JTND4S6842');
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <div class="top-stripe"></div>
+
+  <header class="border-b border-[var(--paper-dk)]/60 sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/85">
+    <div class="max-w-5xl mx-auto px-5 py-3 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <span class="font-hanja text-xl text-[var(--vermil)]">四柱日記</span>
+        <span class="hidden sm:inline text-xs px-2 py-0.5 rounded bg-[var(--jade2)] text-[var(--paper2)] tracking-wide">오주괘 五柱占</span>
+      </a>
+      <div class="flex items-center gap-1 text-sm">
+        <a href="manse.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">무료 만세력</a>
+        <a href="index.html" class="px-3 py-2 text-[var(--ink2)] hover:text-[var(--jade)]">← 홈</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-5 py-8">
+    <div class="text-center mb-7">
+      <p class="font-serif2 text-sm text-[var(--jade2)] tracking-[0.3em] mb-2">五柱占 ✦ OJU</p>
+      <h1 class="font-serif2 text-3xl font-bold mb-2">오주괘 만세력</h1>
+      <p class="text-sm text-[var(--ink3)]">묻는 그 순간이 괘(卦)가 됩니다 — 지금 이 시각의 다섯 기둥</p>
+    </div>
+
+    <div class="grid md:grid-cols-[300px_minmax(0,1fr)] gap-5 items-start">
+
+      <!-- ◀ 좌측: 디지털 시계 -->
+      <section class="panel panel-jade p-6 text-center md:sticky md:top-20">
+        <div class="mb-1"><span id="modeBadge" class="live-badge on"><span class="dot"></span>실시간</span></div>
+        <div id="clockDate" class="clock-date mt-3 mb-1">—</div>
+        <div id="clockTime" class="clock-time">--<span class="colon">:</span>--<span class="colon">:</span><span class="sec">--</span></div>
+        <div class="mt-4 text-left">
+          <div class="flex justify-between text-[11px] text-[var(--ink3)] mb-1">
+            <span>분주 <b id="bunjuName" class="text-[var(--jade2)]">—</b></span>
+            <span id="bunjuLeft">—</span>
+          </div>
+          <div class="bunju-gauge"><div id="bunjuBar" style="width:0%"></div></div>
+        </div>
+        <button id="btnInputMode" class="btn btn-jade w-full mt-5">🕐 시간 입력</button>
+        <button id="btnLive" class="btn btn-ghost w-full mt-2 hidden">● 지금 시각으로 돌아가기</button>
+
+        <!-- 시간 입력 패널 -->
+        <div id="inputPanel" class="hidden mt-4 text-left border-t border-[var(--paper-dk)] pt-4">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="fg"><label>년도</label><input type="number" id="iYear" placeholder="2026" min="1900" max="2050"></div>
+            <div class="fg"><label>월</label><input type="number" id="iMonth" placeholder="8" min="1" max="12"></div>
+            <div class="fg"><label>일</label><input type="number" id="iDay" placeholder="30" min="1" max="31"></div>
+          </div>
+          <div class="fg mt-2"><label>시·분 (붙여서 입력 — 예: 2037 = 20시 37분)</label>
+            <input type="text" id="iHM" inputmode="numeric" placeholder="2037" maxlength="4">
+          </div>
+          <button id="btnApply" class="btn btn-jade w-full mt-3">이 시각의 오주 보기 →</button>
+          <p id="inputErr" class="text-[11px] text-[var(--vermil)] mt-2 hidden"></p>
+        </div>
+      </section>
+
+      <!-- ▶ 우측: 오주 만세력 -->
+      <section class="panel p-6">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <p class="font-serif2 text-sm text-[var(--jade2)] tracking-widest font-bold">五柱 ✦ 오주 원국</p>
+          <span id="ojuLine" class="text-xs text-[var(--ink4)]"></span>
+        </div>
+        <div class="guk-wrap" id="ojuTable"></div>
+        <p class="text-[11px] text-[var(--ink4)] mt-3 leading-relaxed">
+          기준: 시진 경계 30분(자시 23:30 시작) · 일주는 23:30에 다음 날로(정자시법) · 연/월주는 절기 절입 시각 판정 ·
+          분주(分柱)는 시진을 10분씩 12등분(시진 시작=子), 분간은 시간(時干)에서 오자둔 · 십성·12운성은 일간 기준, 12신살은 년지 기준
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="border-t border-[var(--paper-dk)]/70 mt-12">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-[var(--ink4)] text-center space-y-2">
+      <div class="text-[10px] leading-relaxed space-y-0.5">
+        <p>상호: 마일 · 대표: 손승한 · 이메일: cleanblue99@gmail.com</p>
+        <p>사업자등록번호: 254-32-01626 · 통신판매업신고: 제2025-경기양주-5033호</p>
+      </div>
+      <p>© 2026 사주다이어리. All rights reserved.</p>
+    </div>
+  </footer>
+  <div class="top-stripe mt-10"></div>
+
+<script>
+// ==========================================================
+//  만세력 엔진 (manse.html 동일 — 24절기 천문계산) + 오주 확장
+// ==========================================================
+const STEMS=['갑','을','병','정','무','기','경','신','임','계'];
+const STEMS_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANS=['자','축','인','묘','진','사','오','미','신','유','술','해'];
+const BRANS_H=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const STEM_E=[0,0,1,1,2,2,3,3,4,4], STEM_Y=[0,1,0,1,0,1,0,1,0,1];
+const BRAN_E=[4,2,0,0,2,1,1,2,3,3,2,4];
+const HIDDEN=[[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[8,6,4],[6,7],[7,3,4],[0,8]];
+const ELEM_C=['wood','fire','earth','metal','water'];
+const GEN=[1,2,3,4,0], GEN_BY=[4,0,1,2,3], CTRL=[2,3,4,0,1], CTRL_BY=[3,4,0,1,2];
+const TG_N=['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
+const MAIN_H=[9,5,0,1,4,2,3,5,6,7,4,8];
+const F12S=[11,6,2,9,2,9,5,0,8,3], F12D=[1,-1,1,-1,1,-1,1,-1,1,-1];
+const F12N=['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
+function getTG(a,b){const de=STEM_E[a],te=STEM_E[b],sy=STEM_Y[a]===STEM_Y[b];if(de===te)return sy?0:1;if(te===GEN[de])return sy?2:3;if(te===CTRL[de])return sy?4:5;if(te===CTRL_BY[de])return sy?6:7;if(te===GEN_BY[de])return sy?8:9;return -1;}
+function getF12(si,bi){const p=(((bi-F12S[si])*F12D[si])%12+12)%12;return F12N[p];}
+function getJDN(y,m,d){const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+const TERM_DEFS=[[1,6,1,285],[2,4,2,315],[3,6,3,345],[4,5,4,15],[5,6,5,45],[6,6,6,75],[7,7,7,105],[8,7,8,135],[9,8,9,165],[10,8,10,195],[11,7,11,225],[12,7,0,255]];
+const _termCache={};
+function _sunLonDeg(jd){const T=(jd-2451545)/36525;const L0=280.46646+36000.76983*T+0.0003032*T*T;const M=(357.52911+35999.05029*T-0.0001537*T*T)*Math.PI/180;const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M);const om=(125.04-1934.136*T)*Math.PI/180;let lam=(L0+C-0.00569-0.00478*Math.sin(om))%360;if(lam<0)lam+=360;return lam;}
+function termClockJD(year,i){const key=year*100+i;if(_termCache[key])return _termCache[key];const t=TERM_DEFS[i];let jd=getJDN(year,t[0],t[1]);for(let k=0;k<6;k++){let df=_sunLonDeg(jd)-t[3];df=((df+180)%360+360)%360-180;jd-=df/0.98564736;}return _termCache[key]=jd+9/24;}
+
+// ── 오주 계산 (실제 시각 기준) ──
+// dt: {y,mo,d,hh,mm}  (KST)
+function computeOju(dt){
+  const{y,mo,d,hh,mm}=dt;
+  const minOfDay=hh*60+mm;
+  const bjd=getJDN(y,mo,d)+(hh-12)/24+mm/1440;      // 실제 시각 JD — 절기 판정용
+  // 연주: 입춘 절입 시각 기준
+  let ay=y; if(bjd<termClockJD(y,1)) ay=y-1;
+  const yP={si:((ay-4)%10+10)%10, bi:((ay-4)%12+12)%12};
+  // 월주: 출생(문점) 시각 이전 마지막 절
+  let mbi=1,best=-Infinity;
+  for(let yy=y-1;yy<=y;yy++){for(let i=0;i<12;i++){const tj=termClockJD(yy,i);if(tj<=bjd&&tj>best){best=tj;mbi=TERM_DEFS[i][2];}}}
+  const mP={si:(([2,4,6,8,0][yP.si%5])+(((mbi-2)+12)%12))%10, bi:mbi};
+  // 일주: 23:30(자시 시작)에 다음 날로 — 정자시법
+  let dayJDN=getJDN(y,mo,d);
+  if(minOfDay>=23*60+30) dayJDN+=1;
+  const idx60=((54+(dayJDN-getJDN(2000,1,1)))%60+60)%60;
+  const dP={si:idx60%10, bi:idx60%12};
+  // 시주: 경계 X시30분 — 자시 23:30~01:30
+  const hbi=Math.floor(((minOfDay+30)%1440)/120);
+  const hP={si:(([0,2,4,6,8][dP.si%5])+hbi)%10, bi:hbi};
+  // 분주: 시진 시작부터 10분=1지지(子→亥), 분간은 時干에서 오자둔
+  const elapsed=((minOfDay-90)%120+120)%120;        // 시진 내 경과 분 0~119
+  const minIdx=Math.floor(elapsed/10);
+  const minP={si:(([0,2,4,6,8][hP.si%5])+minIdx)%10, bi:minIdx};
+  return{yP,mP,dP,hP,minP,elapsed};
+}
+
+// ── 12신살 (년지 기준) ──
+function getBrGroup(bi){if([2,6,10].includes(bi))return 0;if([5,9,1].includes(bi))return 1;if([8,0,4].includes(bi))return 2;if([11,3,7].includes(bi))return 3;return -1;}
+const SSAL12=[{k:'겁살',arr:[11,2,5,8]},{k:'재살',arr:[0,3,6,9]},{k:'천살',arr:[1,4,7,10]},{k:'지살',arr:[2,5,8,11]},{k:'월살',arr:[4,7,10,1]},{k:'망신살',arr:[5,8,11,2]},{k:'장성살',arr:[6,9,0,3]},{k:'반안살',arr:[7,10,1,4]},{k:'역마살',arr:[8,11,2,5]},{k:'육해살',arr:[9,0,3,6]},{k:'도화살',arr:[3,6,9,0]},{k:'화개살',arr:[10,1,4,7]}];
+
+// ── 오주 표 렌더 ──
+function renderOjuTable(r){
+  const dsi=r.dP.si;
+  const cols=[['분주 (分)',r.minP,'minute'],['시주 (時)',r.hP,''],['일주 (日)',r.dP,'day'],['월주 (月)',r.mP,''],['년주 (年)',r.yP,'']];
+  const yG=getBrGroup(r.yP.bi);
+  const sal12=bi=>{if(yG<0)return null;const hit=SSAL12.find(s=>s.arr[yG]===bi);return hit?hit.k:null;};
+  const tdCls=k=>k==='day'?' class="day-col"':k==='minute'?' class="minute-col"':'';
+  const row=(lbl,fn)=>`<tr><td class="rlbl">${lbl}</td>${cols.map(([_,p,k])=>`<td${tdCls(k)}>${fn(p)}</td>`).join('')}</tr>`;
+  let h=`<table class="guk-table"><tr><th class="thc"></th>${cols.map(([l,p,k])=>`<th${k==='minute'?' class="min-col"':''}>${l}${k==='day'?' ★':''}</th>`).join('')}</tr>`;
+  h+=row('십성',p=>`<span class="tg">${p===r.dP?'일간(체)':TG_N[getTG(dsi,p.si)]}</span>`);
+  h+=row('천간',p=>`<span class="el-tile e${STEM_E[p.si]}">${STEMS_H[p.si]}</span><span class="rd">${STEMS[p.si]}</span>`);
+  h+=row('지지',p=>`<span class="el-tile e${BRAN_E[p.bi]}">${BRANS_H[p.bi]}</span><span class="rd">${BRANS[p.bi]}</span>`);
+  h+=row('십성(지지)',p=>`<span class="tg" style="color:var(--ink3)">${TG_N[getTG(dsi,MAIN_H[p.bi])]}</span>`);
+  h+=row('12운성',p=>`<span class="f12">${getF12(dsi,p.bi)}</span>`);
+  h+=row('12신살',p=>{const s=sal12(p.bi);return s?`<span class="sal">${s}</span>`:`<span class="sal none">─</span>`;});
+  h+=row('지장간',p=>`<span class="jjg">${HIDDEN[p.bi].map(x=>`<span class="${ELEM_C[STEM_E[x]]}">${STEMS_H[x]}</span>`).join(' ')}</span>`);
+  h+=`</table>`;
+  return h;
+}
+
+// ==========================================================
+//  실시간 시계 & 모드
+// ==========================================================
+const $=id=>document.getElementById(id);
+let LIVE=true, FIXED=null, lastKey='';
+const WD=['일','월','화','수','목','금','토'];
+
+function nowDt(){const n=new Date();return{y:n.getFullYear(),mo:n.getMonth()+1,d:n.getDate(),hh:n.getHours(),mm:n.getMinutes(),ss:n.getSeconds(),wd:n.getDay()};}
+
+function tick(){
+  const dt=LIVE?Object.assign(nowDt()):Object.assign({},FIXED,{ss:0});
+  // 시계 표시
+  if(LIVE){
+    const n=nowDt();
+    $('clockDate').textContent=`${n.y}년 ${String(n.mo).padStart(2,'0')}월 ${String(n.d).padStart(2,'0')}일 (${WD[n.wd]})`;
+    $('clockTime').innerHTML=`${String(n.hh).padStart(2,'0')}<span class="colon">:</span>${String(n.mm).padStart(2,'0')}<span class="colon">:</span><span class="sec">${String(n.ss).padStart(2,'0')}</span>`;
+  }
+  // 오주 재계산 (분 단위 변화 시에만)
+  const key=[dt.y,dt.mo,dt.d,dt.hh,dt.mm].join('-');
+  if(key!==lastKey){
+    lastKey=key;
+    const r=computeOju(dt);
+    $('ojuTable').innerHTML=renderOjuTable(r);
+    $('ojuLine').textContent=`${STEMS_H[r.yP.si]}${BRANS_H[r.yP.bi]}년 ${STEMS_H[r.mP.si]}${BRANS_H[r.mP.bi]}월 ${STEMS_H[r.dP.si]}${BRANS_H[r.dP.bi]}일 ${STEMS_H[r.hP.si]}${BRANS_H[r.hP.bi]}시 ${STEMS_H[r.minP.si]}${BRANS_H[r.minP.bi]}분`;
+    $('bunjuName').textContent=`${STEMS_H[r.minP.si]}${BRANS_H[r.minP.bi]} (${STEMS[r.minP.si]}${BRANS[r.minP.bi]})`;
+    window._elapsed=r.elapsed;
+  }
+  // 분주 게이지: 현재 10분 구간 내 진행
+  if(window._elapsed!==undefined){
+    const inSeg=(window._elapsed%10)*60+(LIVE?nowDt().ss:0);
+    $('bunjuBar').style.width=(inSeg/600*100).toFixed(1)+'%';
+    const left=600-inSeg;
+    $('bunjuLeft').textContent=LIVE?`다음 분주까지 ${Math.floor(left/60)}분 ${String(left%60).padStart(2,'0')}초`:'지정 시각';
+  }
+}
+
+// ── 시간 입력 모드 ──
+$('btnInputMode').addEventListener('click',()=>{
+  $('inputPanel').classList.toggle('hidden');
+  if(!$('inputPanel').classList.contains('hidden')){
+    const n=nowDt();
+    $('iYear').value=n.y;$('iMonth').value=n.mo;$('iDay').value=n.d;
+    $('iHM').value=String(n.hh).padStart(2,'0')+String(n.mm).padStart(2,'0');
+    $('iHM').focus();$('iHM').select();
+  }
+});
+$('btnApply').addEventListener('click',applyInput);
+$('iHM').addEventListener('keydown',e=>{if(e.key==='Enter')applyInput();});
+function inputErr(m){const e=$('inputErr');e.textContent=m;e.classList.remove('hidden');}
+function applyInput(){
+  $('inputErr').classList.add('hidden');
+  const y=parseInt($('iYear').value,10),mo=parseInt($('iMonth').value,10),d=parseInt($('iDay').value,10);
+  let hm=($('iHM').value||'').trim();
+  if(!y||y<1900||y>2050){inputErr('년도를 1900~2050 사이로 입력하세요.');return;}
+  if(!mo||mo<1||mo>12){inputErr('월을 확인하세요.');return;}
+  if(!d||d<1||d>31){inputErr('일을 확인하세요.');return;}
+  if(!/^\d{3,4}$/.test(hm)){inputErr('시·분은 3~4자리 숫자로 — 예: 2037, 937');return;}
+  if(hm.length===3)hm='0'+hm;
+  const hh=+hm.slice(0,2), mm=+hm.slice(2);
+  if(hh>23){inputErr('시는 00~23 사이예요.');return;}
+  if(mm>59){inputErr('분은 00~59 사이예요.');return;}
+  FIXED={y,mo,d,hh,mm};LIVE=false;lastKey='';
+  const wd=new Date(y,mo-1,d).getDay();
+  $('clockDate').textContent=`${y}년 ${String(mo).padStart(2,'0')}월 ${String(d).padStart(2,'0')}일 (${WD[wd]})`;
+  $('clockTime').innerHTML=`${String(hh).padStart(2,'0')}<span class="colon" style="animation:none">:</span>${String(mm).padStart(2,'0')}<span class="colon" style="animation:none">:</span><span class="sec">00</span>`;
+  $('modeBadge').className='live-badge fix';$('modeBadge').innerHTML='🕐 지정 시각';
+  $('btnLive').classList.remove('hidden');
+  $('inputPanel').classList.add('hidden');
+  tick();
+}
+$('btnLive').addEventListener('click',()=>{
+  LIVE=true;FIXED=null;lastKey='';
+  $('modeBadge').className='live-badge on';$('modeBadge').innerHTML='<span class="dot"></span>실시간';
+  $('btnLive').classList.add('hidden');
+  tick();
+});
+
+tick();
+setInterval(tick,1000);
+</script>
+</body>
+</html>
