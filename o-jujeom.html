@@ -92,6 +92,22 @@
     .clock-time{ font-size:40px; }
   }
   .hidden{ display:none !important; }
+
+  /* ━━ 메모·저장 ━━ */
+  .memo-box{ width:100%; min-height:64px; padding:10px 12px; border:1px solid var(--paper-dk);
+    border-radius:8px; background:#fff; font-size:13px; color:var(--ink); font-family:inherit; resize:vertical; }
+  .memo-box:focus{ outline:none; border-color:var(--jade); box-shadow:0 0 0 3px rgba(90,138,152,.12); }
+  .rec-list{ max-height:300px; overflow-y:auto; }
+  .rec-item{ border:1px solid var(--paper-dk); border-radius:9px; background:#fff;
+    padding:8px 10px; cursor:pointer; transition:border-color .15s; text-align:left; }
+  .rec-item:hover{ border-color:var(--jade3); }
+  .rec-item .rt{ font-size:13px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .rec-item .roju{ font-family:'Noto Serif KR',serif; font-size:12.5px; letter-spacing:1.5px; color:var(--jade2); margin-top:1px; }
+  .rec-item .rmemo{ font-size:11.5px; color:var(--ink2); margin-top:2px; overflow:hidden;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; white-space:pre-line; }
+  .rec-item .rsaved{ font-size:10px; color:var(--ink4); margin-top:2px; }
+  .rec-item .rdel{ font-size:11px; color:var(--ink4); padding:2px 6px; border-radius:6px; }
+  .rec-item .rdel:hover{ color:var(--vermil); background:var(--paper3); }
 </style>
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTND4S6842"></script>
@@ -156,6 +172,16 @@
           <button id="btnApply" class="btn btn-jade w-full mt-3">이 시각의 오주 보기 →</button>
           <p id="inputErr" class="text-[11px] text-[var(--vermil)] mt-2 hidden"></p>
         </div>
+
+        <!-- 저장 목록 -->
+        <div class="mt-5 text-left border-t border-[var(--paper-dk)] pt-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-serif2 text-[12px] text-[var(--jade2)] tracking-widest font-bold">📌 저장 목록 <span id="recCount" class="font-normal text-[var(--ink4)]"></span></span>
+          </div>
+          <div id="recList" class="rec-list space-y-1.5"></div>
+          <p id="recEmpty" class="text-[11px] text-[var(--ink4)] text-center py-3">저장된 오주가 없어요.<br>오른쪽에서 메모와 함께 저장해보세요.</p>
+          <p class="text-[10px] text-[var(--ink4)] mt-2 leading-relaxed">※ 이 브라우저에만 저장돼요. 항목을 누르면 그 시각의 오주를 다시 불러옵니다.</p>
+        </div>
       </section>
 
       <!-- ▶ 우측: 오주 만세력 -->
@@ -165,6 +191,17 @@
           <span id="ojuLine" class="text-xs text-[var(--ink4)]"></span>
         </div>
         <div class="guk-wrap" id="ojuTable"></div>
+
+        <!-- 메모 + 저장 -->
+        <div class="mt-4 border-t border-[var(--paper-dk)] pt-4">
+          <label class="block text-[12px] text-[var(--ink3)] mb-1.5">📝 메모 (문점 내용·판단 등)</label>
+          <textarea id="ojuMemo" class="memo-box" placeholder="예: OO건 문의 — 재성 왕, 진행 가능으로 판단"></textarea>
+          <div class="flex items-center gap-3 mt-2">
+            <button id="btnSaveOju" class="btn btn-jade" style="flex:0 0 auto">💾 이 오주 저장</button>
+            <span id="saveMsg" class="text-[12px] text-[var(--jade2)]"></span>
+          </div>
+        </div>
+
         <p class="text-[11px] text-[var(--ink4)] mt-3 leading-relaxed">
           기준(오주괘): 시진 경계 정각 — 자시 23:01~01:00, 오시 11:01~13:00 · 일주는 23:01에 다음 날로(정자시법) ·
           연/월주는 절기 절입 시각 판정 · 분지(分支)는 홀수시 정각부터 00분00초~09분59초=子, 10분마다 진행 ·
@@ -316,13 +353,16 @@ function applyInput(){
   const hh=+hm.slice(0,2), mm=+hm.slice(2);
   if(hh>23){inputErr('시는 00~23 사이예요.');return;}
   if(mm>59){inputErr('분은 00~59 사이예요.');return;}
-  FIXED={y,mo,d,hh,mm};LIVE=false;lastKey='';
-  const wd=new Date(y,mo-1,d).getDay();
-  $('clockDate').textContent=`${y}년 ${String(mo).padStart(2,'0')}월 ${String(d).padStart(2,'0')}일 (${WD[wd]})`;
-  $('clockTime').innerHTML=`${String(hh).padStart(2,'0')}<span class="colon" style="animation:none">:</span>${String(mm).padStart(2,'0')}<span class="colon" style="animation:none">:</span><span class="sec">00</span>`;
+  setFixedMode({y,mo,d,hh,mm});
+  $('inputPanel').classList.add('hidden');
+}
+function setFixedMode(t){
+  FIXED={y:t.y,mo:t.mo,d:t.d,hh:t.hh,mm:t.mm};LIVE=false;lastKey='';
+  const wd=new Date(t.y,t.mo-1,t.d).getDay();
+  $('clockDate').textContent=`${t.y}년 ${String(t.mo).padStart(2,'0')}월 ${String(t.d).padStart(2,'0')}일 (${WD[wd]})`;
+  $('clockTime').innerHTML=`${String(t.hh).padStart(2,'0')}<span class="colon" style="animation:none">:</span>${String(t.mm).padStart(2,'0')}<span class="colon" style="animation:none">:</span><span class="sec">00</span>`;
   $('modeBadge').className='live-badge fix';$('modeBadge').innerHTML='🕐 지정 시각';
   $('btnLive').classList.remove('hidden');
-  $('inputPanel').classList.add('hidden');
   tick();
 }
 $('btnLive').addEventListener('click',()=>{
@@ -332,6 +372,64 @@ $('btnLive').addEventListener('click',()=>{
   tick();
 });
 
+// ==========================================================
+//  📌 저장·메모 (localStorage — 이 브라우저에만)
+// ==========================================================
+const REC_KEY='ojujeom_records';
+function loadRecs(){try{const a=JSON.parse(localStorage.getItem(REC_KEY));return Array.isArray(a)?a:[];}catch(e){return[];}}
+function persistRecs(a){try{localStorage.setItem(REC_KEY,JSON.stringify(a.slice(0,200)));}catch(e){}}
+const pad2=n=>String(n).padStart(2,'0');
+function fmtT(t){return `${String(t.y).slice(2)}.${pad2(t.mo)}.${pad2(t.d)} ${pad2(t.hh)}:${pad2(t.mm)}`;}
+function escT(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+$('btnSaveOju').addEventListener('click',()=>{
+  const n=nowDt();
+  const t=LIVE?{y:n.y,mo:n.mo,d:n.d,hh:n.hh,mm:n.mm}:Object.assign({},FIXED);
+  const r=computeOju(t);
+  const P=x=>STEMS_H[x.si]+BRANS_H[x.bi];
+  const oju=[r.yP,r.mP,r.dP,r.hP,r.minP].map(P).join(' ');
+  const memo=$('ojuMemo').value.trim();
+  const recs=loadRecs();
+  const key=[t.y,t.mo,t.d,t.hh,t.mm].join('-');
+  const dup=recs.find(x=>[x.t.y,x.t.mo,x.t.d,x.t.hh,x.t.mm].join('-')===key);
+  const savedAt={y:n.y,mo:n.mo,d:n.d,hh:n.hh,mm:n.mm};
+  if(dup){ dup.memo=memo; dup.saved=savedAt; dup.oju=oju; }
+  else recs.unshift({id:Date.now(),t,saved:savedAt,memo,oju,live:LIVE});
+  persistRecs(recs); renderRecs();
+  $('saveMsg').textContent=dup?'✓ 같은 시각 기록을 갱신했어요':'✓ 저장했어요';
+  setTimeout(()=>{$('saveMsg').textContent='';},2500);
+});
+
+function renderRecs(){
+  const recs=loadRecs();
+  $('recCount').textContent=recs.length?('('+recs.length+')'):'';
+  $('recEmpty').style.display=recs.length?'none':'block';
+  $('recList').innerHTML=recs.map(x=>`
+    <div class="rec-item" onclick="loadRecItem(${x.id})">
+      <div class="flex items-center justify-between gap-2">
+        <span class="rt">${fmtT(x.t)}${x.live?'':' <span style="font-size:9px;color:var(--gold2)">지정</span>'}</span>
+        <span class="rdel" onclick="event.stopPropagation();delRecItem(${x.id})" title="삭제">✕</span>
+      </div>
+      <div class="roju">${escT(x.oju)}</div>
+      ${x.memo?`<div class="rmemo">${escT(x.memo)}</div>`:''}
+      <div class="rsaved">저장 ${fmtT(x.saved)}</div>
+    </div>`).join('');
+}
+window.loadRecItem=function(id){
+  const x=loadRecs().find(r=>r.id===id); if(!x)return;
+  setFixedMode(x.t);
+  $('ojuMemo').value=x.memo||'';
+  $('inputPanel').classList.add('hidden');
+  if(window.innerWidth<768) document.getElementById('ojuTable').scrollIntoView({behavior:'smooth',block:'start'});
+};
+window.delRecItem=function(id){
+  const recs=loadRecs();
+  const x=recs.find(r=>r.id===id); if(!x)return;
+  if(!confirm(fmtT(x.t)+' 기록을 삭제할까요?'))return;
+  persistRecs(recs.filter(r=>r.id!==id)); renderRecs();
+};
+
+renderRecs();
 tick();
 setInterval(tick,1000);
 </script>
