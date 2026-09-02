@@ -19,6 +19,8 @@ Disallow: /mypage.html
 Disallow: /cart.html
 Disallow: /products/
 Disallow: /tools/
+Disallow: /reader
+Disallow: /reader.html
 
 # 사이트맵
 Sitemap: https://sajudiary.com/sitemap.xml

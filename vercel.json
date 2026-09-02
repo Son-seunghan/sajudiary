@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/o-jujeom", "destination": "/o-jujeom.html" }
+    { "source": "/o-jujeom", "destination": "/o-jujeom.html" },
+    { "source": "/reader", "destination": "/reader.html" }
   ],
   "headers": [
     {
