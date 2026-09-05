@@ -25,7 +25,7 @@ window.sjSmartSave = function (blob, anchor) {
     window.sjShareFile(blob, anchor.download).then(function (ok) {
       if (ok) return;
       if (window.SJ_INAPP) {
-        alert('카카오톡 등 앱 내 브라우저에서는 파일 저장이 제한될 수 있어요.\n\n· 분석 결과는 이 브라우저의 마이페이지에 영구 보관되어 언제든 다시 볼 수 있습니다.\n· 파일로 소장하려면 크롬·사파리 등 일반 브라우저나 PC에서 이용해주세요.');
+        alert('카카오톡 등 앱 내 브라우저에서는 파일 저장이 제한될 수 있어요.\n\n· 분석 결과는 구매일로부터 12개월간 마이페이지에서 다시 볼 수 있어요.\n· 파일로 소장하려면 크롬·사파리 등 일반 브라우저나 PC에서 이용해주세요.');
       } else {
         anchor.click();
       }
