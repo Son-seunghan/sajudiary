@@ -112,6 +112,60 @@ module.exports = async (req, res) => {
 
   const raw = (req.body && req.body.code ? String(req.body.code) : '').trim().toLowerCase();
 
+  /* ━━━━━━━━━ % 할인 쿠폰 (…-<pct>p-…) ━━━━━━━━━
+     검증·소진 조회만 수행. 실제 소진 기록은 결제 승인(kakaopay-approve)에서.
+     응답: { ok:true, discount:true, pct, productKey, promo?, tag?, used?, limit? } */
+  const dg = raw.match(/^gift-([a-z]+)-([1-9][0-9]?)p-([a-z0-9]{4,10})-([a-f0-9]{8})$/);
+  const dp = raw.match(/^promo-([a-z]+)-([1-9][0-9]?)p-([a-z0-9]{2,16})-([0-9]{1,3})-([a-f0-9]{8})$/);
+  if (dg || dp) {
+    if (!process.env.SUPABASE_SERVICE_KEY) {
+      return res.status(500).json({ ok: false, error: '할인 쿠폰 시스템이 아직 준비되지 않았습니다.' });
+    }
+    if (dg) {
+      const [, key, pctStr, nonce, sig] = dg;
+      const pct = parseInt(pctStr, 10);
+      if (!VALID_KEYS.includes(key) || !safeEqual(sig, hmac8(SECRET, key + '-' + pct + 'p-' + nonce))) {
+        return res.status(400).json({ ok: false, error: '유효하지 않은 쿠폰 코드입니다.' });
+      }
+      const kakaoId = verifySession(req.body.session, process.env.SESSION_SECRET);
+      if (!kakaoId && req.body.statusOnly !== true) {
+        return res.status(401).json({ ok: false, error: '본인 확인이 필요합니다. 로그아웃 후 다시 로그인한 뒤 쿠폰을 입력해주세요.' });
+      }
+      const used = await supa('GET', 'coupon_redemptions?select=code&code=eq.' + encodeURIComponent(raw) + '&limit=1');
+      if (used.ok && Array.isArray(used.json) && used.json.length > 0) {
+        return res.status(200).json({ ok: false, error: '이미 사용된 쿠폰입니다.' });
+      }
+      return res.status(200).json({ ok: true, discount: true, pct: pct, productKey: key });
+    }
+    // promo % 쿠폰
+    const [, key, pctStr, tag, limitStr, sig] = dp;
+    const pct = parseInt(pctStr, 10);
+    const limit = parseInt(limitStr, 10);
+    if (!VALID_KEYS.includes(key) || limit < 1 || limit > 999
+        || !safeEqual(sig, hmac8(SECRET, 'promo-' + key + '-' + pct + 'p-' + tag + '-' + limitStr))) {
+      return res.status(400).json({ ok: false, error: '유효하지 않은 쿠폰 코드입니다.' });
+    }
+    const q = await supa('GET', 'coupon_redemptions?select=code&code=like.' + encodeURIComponent(raw + '#') + '*');
+    if (!q.ok) {
+      return res.status(500).json({ ok: false, error: '쿠폰 확인에 실패했습니다. 잠시 후 다시 시도해주세요.' });
+    }
+    const rows = q.json || [];
+    if (req.body.statusOnly === true) {
+      return res.status(200).json({ ok: true, promo: true, discount: true, pct: pct, productKey: key, tag: tag, used: rows.length, limit: limit });
+    }
+    const kakaoId = verifySession(req.body.session, process.env.SESSION_SECRET);
+    if (!kakaoId) {
+      return res.status(401).json({ ok: false, error: '본인 확인이 필요합니다. 로그아웃 후 다시 로그인한 뒤 쿠폰을 입력해주세요.' });
+    }
+    if (rows.some(r => r.code === raw + '#' + kakaoId)) {
+      return res.status(200).json({ ok: false, error: '이 계정으로 이미 사용한 쿠폰입니다.' });
+    }
+    if (rows.length >= limit) {
+      return res.status(200).json({ ok: false, error: '쿠폰이 모두 소진되었습니다. (선착순 ' + limit + '명 마감)' });
+    }
+    return res.status(200).json({ ok: true, promo: true, discount: true, pct: pct, productKey: key, tag: tag, used: rows.length, limit: limit });
+  }
+
   /* ━━━━━━━━━ 홍보용 다회 쿠폰 (promo-…) ━━━━━━━━━ */
   const pm = raw.match(/^promo-([a-z]+)-([a-z0-9]{2,16})-([0-9]{1,3})-([a-f0-9]{8})$/);
   if (pm) {

@@ -270,6 +270,11 @@ const AuthGuard = (function () {
       return { success: false, error: '쿠폰 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.' };
     }
 
+    // % 할인 쿠폰이 무료 이용권 경로로 들어오면 차단 (할인은 결제 금액에 적용)
+    if (r.discount) {
+      return { success: false, error: '이 코드는 ' + r.pct + '% 할인 쿠폰입니다. 결제 금액 할인으로 적용돼요.' };
+    }
+
     const cfg = window.SAJULOG_CONFIG;
     const productId = r.productKey === 'any' ? contextProductId : GIFT_PRODUCT_MAP[r.productKey];
     if (!productId || !cfg.PRODUCTS[productId]) {
@@ -298,6 +303,29 @@ const AuthGuard = (function () {
     console.log('[AuthGuard] 쿠폰 사용 완료:', code, '→', productId, isPromo ? '(홍보 ' + r.used + '/' + r.limit + ')' : '');
     const label = cfg.PRODUCTS[productId].name + ' 이용권';
     return { success: true, productId, label };
+  }
+
+  // ─── % 할인 서명 쿠폰 검증 (소진 없음 — 소진은 카카오페이 승인 시 서버가 기록) ───
+  // 반환: { success, pct, productKey, promo, tag, code } | { success:false, error }
+  async function verifyDiscountCoupon(rawCode) {
+    const code = String(rawCode || '').trim().toLowerCase();
+    if (!getUser()) return { success: false, error: '쿠폰 사용 전 로그인이 필요합니다.' };
+    if (!_session()) {
+      return { success: false, error: '계정 확인이 필요합니다. 로그아웃 후 카카오 로그인을 다시 한 번 하신 뒤, 쿠폰을 입력해주세요.' };
+    }
+    try {
+      const resp = await fetch('/api/coupon-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, session: _session() })
+      });
+      const r = await resp.json();
+      if (!resp.ok || !r.ok) return { success: false, error: r.error || '쿠폰 확인에 실패했습니다.' };
+      if (!r.discount) return { success: false, error: '할인 쿠폰이 아닙니다.' };
+      return { success: true, pct: r.pct, productKey: r.productKey, promo: !!r.promo, tag: r.tag || null, code };
+    } catch (e) {
+      return { success: false, error: '쿠폰 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.' };
+    }
   }
 
   // ─── 페이지 접근 가드 ───
@@ -376,7 +404,7 @@ const AuthGuard = (function () {
     getPurchases, hasPurchased, addPurchase,
     getAnalyses, getAnalysis, hasAnalysis, saveAnalysis, clearAnalysis,
     getRemainingSlots, canAnalyze,
-    redeemCoupon, redeemGiftCoupon,
+    redeemCoupon, redeemGiftCoupon, verifyDiscountCoupon,
     requirePurchase, requireLogin,
     isMaster,
     setGuest, isGuest

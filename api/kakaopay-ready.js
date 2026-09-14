@@ -12,6 +12,8 @@
    - KAKAOPAY_CID        : 가맹점 코드 (미설정 시 공용 테스트 CID)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+const crypto = require('crypto');
+
 // ★ assets/js/config.js PRODUCTS 와 반드시 동일하게 유지 (가격 변경 시 양쪽 수정)
 const PRODUCTS = {
   light:       { name: '입문용 (Light)',      price: 9900 },
@@ -43,6 +45,61 @@ function priceItems(rawItems) {
   return { items, total, itemName, itemCode: items.join('+') };
 }
 
+/* ━━━ % 할인 서명 쿠폰 (coupon-tool 발급) ━━━
+   gift-<key>-<pct>p-<nonce>-<sig8> / promo-<key>-<pct>p-<tag>-<limit>-<sig8>
+   sig8 = HMAC_SHA256(COUPON_SECRET, 코드에서 프리픽스·sig 제외 부분) 앞 8자리
+   쿠폰 key → 상품 ID (any 는 주문 전체 소계에 적용) */
+const COUPON_KEY_PRODUCT = { light: 'light', deep: 'deep', couple: 'couple', adult: 'couple_plus', any: null };
+
+function hmac8(secret, msg) {
+  return crypto.createHmac('sha256', secret).update(msg).digest('hex').slice(0, 8);
+}
+function safeEqual(a, b) {
+  const ab = Buffer.from(a, 'utf8'), bb = Buffer.from(b, 'utf8');
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
+// 코드 파싱 + 서명 검증 (소진 여부는 별도 조회) → {pct, key, promo, tag, limit} | null
+function parseDiscountCoupon(raw) {
+  const SECRET = process.env.COUPON_SECRET;
+  if (!SECRET || typeof raw !== 'string') return null;
+  const code = raw.trim().toLowerCase();
+  const dg = code.match(/^gift-([a-z]+)-([1-9][0-9]?)p-([a-z0-9]{4,10})-([a-f0-9]{8})$/);
+  if (dg) {
+    const [, key, pctStr, nonce, sig] = dg;
+    if (!(key in COUPON_KEY_PRODUCT)) return null;
+    if (!safeEqual(sig, hmac8(SECRET, key + '-' + pctStr + 'p-' + nonce))) return null;
+    return { code, pct: parseInt(pctStr, 10), key, promo: false };
+  }
+  const dp = code.match(/^promo-([a-z]+)-([1-9][0-9]?)p-([a-z0-9]{2,16})-([0-9]{1,3})-([a-f0-9]{8})$/);
+  if (dp) {
+    const [, key, pctStr, tag, limitStr, sig] = dp;
+    const limit = parseInt(limitStr, 10);
+    if (!(key in COUPON_KEY_PRODUCT) || limit < 1 || limit > 999) return null;
+    if (!safeEqual(sig, hmac8(SECRET, 'promo-' + key + '-' + pctStr + 'p-' + tag + '-' + limitStr))) return null;
+    return { code, pct: parseInt(pctStr, 10), key, promo: true, tag, limit };
+  }
+  return null;
+}
+// 주문(items)에 쿠폰 적용한 할인액 계산 — 서버 가격표 기준
+function couponDiscountFor(cp, items, subtotal) {
+  if (cp.key === 'any') return Math.floor(subtotal * cp.pct / 100);
+  const pid = COUPON_KEY_PRODUCT[cp.key];
+  if (!pid || !items.includes(pid)) return -1;   // 대상 상품이 주문에 없음
+  return Math.floor(PRODUCTS[pid].price * cp.pct / 100);
+}
+async function supaGet(path) {
+  const KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!KEY) return null;
+  try {
+    const r = await fetch(SUPA_URL_C + '/rest/v1/' + path, {
+      headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+const SUPA_URL_C = 'https://hlxttdvvwftiquzqxgxs.supabase.co';
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST only' });
@@ -68,6 +125,39 @@ module.exports = async (req, res) => {
   if (!priced) {
     return res.status(400).json({ error: '상품 정보가 올바르지 않습니다.' });
   }
+
+  // ─── % 할인 쿠폰 적용 (선택) — 서명·대상·소진을 서버에서 재검증 ───
+  const couponRaw = req.body.coupon;
+  if (couponRaw) {
+    const cp = parseDiscountCoupon(couponRaw);
+    if (!cp) {
+      return res.status(400).json({ error: '유효하지 않은 쿠폰입니다. 쿠폰을 해제한 뒤 다시 시도해주세요.' });
+    }
+    const disc = couponDiscountFor(cp, priced.items, priced.total);
+    if (disc < 0) {
+      return res.status(400).json({ error: '이 쿠폰은 주문한 상품에 적용할 수 없습니다.' });
+    }
+    // 소진 여부 조회 (조회 실패 시 안전하게 거절)
+    if (cp.promo) {
+      const rows = await supaGet('coupon_redemptions?select=code&code=like.' + encodeURIComponent(cp.code + '#') + '*');
+      if (!rows) return res.status(500).json({ error: '쿠폰 확인에 실패했습니다. 잠시 후 다시 시도해주세요.' });
+      if (rows.some(r => r.code === cp.code + '#' + userId)) {
+        return res.status(400).json({ error: '이 계정으로 이미 사용한 쿠폰입니다.' });
+      }
+      if (rows.length >= cp.limit) {
+        return res.status(400).json({ error: '쿠폰이 모두 소진되었습니다.' });
+      }
+    } else {
+      const rows = await supaGet('coupon_redemptions?select=code&code=eq.' + encodeURIComponent(cp.code) + '&limit=1');
+      if (!rows) return res.status(500).json({ error: '쿠폰 확인에 실패했습니다. 잠시 후 다시 시도해주세요.' });
+      if (rows.length > 0) {
+        return res.status(400).json({ error: '이미 사용된 쿠폰입니다.' });
+      }
+    }
+    priced.total = Math.max(100, priced.total - disc);
+    priced.itemCode = priced.itemCode + '~' + cp.code;   // approve 재검증·소진 기록용
+  }
+
   if (amount !== undefined && amount !== priced.total) {
     // 클라이언트 계산값과 불일치 — 조작 시도이거나 config.js/서버 가격표가 어긋난 상태
     console.error('[kakaopay-ready] 금액 불일치 client=' + amount + ' server=' + priced.total + ' items=' + priced.itemCode);

@@ -14,6 +14,8 @@
              SUPABASE_SERVICE_KEY (선택 — 서버 원장 기록)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+const crypto = require('crypto');
+
 // ★ kakaopay-ready.js / assets/js/config.js PRODUCTS 와 동일하게 유지
 const PRODUCTS = {
   light:       { name: '입문용 (Light)',      price: 9900 },
@@ -24,16 +26,63 @@ const PRODUCTS = {
 const BUNDLE_DISCOUNTS = [];   // ready.js 와 동일하게 유지
 const SUPA_URL = 'https://hlxttdvvwftiquzqxgxs.supabase.co';
 
-// item_code('light+deep') → { items, total } (알 수 없는 코드면 null)
+// ── % 할인 쿠폰 재검증 (ready.js 와 동일 로직 유지) ──
+const COUPON_KEY_PRODUCT = { light: 'light', deep: 'deep', couple: 'couple', adult: 'couple_plus', any: null };
+function hmac8(secret, msg) {
+  return crypto.createHmac('sha256', secret).update(msg).digest('hex').slice(0, 8);
+}
+function safeEqual(a, b) {
+  const ab = Buffer.from(a, 'utf8'), bb = Buffer.from(b, 'utf8');
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
+function parseDiscountCoupon(raw) {
+  const SECRET = process.env.COUPON_SECRET;
+  if (!SECRET || typeof raw !== 'string') return null;
+  const code = raw.trim().toLowerCase();
+  const dg = code.match(/^gift-([a-z]+)-([1-9][0-9]?)p-([a-z0-9]{4,10})-([a-f0-9]{8})$/);
+  if (dg) {
+    const [, key, pctStr, nonce, sig] = dg;
+    if (!(key in COUPON_KEY_PRODUCT)) return null;
+    if (!safeEqual(sig, hmac8(SECRET, key + '-' + pctStr + 'p-' + nonce))) return null;
+    return { code, pct: parseInt(pctStr, 10), key, promo: false };
+  }
+  const dp = code.match(/^promo-([a-z]+)-([1-9][0-9]?)p-([a-z0-9]{2,16})-([0-9]{1,3})-([a-f0-9]{8})$/);
+  if (dp) {
+    const [, key, pctStr, tag, limitStr, sig] = dp;
+    const limit = parseInt(limitStr, 10);
+    if (!(key in COUPON_KEY_PRODUCT) || limit < 1 || limit > 999) return null;
+    if (!safeEqual(sig, hmac8(SECRET, 'promo-' + key + '-' + pctStr + 'p-' + tag + '-' + limitStr))) return null;
+    return { code, pct: parseInt(pctStr, 10), key, promo: true, tag, limit };
+  }
+  return null;
+}
+
+// item_code('light+deep' 또는 'light+deep~gift-…30p-…') → { items, total, coupon } (알 수 없는 코드면 null)
 function parseItemCode(code) {
   if (typeof code !== 'string' || !code) return null;
-  const items = code.split('+');
+  const tilde = code.indexOf('~');
+  const itemPart = tilde >= 0 ? code.slice(0, tilde) : code;
+  const couponPart = tilde >= 0 ? code.slice(tilde + 1) : null;
+  const items = itemPart.split('+');
   if (items.length < 1 || items.length > 4) return null;
   if (items.some((id, i) => !PRODUCTS[id] || items.indexOf(id) !== i)) return null;
   const subtotal = items.reduce((s, id) => s + PRODUCTS[id].price, 0);
   const bundle = BUNDLE_DISCOUNTS.find(b => items.length >= b.minItems) || null;
-  const total = Math.max(100, subtotal - (bundle ? Math.floor(subtotal * bundle.percent / 100) : 0));
-  return { items, total };
+  let total = Math.max(100, subtotal - (bundle ? Math.floor(subtotal * bundle.percent / 100) : 0));
+  let coupon = null;
+  if (couponPart) {
+    coupon = parseDiscountCoupon(couponPart);
+    if (!coupon) return null;   // 쿠폰 서명 불일치 = 검증 실패
+    let disc;
+    if (coupon.key === 'any') disc = Math.floor(total * coupon.pct / 100);
+    else {
+      const pid = COUPON_KEY_PRODUCT[coupon.key];
+      if (!pid || !items.includes(pid)) return null;
+      disc = Math.floor(PRODUCTS[pid].price * coupon.pct / 100);
+    }
+    total = Math.max(100, total - disc);
+  }
+  return { items, total, coupon };
 }
 
 module.exports = async (req, res) => {
@@ -113,7 +162,9 @@ module.exports = async (req, res) => {
             recordedBy: 'server',
             aid: data.aid || null,
             tid: tid,
-            paidTotal: paidTotal
+            paidTotal: paidTotal,
+            couponCode: parsed.coupon ? parsed.coupon.code : null,
+            couponPct: parsed.coupon ? parsed.coupon.pct : null
           }
         }));
         const ins = await fetch(SUPA_URL + '/rest/v1/purchases', {
@@ -123,6 +174,25 @@ module.exports = async (req, res) => {
         });
         recorded = ins.ok;
         if (!ins.ok) console.error('[kakaopay-approve] 원장 기록 실패 HTTP', ins.status, (await ins.text()).slice(0, 200));
+
+        // ── % 할인 쿠폰 소진 기록 (결제 완료 시점에 소진 — gift: 코드 1회용 / promo: 코드#계정 1인1회) ──
+        if (parsed.coupon) {
+          try {
+            const cpRow = parsed.coupon.promo
+              ? { code: parsed.coupon.code + '#' + userId, user_kakao_id: userId }
+              : { code: parsed.coupon.code, user_kakao_id: userId };
+            const cpIns = await fetch(SUPA_URL + '/rest/v1/coupon_redemptions', {
+              method: 'POST',
+              headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+              body: JSON.stringify(cpRow)
+            });
+            if (!cpIns.ok && cpIns.status !== 409) {
+              console.error('[kakaopay-approve] 쿠폰 소진 기록 실패 HTTP', cpIns.status);
+            }
+          } catch (eC) {
+            console.error('[kakaopay-approve] 쿠폰 소진 기록 예외:', eC);
+          }
+        }
       } catch (e) {
         console.error('[kakaopay-approve] 원장 기록 예외:', e);
       }
@@ -146,7 +216,8 @@ module.exports = async (req, res) => {
               '<h2 style="color:#b13a2c">🎉 카카오페이 결제 완료</h2>' +
               '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
               '<tr><td style="padding:6px 0;color:#888">상품</td><td><b>' + (data.item_name || '-') + '</b></td></tr>' +
-              '<tr><td style="padding:6px 0;color:#888">금액</td><td><b>' + amt + '원</b></td></tr>' +
+              '<tr><td style="padding:6px 0;color:#888">금액</td><td><b>' + amt + '원</b>' +
+                ((parsed && parsed.coupon) ? ' <span style="color:#b13a2c;font-size:12px">🎟 ' + parsed.coupon.pct + '% 쿠폰' + (parsed.coupon.tag ? ' [' + parsed.coupon.tag + ']' : '') + '</span>' : '') + '</td></tr>' +
               '<tr><td style="padding:6px 0;color:#888">결제수단</td><td>' + payType + '</td></tr>' +
               '<tr><td style="padding:6px 0;color:#888">구매자 ID</td><td>' + userId + '</td></tr>' +
               '<tr><td style="padding:6px 0;color:#888">주문번호</td><td style="font-size:12px">' + orderId + '</td></tr>' +

@@ -459,20 +459,42 @@
     }
 
     // ─── 6) 가격 라인 표시 (할인 항목들 동적 추가) ───
+    // % 할인 서명 쿠폰 (coupon-tool 발급 gift/promo …-30p-…) — 적용 시 결제 금액에서 차감
+    let signedCoupon = null;   // { code, pct, productKey, promo, tag }
+    const SIGNED_KEY_PRODUCT = { light: 'light', deep: 'deep', couple: 'couple', adult: 'couple_plus', any: null };
+    function signedDiscountAmount() {
+      if (!signedCoupon) return 0;
+      if (signedCoupon.productKey === 'any') return Math.floor(calc.total * signedCoupon.pct / 100);
+      const pid = SIGNED_KEY_PRODUCT[signedCoupon.productKey];
+      if (!pid || !items.includes(pid)) return 0;
+      return Math.floor(cfg.PRODUCTS[pid].price * signedCoupon.pct / 100);
+    }
+    function finalPayAmount() {
+      return Math.max(100, calc.total - signedDiscountAmount());
+    }
     const priceLinesContainer = document.querySelector('#amount-original').closest('.space-y-1');
-    let lines = [];
-    lines.push(`<div class="price-row"><span>상품 금액 (${calc.itemCount}개)</span><span>${calc.subtotal.toLocaleString()}원</span></div>`);
-    if (calc.bundleDiscount > 0) {
-      lines.push(`<div class="price-row" style="color:var(--vermil)"><span>${calc.bundle.label}</span><span>-${calc.bundleDiscount.toLocaleString()}원</span></div>`);
+    function renderPriceLines() {
+      const sd = signedDiscountAmount();
+      const finalTotal = signedCoupon ? finalPayAmount() : calc.total;
+      let lines = [];
+      lines.push(`<div class="price-row"><span>상품 금액 (${calc.itemCount}개)</span><span>${calc.subtotal.toLocaleString()}원</span></div>`);
+      if (calc.bundleDiscount > 0) {
+        lines.push(`<div class="price-row" style="color:var(--vermil)"><span>${calc.bundle.label}</span><span>-${calc.bundleDiscount.toLocaleString()}원</span></div>`);
+      }
+      if (calc.couponDiscount > 0) {
+        lines.push(`<div class="price-row" style="color:var(--vermil)"><span>🎟 ${calc.couponInfo.name}</span><span>-${calc.couponDiscount.toLocaleString()}원</span></div>`);
+      }
+      if (sd > 0) {
+        lines.push(`<div class="price-row" style="color:var(--vermil)"><span>🎟 ${signedCoupon.pct}% 할인 쿠폰</span><span>-${sd.toLocaleString()}원</span></div>`);
+      }
+      lines.push(`<div class="price-row total"><span class="font-display text-[var(--ink)]">최종 결제 금액</span><span class="font-display text-[var(--vermil)]">${finalTotal.toLocaleString()}원</span></div>`);
+      const saved = calc.subtotal - finalTotal;
+      if (saved > 0) {
+        lines.push(`<div class="text-center pt-2"><span style="background:linear-gradient(135deg,var(--gold),var(--vermil));color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;display:inline-block">총 ${saved.toLocaleString()}원 절약!</span></div>`);
+      }
+      priceLinesContainer.innerHTML = lines.join('');
     }
-    if (calc.couponDiscount > 0) {
-      lines.push(`<div class="price-row" style="color:var(--vermil)"><span>🎟 ${calc.couponInfo.name}</span><span>-${calc.couponDiscount.toLocaleString()}원</span></div>`);
-    }
-    lines.push(`<div class="price-row total"><span class="font-display text-[var(--ink)]">최종 결제 금액</span><span class="font-display text-[var(--vermil)]">${calc.total.toLocaleString()}원</span></div>`);
-    if (calc.totalSaved > 0) {
-      lines.push(`<div class="text-center pt-2"><span style="background:linear-gradient(135deg,var(--gold),var(--vermil));color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;display:inline-block">총 ${calc.totalSaved.toLocaleString()}원 절약!</span></div>`);
-    }
-    priceLinesContainer.innerHTML = lines.join('');
+    renderPriceLines();
 
     // ─── 7) DEV 모드 안내 ───
     if (cfg.TOSS_CLIENT_KEY.startsWith('test_')) {
@@ -579,6 +601,28 @@
         }
         // 서명형 선물/홍보 쿠폰 (gift-… / promo-…) — 서버 검증, 만능(any)은 현재 상품에 적용
         const lcCode = code.toLowerCase();
+        // % 할인 쿠폰 (…-30p-… 형식) — 무료 이동이 아니라 결제 금액에서 차감
+        if (/^(gift|promo)-[a-z]+-[1-9][0-9]?p-/.test(lcCode)) {
+          showMsg('쿠폰 확인 중...', '');
+          AuthGuard.verifyDiscountCoupon(lcCode).then(r => {
+            if (!r.success) { showMsg(r.error, 'error'); return; }
+            signedCoupon = r;
+            const sd = signedDiscountAmount();
+            if (sd <= 0) {
+              signedCoupon = null;
+              showMsg('이 쿠폰은 주문한 상품에 적용할 수 없어요.', 'error');
+              return;
+            }
+            renderPriceLines();
+            if (typeof gtag === 'function') {
+              gtag('event', 'redeem_coupon', { item_id: r.productKey, coupon_label: r.pct + 'p_discount' });
+            }
+            showMsg(`✓ ${r.pct}% 할인 적용 — ${sd.toLocaleString()}원 차감된 금액으로 결제됩니다. (카카오페이)`, 'success');
+            apply.disabled = true;
+            input.disabled = true;
+          });
+          return;
+        }
         if (lcCode.startsWith('gift-') || lcCode.startsWith('promo-')) {
           showMsg('쿠폰 확인 중...', '');
           AuthGuard.redeemGiftCoupon(code, items[0]).then(r => {
@@ -618,16 +662,18 @@
       sessionStorage.setItem('pending_order', JSON.stringify({
         orderId,
         items,
-        amount: calc.total,
+        amount: finalPayAmount(),
         userId: user.id,
         couponId: couponId || null,
+        signedCoupon: signedCoupon ? signedCoupon.code : null,
+        signedCouponPct: signedCoupon ? signedCoupon.pct : null,
         bundleDiscount: calc.bundleDiscount,
         couponDiscount: calc.couponDiscount,
         subtotal: calc.subtotal
       }));
 
-      // 결제 0원 방지 (테스트시 쿠폰으로 0원 가능)
-      const finalAmount = Math.max(100, calc.total);  // 최소 결제 100원
+      // 결제 0원 방지 (테스트시 쿠폰으로 0원 가능) — % 할인 쿠폰 반영, 최소 결제 100원
+      const finalAmount = finalPayAmount();
 
       // ━━━ 카카오페이 직접 결제 (CID 가맹) ━━━
       if (selectedMethod === '카카오페이') {
@@ -646,6 +692,7 @@
             userId: user.id,
             items,                 // 서버가 상품 ID 로 금액·상품명 계산 (2026-09-02)
             amount: finalAmount,   // 서버 계산값과 대조용 — 다르면 거절
+            coupon: signedCoupon ? signedCoupon.code : undefined,  // % 할인 쿠폰 — 서버가 재검증·차감
             returnQuery
           })
         })
@@ -666,6 +713,11 @@
       }
 
       // ━━━ 토스페이먼츠 (카드 / 계좌이체 / 가상계좌) ━━━
+      // % 할인 쿠폰은 서버 검증·소진 처리가 카카오페이 승인 라인에만 있음 — 토스에서는 사용 불가
+      if (signedCoupon) {
+        alert('할인 쿠폰은 현재 카카오페이 결제에서만 사용할 수 있어요.\n결제수단을 카카오페이로 선택해주세요.');
+        return;
+      }
       const tossPayments = TossPayments(cfg.TOSS_CLIENT_KEY);
       tossPayments.requestPayment(selectedMethod, {
         amount: finalAmount,
