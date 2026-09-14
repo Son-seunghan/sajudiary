@@ -1029,6 +1029,7 @@ body{padding-bottom:80px;}
           <option value="19">술시 戌時 (19:30~21:30)</option>
           <option value="21">해시 亥時 (21:30~23:30)</option>
         </select>
+        <p style="font-size:11px;color:var(--muted);margin:6px 0 0;line-height:1.55;">🌙 밤 11:30~자정 출생은 <b>밤 자시</b> + 날짜는 태어난 날 그대로, 자정~새벽 1:30은 <b>새벽 자시</b></p>
       </div>
       <div class="fg">
         <label>성별</label>
@@ -2053,23 +2054,25 @@ function buildDetailedAnalysis({dsi, pillars, tgCnts, interactions, curDw, dP, m
     html+=`<div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px;">과거 세운 흐름을 바탕으로 상대적으로 좋았던 해와 어려웠던 해를 짚어봤어요. 얼마나 맞는지 직접 확인해보세요.</div>`;
 
     if(goodYrs.length>0){
-      html+=`<div style="margin-bottom:14px;"><div style="font-size:12px;font-weight:bold;color:#70c070;margin-bottom:8px;">🌟 상대적으로 좋았던 해</div>`;
-      for(const g of goodYrs){
+      html+=`<div style="margin-bottom:14px;"><div style="font-size:12px;font-weight:bold;color:#70c070;margin-bottom:8px;">🌟 상대적으로 좋았던 해 <span style="font-weight:normal;color:var(--muted);">— 좋았던 순</span></div>`;
+      goodYrs.forEach((g,gi)=>{
         html+=`<div style="background:rgba(80,180,80,.06);border-left:3px solid rgba(80,180,80,.5);border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:8px;">`;
+        html+=`<span style="display:inline-block;background:rgba(80,180,80,.16);color:#70c070;font-size:10px;font-weight:bold;padding:2px 8px;border-radius:999px;margin-right:7px;vertical-align:2px;">${gi+1}위</span>`;
         html+=`<span style="font-size:14px;font-weight:bold;color:#70c070;">${g.year}년</span>`;
         html+=`<span style="font-size:11px;color:var(--muted);margin-left:8px;">${STEMS[g.si]}${BRANS[g.bi]}년</span>`;
         html+=`<div style="font-size:12px;color:var(--text);line-height:1.65;margin-top:5px;">${escHtml(g.mainText)}</div></div>`;
-      }
+      });
       html+=`</div>`;
     }
     if(badYrs.length>0){
-      html+=`<div><div style="font-size:12px;font-weight:bold;color:#e07070;margin-bottom:8px;">⚡ 상대적으로 어려웠던 해</div>`;
-      for(const b of badYrs){
+      html+=`<div><div style="font-size:12px;font-weight:bold;color:#e07070;margin-bottom:8px;">⚡ 상대적으로 어려웠던 해 <span style="font-weight:normal;color:var(--muted);">— 힘들었던 순</span></div>`;
+      badYrs.forEach((b,bidx)=>{
         html+=`<div style="background:rgba(220,80,80,.05);border-left:3px solid rgba(220,80,80,.4);border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:8px;">`;
+        html+=`<span style="display:inline-block;background:rgba(220,80,80,.15);color:#e07070;font-size:10px;font-weight:bold;padding:2px 8px;border-radius:999px;margin-right:7px;vertical-align:2px;">${bidx+1}위</span>`;
         html+=`<span style="font-size:14px;font-weight:bold;color:#e07070;">${b.year}년</span>`;
         html+=`<span style="font-size:11px;color:var(--muted);margin-left:8px;">${STEMS[b.si]}${BRANS[b.bi]}년</span>`;
         html+=`<div style="font-size:12px;color:var(--text);line-height:1.65;margin-top:5px;">${escHtml(b.mainText)}</div></div>`;
-      }
+      });
       html+=`</div>`;
     }
   }
