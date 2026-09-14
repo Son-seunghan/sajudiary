@@ -464,5 +464,12 @@
       });
     })();
   </script>
+<script>
+  // 계측 — 후기 카드 클릭 (GA4, 일일 리포트용)
+  document.addEventListener('click', function (e) {
+    if (typeof gtag !== 'function' || !e.target.closest) return;
+    if (e.target.closest('.review-card')) gtag('event', 'review_open');
+  }, true);
+</script>
 </body>
 </html>

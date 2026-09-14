@@ -1,4 +1,7 @@
 {
+  "crons": [
+    { "path": "/api/daily-digest", "schedule": "0 23 * * *" }
+  ],
   "rewrites": [
     { "source": "/o-jujeom", "destination": "/o-jujeom.html" },
     { "source": "/reader", "destination": "/reader.html" }

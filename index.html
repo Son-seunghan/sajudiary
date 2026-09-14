@@ -1727,5 +1727,14 @@
     });
   </script>
 
+<script>
+  // 계측 — 후기 카드·상품 버튼 클릭 (GA4, 일일 리포트용)
+  document.addEventListener('click', function (e) {
+    if (typeof gtag !== 'function' || !e.target.closest) return;
+    if (e.target.closest('.review-card')) { gtag('event', 'review_open'); return; }
+    var pb = e.target.closest('.product-btn');
+    if (pb) gtag('event', 'product_click', { item_id: pb.dataset.product || '' });
+  }, true);
+</script>
 </body>
 </html>

@@ -78,6 +78,23 @@ module.exports = async (req, res) => {
 
     const acc = me.kakao_account || {};
 
+    // ── 2-1) 회원 원장 기록 (site_users upsert — 가입·재방문 계측용) ──
+    // first_seen은 최초 insert 때만 default로 박히고, 이후엔 last_seen만 갱신됨.
+    // 계측 실패가 로그인을 막으면 안 되므로 전부 무시.
+    try {
+      const SK = process.env.SUPABASE_SERVICE_KEY;
+      if (SK) {
+        await fetch('https://hlxttdvvwftiquzqxgxs.supabase.co/rest/v1/site_users?on_conflict=kakao_id', {
+          method: 'POST',
+          headers: {
+            'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates,return=minimal'
+          },
+          body: JSON.stringify({ kakao_id: 'kakao_' + me.id, last_seen: new Date().toISOString() })
+        });
+      }
+    } catch (e) { /* 계측 실패 무시 */ }
+
     // ── 3) 서버 원장용 세션 토큰 발급 (SESSION_SECRET 설정 시) ──
     // base64url(payload).HMAC — /api/ledger가 이 서명으로 본인 확인
     let session = null;

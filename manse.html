@@ -1455,6 +1455,24 @@
       // 결과 영역 보이기 + 스크롤
       document.getElementById('result').classList.remove('hidden');
       document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // ━━━ 조회 계측 — GA4 이벤트 + 서버 기록 (이름은 보내지 않음) ━━━
+      try { if (typeof gtag === 'function') gtag('event', 'manse_lookup', { birth_year: year, gender: gender }); } catch (e) {}
+      try {
+        fetch('/api/stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'manse', y: year, m: month, d: day, h: hour, gender: gender,
+            pillars: {
+              y: STEMS[yP.si] + BRANS[yP.bi],
+              m: STEMS[mP.si] + BRANS[mP.bi],
+              d: STEMS[dP.si] + BRANS[dP.bi],
+              h: hP ? STEMS[hP.si] + BRANS[hP.bi] : null
+            }
+          })
+        }).catch(function () {});
+      } catch (e) {}
     }
 
     document.getElementById('btnCalc').addEventListener('click', calculate);
