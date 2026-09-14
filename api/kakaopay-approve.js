@@ -3,8 +3,38 @@
    카카오 결제창 완료 후 success.html이 pg_token과 함께 호출
    → 카카오 approve API로 최종 승인 → 결과 반환
 
-   환경변수: KAKAOPAY_SECRET_KEY (필수), KAKAOPAY_CID (미설정 시 테스트 CID)
+   2026-09-02 보안 강화:
+   - ready 단계에서 서버가 넣은 item_code(상품ID '+' 연결)가 승인 응답에 돌아오므로
+     승인 금액이 서버 가격표 합계와 일치하는지 재검증 (불일치 시 기록 안 함 + 경고 로그)
+   - 승인 성공 시 서버가 직접 purchases 원장에 기록 (SUPABASE_SERVICE_KEY 설정 시)
+     → 클라이언트 주장이 아닌 실결제 기반 기록. 응답 recorded:true 면 클라이언트는
+       서버 기록을 생략 (success.html)
+
+   환경변수: KAKAOPAY_SECRET_KEY (필수), KAKAOPAY_CID (미설정 시 테스트 CID),
+             SUPABASE_SERVICE_KEY (선택 — 서버 원장 기록)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+// ★ kakaopay-ready.js / assets/js/config.js PRODUCTS 와 동일하게 유지
+const PRODUCTS = {
+  light:       { name: '입문용 (Light)',      price: 9900 },
+  deep:        { name: '전문가용 (Deep)',      price: 29900 },
+  couple:      { name: '궁합 분석',            price: 14900 },
+  couple_plus: { name: '궁합 분석 (성인용)',   price: 17900 }
+};
+const BUNDLE_DISCOUNTS = [];   // ready.js 와 동일하게 유지
+const SUPA_URL = 'https://hlxttdvvwftiquzqxgxs.supabase.co';
+
+// item_code('light+deep') → { items, total } (알 수 없는 코드면 null)
+function parseItemCode(code) {
+  if (typeof code !== 'string' || !code) return null;
+  const items = code.split('+');
+  if (items.length < 1 || items.length > 4) return null;
+  if (items.some((id, i) => !PRODUCTS[id] || items.indexOf(id) !== i)) return null;
+  const subtotal = items.reduce((s, id) => s + PRODUCTS[id].price, 0);
+  const bundle = BUNDLE_DISCOUNTS.find(b => items.length >= b.minItems) || null;
+  const total = Math.max(100, subtotal - (bundle ? Math.floor(subtotal * bundle.percent / 100) : 0));
+  return { items, total };
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -20,6 +50,10 @@ module.exports = async (req, res) => {
   const { tid, pgToken, orderId, userId } = req.body || {};
   if (!tid || !pgToken || !orderId || !userId) {
     return res.status(400).json({ error: '필수 파라미터 누락' });
+  }
+  if (typeof orderId !== 'string' || !/^[a-zA-Z0-9_-]{8,80}$/.test(orderId)
+      || typeof userId !== 'string' || !/^[A-Za-z0-9_]{1,64}$/.test(userId)) {
+    return res.status(400).json({ error: '주문 정보 형식 오류' });
   }
 
   try {
@@ -46,6 +80,52 @@ module.exports = async (req, res) => {
         error: (data.error_message || data.msg || '카카오페이 결제 승인 실패'),
         code: data.error_code || data.code || null
       });
+    }
+
+    // ─── 상품·금액 재검증 + 서버 원장 기록 ───
+    // ready 에서 서버가 만든 item_code 로 기대 금액을 다시 계산 → 승인 금액과 대조
+    const paidTotal = data.amount && Number(data.amount.total);
+    const parsed = parseItemCode(data.item_code);
+    const verified = !!(parsed && paidTotal === parsed.total);
+    let recorded = false;
+    if (!verified) {
+      console.error('[kakaopay-approve] ⚠ 금액/상품 검증 실패 item_code=' + data.item_code
+        + ' paid=' + paidTotal + ' expected=' + (parsed && parsed.total) + ' order=' + orderId);
+    } else if (process.env.SUPABASE_SERVICE_KEY) {
+      try {
+        const SK = process.env.SUPABASE_SERVICE_KEY;
+        // approved_at 은 KST 로컬 시각 문자열("2026-08-16T12:00:00") — 존 정보 없으면 +09:00 보정
+        let approvedDate = data.approved_at ? new Date(/[Zz]|[+-]\d\d:\d\d$/.test(data.approved_at) ? data.approved_at : data.approved_at + '+09:00') : new Date();
+        if (isNaN(approvedDate.getTime())) approvedDate = new Date();
+        const approvedAt = approvedDate.toISOString();
+        const rows = parsed.items.map(pid => ({
+          user_kakao_id: userId,
+          product_id: pid,
+          created_at: approvedAt,
+          raw: {
+            productId: pid,
+            orderId: orderId,
+            paymentKey: 'kakao_' + (data.aid || tid),
+            amount: PRODUCTS[pid].price,
+            productName: PRODUCTS[pid].name,
+            purchasedAt: approvedAt,
+            method: 'kakaopay',
+            recordedBy: 'server',
+            aid: data.aid || null,
+            tid: tid,
+            paidTotal: paidTotal
+          }
+        }));
+        const ins = await fetch(SUPA_URL + '/rest/v1/purchases', {
+          method: 'POST',
+          headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify(rows)
+        });
+        recorded = ins.ok;
+        if (!ins.ok) console.error('[kakaopay-approve] 원장 기록 실패 HTTP', ins.status, (await ins.text()).slice(0, 200));
+      } catch (e) {
+        console.error('[kakaopay-approve] 원장 기록 예외:', e);
+      }
     }
 
     // ─── 결제 완료 이메일 알림 (RESEND_API_KEY 설정 시에만 발송) ───
@@ -124,7 +204,10 @@ module.exports = async (req, res) => {
       amount: data.amount ? data.amount.total : null,
       itemName: data.item_name || null,
       approvedAt: data.approved_at || null,
-      paymentType: data.payment_method_type || null  // CARD | MONEY
+      paymentType: data.payment_method_type || null,  // CARD | MONEY
+      itemCode: data.item_code || null,               // 'light+deep' — 클라이언트 구매 항목 대조용
+      verified: verified,                             // 서버 가격표와 승인 금액 일치 여부
+      recorded: recorded                              // true 면 서버가 purchases 에 이미 기록함
     });
   } catch (e) {
     console.error('[kakaopay-approve] exception:', e);

@@ -192,6 +192,20 @@ module.exports = async (req, res) => {
     return res.status(400).json({ ok: false, error: '유효하지 않은 쿠폰 코드입니다.' });
   }
 
+  // 2026-09-02 보안: 세션 없는 호출 차단 (유효 코드 1개로 알림 메일 반복 발송 방지)
+  // 클라이언트(auth-guard.js redeemCoupon)는 항상 세션을 동봉함
+  const giftKakaoId = verifySession(req.body.session, process.env.SESSION_SECRET);
+  if (!giftKakaoId) {
+    return res.status(401).json({ ok: false, error: '본인 확인이 필요합니다. 로그아웃 후 다시 로그인한 뒤 쿠폰을 입력해주세요.' });
+  }
+  // 이미 소진된 코드면 메일 없이 즉시 거절 (실제 1회용 기록은 /api/ledger redeem)
+  if (process.env.SUPABASE_SERVICE_KEY) {
+    const used = await supa('GET', 'coupon_redemptions?select=code&code=eq.' + encodeURIComponent(raw) + '&limit=1');
+    if (used.ok && Array.isArray(used.json) && used.json.length > 0) {
+      return res.status(200).json({ ok: false, error: '이미 사용된 쿠폰입니다.' });
+    }
+  }
+
   await sendMail(
     '🎁 선물 쿠폰 사용됨 — ' + (KEY_LABEL[key] || key),
     '<div style="font-family:sans-serif;max-width:480px">' +

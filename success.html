@@ -235,11 +235,12 @@
     }
 
     // ─── 주문 완료 처리 (등록 + 표시 + 자동 이동) ───
-    function completeOrder(payKey) {
+    // serverRecorded: kakaopay-approve 가 이미 서버 원장(purchases)에 기록한 경우 true
+    function completeOrder(payKey, serverRecorded) {
       sessionStorage.removeItem('pending_order');
       sessionStorage.removeItem('kakao_tid');
 
-      // 모든 상품에 대해 구매 기록 저장
+      // 모든 상품에 대해 구매 기록 저장 (서버 기록 완료 시 로컬만 저장 — 중복 방지)
       pending.items.forEach(productId => {
         const p = cfg.PRODUCTS[productId];
         if (p) {
@@ -351,8 +352,13 @@
         .then(r => r.json())
         .then(d => {
           if (!d.ok) throw new Error(d.error || '승인 실패');
-          console.log('[Success] 카카오페이 승인 완료:', d.aid);
-          completeOrder('kakao_' + (d.aid || tid));
+          console.log('[Success] 카카오페이 승인 완료:', d.aid, '| 서버검증:', d.verified, '| 서버기록:', d.recorded);
+          // 서버가 승인 응답의 item_code 로 확정한 상품 목록을 신뢰 (sessionStorage 조작 무력화)
+          if (d.itemCode) {
+            const serverItems = String(d.itemCode).split('+').filter(id => cfg.PRODUCTS[id]);
+            if (serverItems.length > 0) pending.items = serverItems;
+          }
+          completeOrder('kakao_' + (d.aid || tid), d.recorded === true);
         })
         .catch(err => {
           console.error('[Success] 카카오페이 승인 에러:', err);
@@ -360,11 +366,11 @@
           window.location.href = 'payment.html?' + (pending.items && pending.items.length > 1 ? 'fromCart=1' : 'product=' + (pending.items ? pending.items[0] : 'light'));
         });
     } else {
-      // 토스페이먼츠 (기존 흐름)
-      // ⚠️ 실서비스: 백엔드에서 /v1/payments/confirm 호출 필요.
-      //    여기서는 테스트 모드 → 클라이언트에서 구매 기록 저장.
-      if (!paymentKey || !orderId || !pending.items || pending.items.length === 0) invalidExit();
-      completeOrder(paymentKey);
+      // 토스페이먼츠 — 2026-09-02 보안: 서버 confirm(/v1/payments/confirm) 연동 전까지
+      // URL 파라미터만으로 구매 처리하던 경로를 차단. 토스 라이브 전환 시 서버 confirm API 로 대체.
+      alert('토스 결제는 현재 준비 중입니다.\n카카오페이로 결제해주세요.');
+      window.location.href = 'payment.html?' + (pending.items && pending.items.length > 1 ? 'fromCart=1' : 'product=' + (pending.items && pending.items[0] ? pending.items[0] : 'light'));
+      throw new Error('toss flow disabled');
     }
   </script>
 </body>

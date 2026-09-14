@@ -87,11 +87,13 @@ const AuthGuard = (function () {
   function hasPurchased(productId) {
     return getPurchases().some(p => p.productId === productId);
   }
-  function addPurchase(record) {
+  // opts.serverRecorded: true 면 서버(kakaopay-approve)가 이미 원장에 기록했으므로 로컬만 저장
+  function addPurchase(record, opts) {
     const rec = { ...record, purchasedAt: new Date().toISOString() };
     const list = getPurchases();
     list.push(rec);
     localStorage.setItem(PURCHASES_KEY, JSON.stringify(list));
+    if (opts && opts.serverRecorded) return;
     // 서버 원장에도 기록 (실패해도 로컬은 유지 — 다음 동기화 때 병합됨)
     _ledger('purchase', { productId: rec.productId, raw: rec });
   }

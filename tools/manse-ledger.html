@@ -372,10 +372,11 @@
 
   <div class="top-stripe mt-12"></div>
 
-  <!-- 의존 스크립트 (카카오 로그인 불필요 — Supabase만) -->
+  <!-- 의존 스크립트 — 2026-09-02 보안: 명부 DB 접근은 /api/board (마스터 카카오 세션 필수) 경유 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../assets/js/config.js?v=20260810"></script>
-  <script src="../assets/js/supabase-client.js?v=20260810"></script>
+  <script src="../assets/js/config.js?v=20260902"></script>
+  <script src="../assets/js/auth-guard.js?v=20260902"></script>
+  <script src="../assets/js/supabase-client.js?v=20260902"></script>
 
   <script>
   // ==========================================================
@@ -539,15 +540,23 @@
   const OWNER='manse_ledger_master';   // 단일 운영자 명부 소유자 키
   const REM_KEY='sajudiary_manse_pass';
   const VERIFY_MAGIC='SAJUDIARY_MANSE_OK';
+  // 2026-09-02 보안: anon 키 직접 접근 → /api/board manse.* (마스터 세션 검증 + service_role) 로 전환
+  // RLS 에서 manse_* 의 anon 정책이 제거되어 클라이언트 직접 접근은 불가 (security_rls_lockdown.sql)
   const Store=(function(){
-    function sb(){return SajuSupa.getClient();}
-    async function getMeta(){return await sb().from('manse_meta').select('*').eq('owner_kakao_id',OWNER).maybeSingle();}
-    async function setMeta(verifier){return await sb().from('manse_meta').upsert({owner_kakao_id:OWNER,verifier});}
-    async function list(){return await sb().from('manse_records').select('*').eq('owner_kakao_id',OWNER).order('created_at',{ascending:false});}
-    async function insert(row){return await sb().from('manse_records').insert(row).select().single();}
-    async function update(id,patch){return await sb().from('manse_records').update(patch).eq('id',id).eq('owner_kakao_id',OWNER);}
-    async function remove(id){return await sb().from('manse_records').delete().eq('id',id).eq('owner_kakao_id',OWNER);}
-    return{getMeta,setMeta,list,insert,update,remove};
+    async function call(action,extra){
+      const j=await SajuSupa.board(action,extra);
+      if(j&&j.ok)return{data:(j.data===undefined?null:j.data),error:null};
+      const msg=(j&&j.error)||'서버 오류';
+      return{data:null,error:{message:msg,reauth:!!(j&&(j.reauth||j.noSession))}};
+    }
+    async function getMeta(){return call('manse.meta.get');}
+    async function setMeta(verifier){return call('manse.meta.set',{verifier});}
+    async function list(){return call('manse.list');}
+    async function insert(row){return call('manse.insert',{row});}
+    async function insertMany(rows){return call('manse.insert',{rows});}
+    async function update(id,patch){return call('manse.update',{id,patch});}
+    async function remove(id){return call('manse.delete',{id});}
+    return{getMeta,setMeta,list,insert,insertMany,update,remove};
   })();
 
   // ==========================================================
@@ -564,6 +573,12 @@
   function boot(){
     if(!SajuSupa||!SajuSupa.isEnabled()){ showGate('Supabase 연결이 필요해요. ../assets/js/config.js 설정을 확인하세요.'); return; }
     if(!window.crypto||!crypto.subtle){ showGate('이 브라우저는 암호화(Web Crypto)를 지원하지 않아요. 최신 브라우저에서 열어주세요.'); return; }
+    // 명부 DB 는 마스터 카카오 세션으로만 접근 가능 (서버 검증). 암호는 이름·메모 복호화용으로 별도 유지.
+    const _u=(typeof AuthGuard!=='undefined')?AuthGuard.getUser():null;
+    if(!_u||!_u.session||!_u.isMaster){
+      showGate('명부는 <b>마스터 계정의 카카오 로그인</b>이 필요해요.<br><a href="../login.html" class="underline">홈에서 카카오 로그인</a> 후 이 페이지를 다시 열어주세요.<br><span class="text-[11px] text-[var(--ink4)]">(이미 로그인돼 있다면 로그아웃 후 다시 로그인 — 세션 토큰 갱신)</span>');
+      return;
+    }
     startLock();
   }
   function showGate(msg){$('gate').classList.remove('hidden');$('lock').classList.add('hidden');$('app').classList.add('hidden');$('gateMsg').innerHTML=msg;}
@@ -833,7 +848,7 @@
       });
     }
     if(!ins.length){btn.disabled=false;btn.textContent='저장할 새 기록 없음'+(dup?' (중복 '+dup+')':'');return;}
-    const{error}=await SajuSupa.getClient().from('manse_records').insert(ins);
+    const{error}=await Store.insertMany(ins);
     if(error){btn.disabled=false;btn.textContent='실패: '+error.message;return;}
     $('bulkModal').classList.add('hidden');$('bulkPreview').innerHTML='';$('bulkText').value='';BULK_ROWS=[];
     await loadRecords();

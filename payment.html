@@ -644,8 +644,8 @@
           body: JSON.stringify({
             orderId,
             userId: user.id,
-            itemName: orderName,
-            amount: finalAmount,
+            items,                 // 서버가 상품 ID 로 금액·상품명 계산 (2026-09-02)
+            amount: finalAmount,   // 서버 계산값과 대조용 — 다르면 거절
             returnQuery
           })
         })

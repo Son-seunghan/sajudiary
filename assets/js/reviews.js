@@ -33,9 +33,35 @@ const Reviews = (function () {
 
   function isEnabled() { return client() !== null; }
 
+  // ─── 서버 대행 (/api/board) — 후기 쓰기·삭제는 세션 검증 후 서버가 수행 (2026-09-02) ───
+  function _session() {
+    const u = (typeof AuthGuard !== 'undefined') ? AuthGuard.getUser() : null;
+    return (u && u.session) || null;
+  }
+  async function _board(action, extra) {
+    const session = _session();
+    if (!session) return { ok: false, noSession: true, error: '계정 확인이 필요합니다. 로그아웃 후 카카오 로그인을 다시 한 번 해주세요.' };
+    try {
+      const r = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ session: session, action: action }, extra || {}))
+      });
+      return await r.json();
+    } catch (e) {
+      return { ok: false, error: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.' };
+    }
+  }
+
+  // ─── 사진 URL 화이트리스트 — 자사 Storage 공개 버킷만 허용 (stored XSS 차단) ───
+  const PHOTO_URL_RE = /^https:\/\/hlxttdvvwftiquzqxgxs\.supabase\.co\/storage\/v1\/object\/public\/review-photos\/[A-Za-z0-9_\-./]{1,200}$/;
+  function isSafePhotoUrl(u) { return typeof u === 'string' && PHOTO_URL_RE.test(u); }
+  function _safeUrls(arr) { return Array.isArray(arr) ? arr.filter(isSafePhotoUrl).slice(0, 2) : []; }
+
   // ─── DB row → 기존 외부 코드용 shape으로 정규화 ───
   function _normalize(row) {
     if (!row) return null;
+    const urls = _safeUrls(row.photo_urls);
     return {
       id: row.id,
       userId: row.user_kakao_id,
@@ -44,9 +70,9 @@ const Reviews = (function () {
       productId: row.product_id,
       rating: row.rating,
       content: row.content,
-      photoUrls: Array.isArray(row.photo_urls) ? row.photo_urls : [],
+      photoUrls: urls,
       // 호환성을 위해 photoUrl도 유지 (첫 사진)
-      photoUrl: Array.isArray(row.photo_urls) && row.photo_urls.length > 0 ? row.photo_urls[0] : null,
+      photoUrl: urls.length > 0 ? urls[0] : null,
       likesCount: row.likes_count || 0,
       createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
       updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null
@@ -103,46 +129,28 @@ const Reviews = (function () {
     if (rating < 1 || rating > 5) return { success: false, error: '별점은 1~5점' };
     if (!content || content.trim().length < 5) return { success: false, error: '5자 이상 작성해주세요' };
 
-    const sb = client();
-    if (!sb) return { success: false, error: 'Supabase 미설정 — 후기 시스템 비활성' };
+    if (!isEnabled()) return { success: false, error: 'Supabase 미설정 — 후기 시스템 비활성' };
 
-    // photoUrls 정규화: 배열로 변환, 최대 2장 제한, 빈 문자열 제거
-    const cleanUrls = Array.isArray(photoUrls)
-      ? photoUrls.filter(u => typeof u === 'string' && u.trim().length > 0).slice(0, 2)
-      : [];
-
-    const payload = {
-      user_kakao_id: userId,
-      user_real_nickname: userNickname || null,
-      display_nickname: maskNickname(userNickname || '회원'),
-      product_id: productId,
+    // 서버 대행 — user_kakao_id 는 서버가 세션에서 확정 (타인 명의 후기 위조 불가)
+    const j = await _board('reviews.write', {
+      productId: productId,
       rating: rating,
       content: content.trim(),
-      photo_urls: cleanUrls.length > 0 ? cleanUrls : null,
-      updated_at: new Date().toISOString()
-    };
-
-    // (user_kakao_id, product_id) unique 제약 → 같은 사용자가 같은 상품에 다시 쓰면 update
-    const { error } = await sb.from('reviews').upsert(payload, {
-      onConflict: 'user_kakao_id,product_id'
+      photoUrls: _safeUrls(photoUrls),
+      nickname: userNickname || null
     });
-    if (error) {
-      console.error('[Reviews] write:', error);
-      return { success: false, error: error.message };
+    if (!j || !j.ok) {
+      console.error('[Reviews] write:', j && j.error);
+      return { success: false, error: (j && j.error) || '후기 저장에 실패했습니다.' };
     }
     return { success: true };
   }
 
-  // ─── 삭제 (본인 또는 마스터) ───
+  // ─── 삭제 (본인 또는 마스터) — 서버가 판정 ───
   async function remove(reviewId, userId) {
-    const sb = client();
-    if (!sb) return false;
     if (!userId) return false;
-    const isMaster = typeof AuthGuard !== 'undefined' && AuthGuard.isMaster && AuthGuard.isMaster();
-    let q = sb.from('reviews').delete().eq('id', reviewId);
-    if (!isMaster) q = q.eq('user_kakao_id', userId);
-    const { error } = await q;
-    if (error) { console.error('[Reviews] remove:', error); return false; }
+    const j = await _board('reviews.delete', { id: reviewId });
+    if (!j || !j.ok) { console.error('[Reviews] remove:', j && j.error); return false; }
     return true;
   }
 
@@ -285,6 +293,7 @@ const Reviews = (function () {
     write, remove,
     uploadPhoto, compressImage,
     getAverageRating,
-    maskNickname, renderStars, formatDate, getProductTagClass
+    maskNickname, renderStars, formatDate, getProductTagClass,
+    isSafePhotoUrl
   };
 })();

@@ -30,10 +30,12 @@ module.exports = async (req, res) => {
   // redirect_uri 화이트리스트 — 우리 도메인만 허용
   try {
     const u = new URL(redirectUri);
+    // 2026-09-02: '*.vercel.app' 전체 허용 → 자기 프로젝트 도메인(sajudiary.vercel.app + 프리뷰)으로 축소
     const okHost = u.hostname === 'sajudiary.com'
       || u.hostname === 'www.sajudiary.com'
       || u.hostname === 'localhost'
-      || u.hostname.endsWith('.vercel.app');
+      || u.hostname === 'sajudiary.vercel.app'
+      || /^sajudiary-[a-z0-9-]+\.vercel\.app$/.test(u.hostname);
     if (!okHost) {
       return res.status(400).json({ error: '허용되지 않은 redirect_uri' });
     }
@@ -82,7 +84,7 @@ module.exports = async (req, res) => {
     if (process.env.SESSION_SECRET) {
       const payload = Buffer.from(JSON.stringify({
         id: 'kakao_' + me.id,
-        exp: Date.now() + 1000 * 60 * 60 * 24 * 90   // 90일
+        exp: Date.now() + 1000 * 60 * 60 * 24 * 30   // 30일 (2026-09-02: 90일 → 30일, 토큰 유출 시 피해 기간 단축)
       })).toString('base64url');
       const sig = crypto.createHmac('sha256', process.env.SESSION_SECRET)
         .update(payload).digest('base64url');

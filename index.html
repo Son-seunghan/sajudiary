@@ -1420,7 +1420,8 @@
       const cardHtml = (r, idx) => {
         const product = cfg.PRODUCTS[r.productId];
         if (!product) return '';
-        const urls = (r.photoUrls || []).filter(Boolean).slice(0, 2);
+        // 사진 URL: reviews.js 에서 자사 Storage 도메인 화이트리스트 통과분만 + 렌더 시 escape (stored XSS 차단)
+        const urls = (r.photoUrls || []).filter(Reviews.isSafePhotoUrl).slice(0, 2).map(escapeHtml);
         const photoHtml = urls.length === 0 ? '' :
           urls.length === 1
             ? `<img src="${urls[0]}" alt="후기 사진" class="w-full h-32 object-cover rounded-lg mb-3 border border-[var(--paper-dk)]" loading="lazy" />`
@@ -1552,9 +1553,9 @@
 
       function openReviewModal(r) {
         const product = cfg.PRODUCTS[r.productId];
-        const urls = (r.photoUrls || []).filter(Boolean);
+        const urls = (r.photoUrls || []).filter(Reviews.isSafePhotoUrl);
         const photos = urls.map(u =>
-          `<img src="${u}" alt="후기 사진" class="w-full rounded-xl border border-[var(--paper-dk)] mb-3 cursor-zoom-in" style="max-height:380px;object-fit:contain;background:var(--paper3);" onclick="window.open(this.src,'_blank')" loading="lazy" title="클릭하면 원본 크기로 볼 수 있어요" />`
+          `<img src="${escapeHtml(u)}" alt="후기 사진" class="w-full rounded-xl border border-[var(--paper-dk)] mb-3 cursor-zoom-in" style="max-height:380px;object-fit:contain;background:var(--paper3);" onclick="window.open(this.src,'_blank')" loading="lazy" title="클릭하면 원본 크기로 볼 수 있어요" />`
         ).join('');
         document.getElementById('review-modal-body').innerHTML = `
           <div class="flex items-center justify-between mb-4">
@@ -1604,7 +1605,8 @@
         // 마스터 계정 전용 UI
         if (user.isMaster) {
           // 헤더에 마스터 배지 추가
-          myBtn.innerHTML = `<span class="hidden sm:inline truncate max-w-[100px]">${user.nickname}</span><span class="text-[10px] bg-[var(--gold)] text-[var(--ink)] px-1.5 py-0.5 rounded font-bold">MASTER</span>`;
+          const safeNick = String(user.nickname || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+          myBtn.innerHTML = `<span class="hidden sm:inline truncate max-w-[100px]">${safeNick}</span><span class="text-[10px] bg-[var(--gold)] text-[var(--ink)] px-1.5 py-0.5 rounded font-bold">MASTER</span>`;
 
           // 모든 시작하기 버튼 → "결과 보기 (마스터)"
           const cfg = window.SAJULOG_CONFIG;

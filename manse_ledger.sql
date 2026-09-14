@@ -42,13 +42,11 @@ CREATE TABLE IF NOT EXISTS manse_meta (
 ALTER TABLE manse_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE manse_meta    ENABLE ROW LEVEL SECURITY;
 
--- 프로젝트 기존 패턴과 동일: 클라이언트단 필터 + PII는 암호화로 보호
--- (본격 서버 인증이 필요해지면 Vercel 서버함수 + service_role 로 강화)
+-- ★ 2026-09-02 보안 강화: anon 정책 없음 (클라이언트 직접 접근 차단)
+--   명부 읽기/쓰기는 /api/board manse.* (마스터 카카오 세션 검증 + service_role) 만 수행.
+--   과거 개방 정책이 남아 있으면 security_rls_lockdown.sql 로 제거.
 DROP POLICY IF EXISTS manse_records_all ON manse_records;
-CREATE POLICY manse_records_all ON manse_records FOR ALL USING (true) WITH CHECK (true);
-
 DROP POLICY IF EXISTS manse_meta_all ON manse_meta;
-CREATE POLICY manse_meta_all ON manse_meta FOR ALL USING (true) WITH CHECK (true);
 
 -- ─── 4. updated_at 자동 갱신 트리거 ───
 CREATE OR REPLACE FUNCTION touch_manse_updated() RETURNS TRIGGER AS $$

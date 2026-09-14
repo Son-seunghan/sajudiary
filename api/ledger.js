@@ -82,7 +82,9 @@ module.exports = async (req, res) => {
 
     // ─── 구매 1건 ───
     if (body.action === 'purchase') {
-      if (!body.productId || !body.raw) return res.status(400).json({ ok: false, error: 'bad request' });
+      if (!body.productId || !body.raw || typeof body.raw !== 'object') return res.status(400).json({ ok: false, error: 'bad request' });
+      // 2026-09-02: 클라이언트 주장 기록임을 표시 (카카오페이 실결제는 kakaopay-approve 가 recordedBy:'server' 로 기록)
+      body.raw.recordedBy = 'client';
       const r = await supa('POST', 'purchases', {
         user_kakao_id: kakaoId,
         product_id: String(body.productId),
