@@ -44,34 +44,157 @@
       document.body.style.paddingTop = '54px';
       var wrap = document.getElementById('sections');
       var secs = wrap ? Array.prototype.slice.call(wrap.children) : [];
+      var isPlus = new URLSearchParams(window.location.search).get('plus') === '1';
       if (secs.length > SHOW) {
         var titles = secs.slice(SHOW).map(function (s, i) {
-          var h = s.querySelector('h2,h3,.sec-title');
-          return h ? h.textContent.trim() : '섹션 ' + (SHOW + i + 1);
+          var h = s.querySelector('.letter-sec-title,.sec-t,.card-title,h2,h3');
+          if (!h) return '섹션 ' + (SHOW + i + 1);
+          // "두 번째 · 제목 (부제)" → "제목 (부제)"
+          return h.textContent.trim().replace(/^[^·]{1,8}·\s*/, '');
         });
-        var teaser = secs[SHOW];
-        teaser.style.cssText += ';filter:blur(6px);opacity:.55;pointer-events:none;user-select:none;max-height:320px;overflow:hidden;';
-        secs.slice(SHOW + 1).forEach(function (s) { s.remove(); });
+        secs.slice(SHOW).forEach(function (s) { s.remove(); });
         var cta = document.createElement('div');
-        cta.style.cssText = 'margin:26px 0;padding:26px 22px;border:1px solid rgba(212,175,106,.5);border-radius:14px;background:rgba(212,175,106,.08);text-align:center;font-family:Pretendard,sans-serif;';
+        cta.style.cssText = 'margin:26px 0;padding:28px 22px;border:1px solid rgba(212,175,106,.5);border-radius:14px;background:rgba(212,175,106,.08);text-align:center;font-family:Pretendard,sans-serif;';
         cta.innerHTML =
-          '<p style="font-size:16px;font-weight:700;margin:0 0 6px;">여기까지가 샘플 미리보기예요</p>' +
-          '<p style="font-size:13px;opacity:.8;margin:0 0 14px;">전체 리포트에는 아래 ' + titles.length + '개 섹션이 이어져요</p>' +
+          '<p style="font-size:16px;font-weight:700;margin:0 0 6px;">샘플은 여기까지예요</p>' +
+          '<p style="font-size:13px;opacity:.8;margin:0 0 14px;">전체 리포트에서는 아래 ' + titles.length + '개 섹션이 이어져요</p>' +
           '<ul style="list-style:none;padding:0;margin:0 0 18px;font-size:13px;line-height:2.1;text-align:left;display:inline-block;">' +
           titles.map(function (t) { return '<li>🔒 ' + t + '</li>'; }).join('') + '</ul><br>' +
           '<a href="../payment.html?product=couple" style="display:inline-block;background:#b13a2c;color:#fff;padding:12px 26px;border-radius:999px;text-decoration:none;font-weight:700;font-size:15px;">궁합 전체 리포트 받기 ₩14,900</a>' +
-          '<p style="font-size:12px;opacity:.65;margin:12px 0 0;">성인용(궁합+)은 같은 형식에 심화 섹션이 추가된 버전이에요 — 구매 페이지에서 선택할 수 있어요</p>';
-        teaser.parentNode.insertBefore(cta, teaser);
+          '<p style="font-size:12px;opacity:.7;margin:14px 0 0;"><a href="gunghap_letter.html?mode=normal&taste=1" style="color:inherit;text-decoration:underline;">🆓 우리 궁합으로 무료 맛보기</a></p>';
+        wrap.appendChild(cta);
+        // ── Couple+ 미리보기 (?plus=1) — 비노골 전용 예시 한 꼭지 (공개범위.md §5) ──
+        if (isPlus && window.SD_INTIMACY) {
+          var dA = getDayPillar(1993, 8, 17), dB = getDayPillar(1991, 12, 2);
+          var rel = window.SD_BRANCH_REL(dA.bi, dB.bi);
+          var plus = document.createElement('div');
+          plus.style.cssText = 'margin:26px 0;padding:26px 22px;border:1px solid rgba(177,58,44,.45);border-radius:14px;background:rgba(177,58,44,.06);font-family:Pretendard,sans-serif;font-size:14px;line-height:1.9;';
+          plus.innerHTML =
+            '<p style="font-size:12px;letter-spacing:.1em;opacity:.6;margin:0 0 4px;">COUPLE+ PREVIEW</p>' +
+            '<p style="font-size:16px;font-weight:700;margin:0 0 10px;">궁합+ 미리보기 — 친밀감의 결</p>' +
+            '<p style="margin:0 0 14px;">' + window.SD_INTIMACY(rel, '연우', '준서') + '</p>' +
+            '<p style="font-size:13px;opacity:.8;margin:0 0 16px;">궁합+에서는 이런 주제를 심화 섹션으로 이어서 풀어드려요 — <b>친밀감의 결 · 표현 방식의 차이 · 속도의 조율 · 다툰 뒤 회복하는 방식</b></p>' +
+            '<div style="text-align:center;"><a href="../payment.html?product=couple_plus" style="display:inline-block;background:#b13a2c;color:#fff;padding:11px 24px;border-radius:999px;text-decoration:none;font-weight:700;font-size:14px;">궁합+ 전체 리포트 받기 ₩17,900</a></div>' +
+            '<p style="font-size:11.5px;opacity:.6;margin:12px 0 0;text-align:center;">사주 해석은 관계를 돌아보는 참고자료예요 — 상대의 실제 취향이나 마음을 판정하는 도구가 아니에요.</p>';
+          wrap.appendChild(plus);
+        }
       }
     };
     setTimeout(run, 250);
   });
 </script>
 <script>
+  // ━━━ 무료 맛보기 모드 (?taste=1) ━━━
+  // 로그인 없이 두 사람 생년월일로 관계 요약 한 장 (공개범위.md: 핵심·강점·마찰·대화 팁, 400~600자).
+  // ?mode=adult&taste=1 이면 비노골 친밀감 꼭지 추가 (Couple+ 미리 경험).
+  // 유료 본문은 생성하지 않음. 흐림·중간 절단 없음, 저장·기록 없음.
+
+  // 일지 관계 판정 + 친밀감 꼭지 (샘플 ?plus=1 카드와 공유)
+  window.SD_BRANCH_REL = function (a, b) {
+    var HAP = { 0: 1, 1: 0, 2: 11, 11: 2, 3: 10, 10: 3, 4: 9, 9: 4, 5: 8, 8: 5, 6: 7, 7: 6 };
+    if (HAP[a] === b) return 'hap';
+    if (Math.abs(a - b) === 6) return 'chung';
+    return 'etc';
+  };
+  window.SD_INTIMACY = function (rel, nA, nB) {
+    if (rel === 'hap') return '두 분은 일지가 합으로 묶여 있어서, 스킨십과 표현의 속도가 비슷하게 맞는 결이에요. 친밀감이 관계의 회복 버튼 역할을 하는 배치라, 서먹해졌을 때 말보다 곁에 있는 것이 먼저 통해요. 다만 "말 안 해도 알겠지"라는 믿음이 표현 생략으로 이어지면 아쉬움이 조용히 쌓여요 — 원하는 것을 구체적으로 말하는 연습이 이 관계의 친밀감을 한 단계 올려줘요.';
+    if (rel === 'chung') return '두 분은 일지가 충이라, 친밀감의 속도와 온도가 서로 다른 결이에요. 한쪽은 다가서고 싶을 때 다른 쪽은 정돈할 시간이 필요한 배치라, 속도를 맞추는 대화가 관계 만족의 핵심이 돼요. 거절이 거부가 아니라는 걸 서로 확인하는 것만으로 많은 오해가 풀리는 관계예요.';
+    return '친밀감에서 두 분은 서로 다른 언어를 쓰는 편이에요. 한쪽은 표현으로, 한쪽은 행동으로 마음을 전하는 결이라, 상대의 방식을 자기 언어로 번역해서 읽어주는 노력이 필요해요. 그 번역이 익숙해지면, 다름이 오히려 서로를 더 궁금하게 만드는 힘이 돼요.';
+  };
+
+  window.addEventListener('DOMContentLoaded', function () {
+    var _q = new URLSearchParams(window.location.search);
+    if (_q.get('taste') !== '1') return;
+    var isAdult = _q.get('mode') === 'adult';
+    try { if (typeof gtag === 'function') gtag('event', 'taste_view', { item_id: isAdult ? 'couple_plus' : 'couple' }); } catch (e) {}
+
+    var bn = document.createElement('div');
+    bn.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1300;background:#2a2118;color:#f3ead8;padding:9px 14px;font-size:13px;font-family:Pretendard,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.35);';
+    bn.innerHTML = '<span>🆓 <b>무료 맛보기</b> — 두 분의 생년월일만 입력하면 관계 요약을 바로 보여드려요 (로그인·저장 없음, 결제는 선택)</span>' +
+      '<a href="gunghap_letter.html?mode=normal&sample=1" style="color:#e8c987;text-decoration:underline;white-space:nowrap;">가상 커플 샘플 보기</a>';
+    document.body.appendChild(bn);
+    document.body.style.paddingTop = '54px';
+
+    var SE = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4], GEN = [1, 2, 3, 4, 0], CTRL = [2, 3, 4, 0, 1];
+
+    var tasteRun = function () {
+      var g = function (id) { return (document.getElementById(id) || {}).value; };
+      var yA = parseInt(g('yearA'), 10), mA = parseInt(g('monthA'), 10), dA = parseInt(g('dayA'), 10);
+      var yB = parseInt(g('yearB'), 10), mB = parseInt(g('monthB'), 10), dB = parseInt(g('dayB'), 10);
+      var nA = (g('nameA') || '').trim() || '첫 번째 분';
+      var nB = (g('nameB') || '').trim() || '두 번째 분';
+      if (!yA || !mA || !dA || !yB || !mB || !dB || yA < 1900 || yA > 2050 || yB < 1900 || yB > 2050) {
+        alert('두 분의 생년월일을 확인해주세요.'); return;
+      }
+      var pA = getDayPillar(yA, mA, dA), pB = getDayPillar(yB, mB, dB);
+      var a = pA.si, b = pB.si, eA = SE[a], eB = SE[b];
+      var head, str, fric, tip;
+      if (Math.abs(a - b) === 5) {
+        head = '두 분의 일간이 천간합으로 묶여 있어요 — 서로를 끌어당기는 결이 바탕에 깔린 관계예요.';
+        str = '말하지 않아도 통하는 순간이 잦고, 오래 봐도 잘 질리지 않는 결이에요. 함께 있는 것 자체가 쉬운 관계예요.';
+        fric = '너무 당연해져서 표현을 생략하게 되는 것 — 편함이 무심함으로 읽히는 순간이 와요.';
+        tip = '"고맙다"를 일부러 소리 내어 말해보세요. 합으로 묶인 관계는 표현 한 번의 효과가 오래 가요.';
+      } else if (eA === eB) {
+        head = '두 분은 같은 오행의 기운끼리 만났어요 — 닮아서 편하고, 닮아서 부딪히는 관계예요.';
+        str = '설명이 필요 없는 사이예요. 속도와 취향이 비슷해서 함께 있는 게 쉽고, 서로를 금방 알아봐요.';
+        fric = '같은 것을 원할 때 양보가 어려워요. 부딪히면 둘 다 잘 안 굽히는 결이에요.';
+        tip = '경쟁이 붙기 쉬운 주제(돈·주도권·계획)는 규칙을 먼저 정해두세요. 규칙만 있으면 최강의 한 팀이 돼요.';
+      } else if (GEN[eA] === eB || GEN[eB] === eA) {
+        var giver = GEN[eA] === eB ? nA : nB, taker = GEN[eA] === eB ? nB : nA;
+        head = giver + '님의 기운이 ' + taker + '님을 자연스럽게 살려주는 상생의 흐름이에요.';
+        str = '주고받는 역할이 자연스럽게 잡히는 관계예요. 받치는 쪽과 기대는 쪽의 균형이 이 관계 특유의 안정감을 만들어요.';
+        fric = '주는 쪽(' + giver + '님)이 조용히 지치는 날이 와요. 받는 쪽은 모르는 사이에 그게 당연해지기 쉬워요.';
+        tip = '역할을 가끔 바꿔보세요. ' + taker + '님이 먼저 챙기는 날을 정해두면 이 흐름이 오래 갑니다.';
+      } else {
+        var presser = CTRL[eA] === eB ? nA : nB, pressed = CTRL[eA] === eB ? nB : nA;
+        head = presser + '님의 기운이 ' + pressed + '님의 결을 다듬는, 긴장이 살아 있는 관계예요.';
+        str = '긴장이 있는 만큼 서로를 성장시켜요. 무던한 관계가 주지 못하는 자극과 발전이 있는 결이에요.';
+        fric = '지친 날엔 그 긴장이 잔소리나 통제로 읽혀요. ' + pressed + '님의 말수가 줄어들면 그게 신호예요.';
+        tip = '고치려는 말은 하루 묵혔다가 하세요. 다듬는 관계는 내용보다 타이밍이 전부예요.';
+      }
+      var bRel = window.SD_BRANCH_REL(pA.bi, pB.bi);
+      var bNote = bRel === 'hap' ? ' 일지도 합으로 묶여 있어 생활 감각은 잘 맞는 편이에요.'
+        : bRel === 'chung' ? ' 다만 일지가 충이라 생활 리듬(정리·시간 감각)에서 부딪힘이 반복될 수 있어요 — 아래 팁이 특히 유효해요.'
+          : '';
+      var old = document.getElementById('tasteResult'); if (old) old.remove();
+      var card = document.createElement('div');
+      card.id = 'tasteResult';
+      card.style.cssText = 'max-width:640px;margin:30px auto;padding:34px 26px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,106,.45);border-radius:16px;font-family:Pretendard,sans-serif;line-height:1.9;font-size:14.5px;';
+      card.innerHTML =
+        '<p style="font-size:12px;letter-spacing:.12em;opacity:.6;margin:0 0 4px;">FREE TASTE · 무료 맛보기 궁합</p>' +
+        '<h2 style="font-size:20px;margin:0 0 14px;">' + nA + ' × ' + nB + ', 두 분의 결</h2>' +
+        '<p style="font-size:13px;opacity:.75;margin:0 0 16px;">' + nA + ' — 일주 ' + STEMS[pA.si] + BRANS[pA.bi] + ' &nbsp;·&nbsp; ' + nB + ' — 일주 ' + STEMS[pB.si] + BRANS[pB.bi] + '</p>' +
+        '<p style="margin:0 0 14px;"><b>' + head + '</b>' + bNote + '</p>' +
+        '<p style="margin:0 0 4px;font-weight:700;">이 관계의 강점</p><p style="margin:0 0 12px;">' + str + '</p>' +
+        '<p style="margin:0 0 4px;font-weight:700;">부딪히기 쉬운 지점</p><p style="margin:0 0 12px;">' + fric + '</p>' +
+        '<p style="margin:0 0 4px;font-weight:700;">오늘 해볼 수 있는 것</p><p style="margin:0 0 18px;">' + tip + '</p>' +
+        (isAdult ? '<p style="margin:0 0 4px;font-weight:700;color:#d98a8a;">친밀감의 결 (궁합+ 미리보기)</p><p style="margin:0 0 18px;">' + window.SD_INTIMACY(bRel, nA, nB) + '</p>' : '') +
+        '<div style="border-top:1px dashed rgba(255,255,255,.18);padding-top:18px;text-align:center;">' +
+        '<p style="font-size:13.5px;opacity:.85;margin:0 0 14px;">무료 해석은 여기까지예요.<br>전체 리포트에서는 두 분의 관계 구조와 앞으로의 흐름을 더 자세히 풀어드려요.</p>' +
+        '<a href="../payment.html?product=' + (isAdult ? 'couple_plus' : 'couple') + '" style="display:inline-block;background:#b13a2c;color:#fff;padding:11px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:14px;margin:0 4px 8px;">전체 구성·가격 보기</a>' +
+        '<a href="gunghap_letter.html?mode=normal&sample=1' + (isAdult ? '&plus=1' : '') + '" style="display:inline-block;background:rgba(255,255,255,.1);color:inherit;padding:11px 22px;border-radius:999px;text-decoration:none;font-size:14px;margin:0 4px 8px;">샘플로 내용 더 확인하기</a>' +
+        '<p style="font-size:11.5px;opacity:.55;margin:8px 0 0;">입력하신 정보는 저장되지 않아요.</p></div>';
+      var inputCard = document.getElementById('inputCard');
+      inputCard.classList.add('hidden');
+      inputCard.parentNode.insertBefore(card, inputCard.nextSibling);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      try { if (typeof gtag === 'function') gtag('event', 'taste_complete', { item_id: isAdult ? 'couple_plus' : 'couple' }); } catch (e) {}
+    };
+
+    var tries = 0;
+    var arm = function () {
+      if (typeof doCalc !== 'function') { if (++tries < 40) setTimeout(arm, 150); return; }
+      window.doCalc = tasteRun; // 맛보기 모드에서 "편지 펼쳐보기" 버튼이 무료 요약을 생성
+    };
+    arm();
+  });
+</script>
+<script>
   // ─── 다중 슬롯 + 카카오 생일 자동입력 (궁합) ───
   // 서버 원장 동기화를 먼저 수행 — 다른 기기에서 결제한 내역도 인식
   window.addEventListener('DOMContentLoaded', async function() {
-    if (new URLSearchParams(window.location.search).get('sample') === '1') return; // 공개 샘플 모드 — 아래 샘플 스크립트가 처리
+    var _pm = new URLSearchParams(window.location.search);
+    if (_pm.get('sample') === '1' || _pm.get('taste') === '1') return; // 공개 샘플·무료 맛보기 모드 — 전용 스크립트가 처리
     await AuthGuard.syncFromServer();
     (function () {
       const mode = new URLSearchParams(window.location.search).get('mode');
