@@ -19,10 +19,59 @@
 <script src="../assets/js/config.js?v=20260718"></script>
 <script src="../assets/js/auth-guard.js?v=20260718"></script>
 <script>
+  // ━━━ 공개 샘플 모드 (?sample=1) ━━━
+  // 로그인·결제 없이 가상 인물 '연우'의 리포트를 실제 엔진으로 미리보기.
+  // 앞 3개 섹션 공개 + 1개 블러 티저, 나머지는 잠긴 목차만. 슬롯 저장·서버 기록 없음.
+  window.addEventListener('DOMContentLoaded', function () {
+    if (new URLSearchParams(window.location.search).get('sample') !== '1') return;
+    try { if (typeof gtag === 'function') gtag('event', 'sample_view', { item_id: 'deep' }); } catch (e) {}
+    var set = function (id, v) { var el = document.getElementById(id); if (el) el.value = v; };
+    set('bName', '연우'); set('bYear', 1993); set('bMonth', 8); set('bDay', 17);
+    set('bHour', 9); set('bGender', 'female');
+    var SHOW = 3, tries = 0;
+    var run = function () {
+      if (typeof doCalc !== 'function') { if (++tries < 20) setTimeout(run, 150); return; }
+      doCalc(true);
+      ['floatBar', 'floatTocBtn', 'asBanner'].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important');
+      });
+      var bn = document.createElement('div');
+      bn.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1300;background:#2a2118;color:#f3ead8;padding:9px 14px;font-size:13px;font-family:Pretendard,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.35);';
+      bn.innerHTML = '<span>📄 가상 인물 <b>연우</b>(1993년생)의 <b>전문가용 샘플</b> — 구매하면 내 정보로 이 형식 그대로 생성돼요</span>' +
+        '<a href="../payment.html?product=deep" style="background:#b13a2c;color:#fff;padding:5px 13px;border-radius:999px;text-decoration:none;font-weight:700;white-space:nowrap;">전문가용 시작하기 ₩29,900</a>' +
+        '<a href="saju_letter.html?sample=1" style="color:#e8c987;text-decoration:underline;white-space:nowrap;">입문용 샘플</a>';
+      document.body.appendChild(bn);
+      document.body.style.paddingTop = '54px';
+      var secs = Array.prototype.slice.call(document.querySelectorAll('#analysisWrap .sec'));
+      if (secs.length > SHOW) {
+        var titles = secs.slice(SHOW).map(function (s, i) {
+          var h = s.querySelector('h2,h3,.sec-title');
+          return h ? h.textContent.trim() : '섹션 ' + (SHOW + i + 1);
+        });
+        var teaser = secs[SHOW];
+        teaser.style.cssText += ';filter:blur(6px);opacity:.55;pointer-events:none;user-select:none;max-height:320px;overflow:hidden;';
+        secs.slice(SHOW + 1).forEach(function (s) { s.remove(); });
+        var cta = document.createElement('div');
+        cta.style.cssText = 'margin:26px 0;padding:26px 22px;border:1px solid rgba(212,175,106,.5);border-radius:14px;background:rgba(212,175,106,.08);text-align:center;font-family:Pretendard,sans-serif;';
+        cta.innerHTML =
+          '<p style="font-size:16px;font-weight:700;margin:0 0 6px;">여기까지가 샘플 미리보기예요</p>' +
+          '<p style="font-size:13px;opacity:.8;margin:0 0 14px;">전체 리포트에는 아래 ' + titles.length + '개 섹션이 이어져요</p>' +
+          '<ul style="list-style:none;padding:0;margin:0 0 18px;font-size:13px;line-height:2.1;text-align:left;display:inline-block;">' +
+          titles.map(function (t) { return '<li>🔒 ' + t + '</li>'; }).join('') + '</ul><br>' +
+          '<a href="../payment.html?product=deep" style="display:inline-block;background:#b13a2c;color:#fff;padding:12px 26px;border-radius:999px;text-decoration:none;font-weight:700;font-size:15px;">전문가용 전체 리포트 받기 ₩29,900</a>' +
+          '<p style="font-size:12px;opacity:.65;margin:12px 0 0;"><a href="saju_letter.html?sample=1" style="color:inherit;text-decoration:underline;">같은 인물의 입문용(Light) 샘플과 비교해보기 →</a></p>';
+        teaser.parentNode.insertBefore(cta, teaser);
+      }
+    };
+    setTimeout(run, 250);
+  });
+</script>
+<script>
   // 전문가용(deep) 결제자만 접근 가능 (마스터 계정은 패스)
   // ─── 다중 슬롯 + 카카오 생일 자동입력 ───
   // 서버 원장 동기화를 먼저 수행 — 다른 기기에서 결제한 내역도 인식
   window.addEventListener('DOMContentLoaded', async function() {
+    if (new URLSearchParams(window.location.search).get('sample') === '1') return; // 공개 샘플 모드 — 아래 샘플 스크립트가 처리
     await AuthGuard.syncFromServer();
     if (!AuthGuard.requirePurchase('deep')) return;
     const params = new URLSearchParams(window.location.search);
