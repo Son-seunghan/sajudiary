@@ -5151,8 +5151,8 @@ function buildMiniGukTableF12(pillars,dsi,yP){
   let r=`<tr>${colLbls.map(l=>`<th style="${hs}">${l}</th>`).join('')}</tr>`;
   r+=`<tr>${rp.map(p=>`<td style="${ss}">${STEMS_H[p.si]}<br><span style="font-size:10px;opacity:.7;">${STEMS[p.si]}</span></td>`).join('')}</tr>`;
   r+=`<tr>${rp.map(p=>`<td style="${bs}">${BRANS_H[p.bi]}<br><span style="font-size:10px;opacity:.7;">${BRANS[p.bi]}</span></td>`).join('')}</tr>`;
-  r+=`<tr><td colspan="${n}" style="${cs}font-size:9px;color:var(--muted);text-align:left;padding:3px 10px;background:rgba(212,175,106,.04);">▼ 12운성</td></tr>`;
-  r+=`<tr>${rp.map(p=>`<td style="${f12s}">${getF12(dsi,p.bi)}</td>`).join('')}</tr>`;
+  r+=`<tr><td colspan="${n}" style="${cs}font-size:9px;color:var(--muted);text-align:left;padding:3px 10px;background:rgba(212,175,106,.04);">▼ 12운성 (각 주 천간 기준)</td></tr>`;
+  r+=`<tr>${rp.map(p=>`<td style="${f12s}">${getF12(p.si,p.bi)}</td>`).join('')}</tr>`;
   r+=`<tr><td colspan="${n}" style="${cs}font-size:9px;color:var(--muted);text-align:left;padding:3px 10px;background:rgba(80,180,160,.04);">▼ 12신살 (년지 기준)</td></tr>`;
   r+=`<tr>${rp.map(p=>`<td style="${shinS(p.bi)}">${getShinsal(p.bi)}</td>`).join('')}</tr>`;
   return `<div style="overflow-x:auto;margin:10px 0 18px;"><table style="border-collapse:collapse;width:100%;font-family:sans-serif;">${r}</table></div>`;
@@ -5724,11 +5724,11 @@ function renderSajuChart(pillars,dsi,withHour){
   });
   html+='</tr>';
 
-  // 행5: 12운성
+  // 행5: 12운성 (각 주 천간 기준 — 앉은 자리)
   html+='<tr>';
   rp.forEach((p,i)=>{
     const isDay=(i===dayIdxInRp);
-    html+=(isDay?'<td class="day-col">':'<td>')+'<span class="char-sm">'+getF12(dsi,p.bi)+'</span></td>';
+    html+=(isDay?'<td class="day-col">':'<td>')+'<span class="char-sm">'+getF12(p.si,p.bi)+'</span></td>';
   });
   html+='</tr>';
 

@@ -2058,12 +2058,12 @@ ${pg.career}`
     const tgSorted=Object.entries(tgCnts).sort((a,b)=>b[1]-a[1]).filter(e=>e[1]>0);
     const topTg1=tgSorted[0]?TG_LABELS[+tgSorted[0][0]]+'('+tgSorted[0][1]+'개)':``;
     const topTg2=tgSorted[1]?', '+TG_LABELS[+tgSorted[1][0]]+'('+tgSorted[1][1]+'개)':``;
-    // 12운성 요약 (일간 기준)
-    const f12Names=['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
-    const f12_yP=yP?f12Names[getF12(dsi,yP.bi)]||'─':'─';
-    const f12_mP=mP?f12Names[getF12(dsi,mP.bi)]||'─':'─';
-    const f12_dP=f12Names[getF12(dsi,dP.bi)]||'─';
-    const f12_hP=hP?f12Names[getF12(dsi,hP.bi)]||'─':'─';
+    // 12운성 요약 (각 주 천간 기준 — 앉은 자리)
+    // ※ 기존 f12Names[getF12(...)] 는 getF12가 이미 이름 문자열을 반환해 항상 '─'가 되던 버그 — 주 기준 전환과 함께 수정 (2026-09-14)
+    const f12_yP=yP?getF12(yP.si,yP.bi):'─';
+    const f12_mP=mP?getF12(mP.si,mP.bi):'─';
+    const f12_dP=getF12(dP.si,dP.bi);
+    const f12_hP=hP?getF12(hP.si,hP.bi):'─';
     const strongF12s=['장생','건록','제왕','관대'];
     const weakF12s=['묘','절','병','사'];
     const pillarF12s=[
@@ -2142,8 +2142,8 @@ ${pg.career}`
       const ex_step4_hyung=hyungList.length>0?` 형(刑): ${hyungSummary} — 특정 글자 조합에서 내부 긴장과 마찰이 발생할 수 있어요.`:'';
       const ex_step4=`이 사주에서는 합(合): ${hapSummary} / 충(沖): ${chungSummary} 이 나타납니다. ${ex_step4_cmt}${ex_step4_hyung}`;
       const ex_step5=strongPillars.length>0
-        ?`일간 ${STEMS[dsi]} 기준으로 ${strongPillars.map(p=>`${p.lbl}(${p.f12})`).join(', ')}의 에너지가 강하게 활성화돼 있어요.${weakPillars.length>0?` 반면 ${weakPillars.map(p=>`${p.lbl}(${p.f12})`).join(', ')}은 힘이 약하게 흐르는 구조예요.`:''}`
-        :`일간 ${STEMS[dsi]} 기준으로 각 기둥의 에너지는 아래 12운성 표에서 확인하세요.`;
+        ?`각 주 천간(앉은 자리) 기준으로 ${strongPillars.map(p=>`${p.lbl}(${p.f12})`).join(', ')}의 에너지가 강하게 활성화돼 있어요.${weakPillars.length>0?` 반면 ${weakPillars.map(p=>`${p.lbl}(${p.f12})`).join(', ')}은 힘이 약하게 흐르는 구조예요.`:''}`
+        :`각 기둥의 에너지 상태(앉은 자리 12운성)는 아래 표에서 확인하세요.`;
       const ex_step6=(()=>{
         if(!curDw) return '대운 정보를 계산하려면 생년월일과 시간을 정확히 입력해주세요.';
         const dwS=STEMS[curDw.si],dwB=BRANS[curDw.bi],dwLbl=`${dwS}${dwB}`;
@@ -4545,8 +4545,8 @@ function buildMiniGukTableF12(pillars,dsi,yP){
   let r=`<tr>${colLbls.map(l=>`<th style="${hs}">${l}</th>`).join('')}</tr>`;
   r+=`<tr>${rp.map(p=>`<td style="${ss}">${STEMS_H[p.si]}<br><span style="font-size:10px;opacity:.7;">${STEMS[p.si]}</span></td>`).join('')}</tr>`;
   r+=`<tr>${rp.map(p=>`<td style="${bs}">${BRANS_H[p.bi]}<br><span style="font-size:10px;opacity:.7;">${BRANS[p.bi]}</span></td>`).join('')}</tr>`;
-  r+=`<tr><td colspan="${n}" style="${cs}font-size:9px;color:var(--muted);text-align:left;padding:3px 10px;background:rgba(212,175,106,.04);">▼ 12운성</td></tr>`;
-  r+=`<tr>${rp.map(p=>`<td style="${f12s}">${getF12(dsi,p.bi)}</td>`).join('')}</tr>`;
+  r+=`<tr><td colspan="${n}" style="${cs}font-size:9px;color:var(--muted);text-align:left;padding:3px 10px;background:rgba(212,175,106,.04);">▼ 12운성 (각 주 천간 기준)</td></tr>`;
+  r+=`<tr>${rp.map(p=>`<td style="${f12s}">${getF12(p.si,p.bi)}</td>`).join('')}</tr>`;
   r+=`<tr><td colspan="${n}" style="${cs}font-size:9px;color:var(--muted);text-align:left;padding:3px 10px;background:rgba(80,180,160,.04);">▼ 12신살 (년지 기준)</td></tr>`;
   r+=`<tr>${rp.map(p=>`<td style="${shinS(p.bi)}">${getShinsal(p.bi)}</td>`).join('')}</tr>`;
   return `<div style="overflow-x:auto;margin:10px 0 18px;"><table style="border-collapse:collapse;width:100%;font-family:sans-serif;">${r}</table></div>`;
@@ -5214,11 +5214,11 @@ function renderSajuChart(pillars,dsi,withHour){
   });
   html+='</tr>';
 
-  // 행5: 12운성
+  // 행5: 12운성 (각 주 천간 기준 — 앉은 자리)
   html+='<tr>';
   rp.forEach((p,i)=>{
     const isDay=(i===dayIdxInRp);
-    html+=(isDay?'<td class="day-col">':'<td>')+'<span class="char-sm">'+getF12(dsi,p.bi)+'</span></td>';
+    html+=(isDay?'<td class="day-col">':'<td>')+'<span class="char-sm">'+getF12(p.si,p.bi)+'</span></td>';
   });
   html+='</tr>';
 
