@@ -3914,9 +3914,9 @@ function analyzeF12Shinsal(pillars,dP,yP,dwList,currentAge){
   //  ▶ 12운성(十二運星)
   // ════════════════════════════════════
   lines.push('══════ 🌀 12운성(十二運星) ══════\n');
-  lines.push('일간(나의 기운)이 각 기둥의 지지를 만날 때 에너지 상태를 12단계로 나눈 것이에요.\n');
+  lines.push('각 기둥의 천간이 자기가 앉은 지지에서 갖는 에너지 상태를 12단계로 나눈 것이에요. (각 주 천간 기준 — 앉은 자리)\n');
 
-  const allPillarF12s=pillars.map(p=>getF12(dsi,p.bi));
+  const allPillarF12s=pillars.map(p=>getF12(p.si,p.bi)); // 2026-09-24: 앉은 자리 기준 전환 (손님 결정 Q6)
   const uniqueF12s=[...new Set(allPillarF12s)];
   const f12FullDesc={
     '장생':'🌱 장생(長生) — 기운이 막 태어난 상태예요. 활력이 넘치고 새로운 것에 도전하려는 에너지가 강합니다. 시작하는 일에서 좋은 결과를 내기 쉽고, 순수하고 적극적인 기질이 삶 전반에 나타납니다.',
@@ -3956,7 +3956,7 @@ function analyzeF12Shinsal(pillars,dP,yP,dwList,currentAge){
   lines.push(geobDesc[dsi]||stemName+' 일간의 장생지는 '+BRANS[jangSaengBi]+'입니다.');
 
   lines.push('\n\n【 원국 기둥별 12운성 】\n');
-  const colLabels=['년지','월지','일지','시지'];
+  const colLabels=['년주','월주','일주','시주']; /* 2026-09-24: 앉은 자리 기준이라 기둥(간지) 단위 표기 */
   const f12Detail={
     '장생':'🌱 활력·새 시작','목욕':'💧 매력·감정기복','관대':'📚 준비·성장',
     '건록':'🏆 자립·전성기','제왕':'👑 최고조·강한 추진력','쇠':'🍂 안정·내실',
@@ -3964,7 +3964,7 @@ function analyzeF12Shinsal(pillars,dP,yP,dwList,currentAge){
     '절':'🌀 전환점·새 가능성','태':'🥚 잉태·방향 탐색','양':'🌿 보호·도움 받음'
   };
   for(let i=0;i<pillars.length;i++){
-    const p=pillars[i],f=getF12(dsi,p.bi);
+    const p=pillars[i],f=getF12(p.si,p.bi); // 앉은 자리
     lines.push('▪ '+colLabels[i]+'('+BRANS[p.bi]+'): '+f+' — '+(f12Detail[f]||f));
   }
   const dayF12=getF12(dsi,dP.bi);
@@ -4393,7 +4393,7 @@ function answerQuestions(questions,ctx){
       const badF12=['병','사','묘','절'];
       let hasBadF12=false;
       for(const p of [yP,mP,dP,hP].filter(Boolean)){
-        if(badF12.includes(getF12(dP.si,p.bi))) hasBadF12=true;
+        if(badF12.includes(getF12(p.si,p.bi))) hasBadF12=true; /* 2026-09-24: 원국 흉운성 감지도 앉은 자리 기준 */
       }
       if(hasBadF12) t+=`\n\n사주 안에 에너지가 침잠·내재하는 글자가 있어, 건강 문제가 신호를 보낼 때 몸이 덜 반응하는 경향이 있습니다. 가벼운 증상도 초기에 관리하고, 정기 검진을 꾸준히 챙기는 것이 중요합니다.`;
       // 건강이 좋은 해: 식신(2), 정인(9) 운 / 주의해야 할 해: 편관(6), 겁재(1) 운

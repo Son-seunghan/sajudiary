@@ -205,7 +205,7 @@
         <p class="text-[11px] text-[var(--ink4)] mt-3 leading-relaxed">
           기준(오주괘): 시진 경계 정각 — 자시 23:01~01:00, 오시 11:01~13:00 · 일주는 23:01에 다음 날로(정자시법) ·
           연/월주는 절기 절입 시각 판정 · 분지(分支)는 홀수시 정각부터 00분00초~09분59초=子, 10분마다 진행 ·
-          분간(分干)은 시간(時干) 기준 오자둔(둔월둔시법과 같은 원리) · 십성·12운성은 일간 기준
+          분간(分干)은 시간(時干) 기준 오자둔(둔월둔시법과 같은 원리) · 십성은 일간 기준 · 12운성은 각 주 천간(앉은 자리) 기준
         </p>
       </section>
     </div>
@@ -287,7 +287,7 @@ function renderOjuTable(r){
   h+=row('천간',p=>`<span class="el-tile e${STEM_E[p.si]}">${STEMS_H[p.si]}</span><span class="rd">${STEMS[p.si]}</span>`);
   h+=row('지지',p=>`<span class="el-tile e${BRAN_E[p.bi]}">${BRANS_H[p.bi]}</span><span class="rd">${BRANS[p.bi]}</span>`);
   h+=row('십성(지지)',p=>`<span class="tg" style="color:var(--ink3)">${TG_N[getTG(dsi,MAIN_H[p.bi])]}</span>`);
-  h+=row('12운성',p=>`<span class="f12">${getF12(dsi,p.bi)}</span>`);
+  h+=row('12운성',p=>`<span class="f12">${getF12(p.si,p.bi)}</span>`); // 2026-09-24: 앉은 자리 기준 전환
   h+=row('지장간',p=>`<span class="jjg">${HIDDEN[p.bi].map(x=>`<span class="${ELEM_C[STEM_E[x]]}">${STEMS_H[x]}</span>`).join(' ')}</span>`);
   h+=`</table>`;
   return h;

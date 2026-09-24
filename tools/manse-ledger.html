@@ -886,7 +886,7 @@
     h+=row('12운성',p=>`<span class="f12">${getF12(p.si,p.bi)}</span>`); // 각 주 천간 기준 (앉은 자리)
     h+=row('12신살',p=>{const s=sal12(p.bi);return s?`<span class="sal">${s}</span>`:`<span class="sal none">─</span>`;});
     h+=row('지장간',p=>`<span class="jjg">${HIDDEN[p.bi].map(x=>`<span class="${ELEM_C[STEM_E[x]]}">${STEMS_H[x]}</span>`).join(' ')}</span>`);
-    h+=`</table><div class="ana-sub" style="margin-top:6px">십성=일간(${STEMS_H[dsi]}) 기준 · 12운성=일간 기준 · 12신살=년지(${BRANS_H[r.yP.bi]}) 기준</div>`;
+    h+=`</table><div class="ana-sub" style="margin-top:6px">십성=일간(${STEMS_H[dsi]}) 기준 · 12운성=각 주 천간(앉은 자리) 기준 · 12신살=년지(${BRANS_H[r.yP.bi]}) 기준</div>`;
     return h;
   }
 

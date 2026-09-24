@@ -2975,9 +2975,9 @@ function analyzeF12Shinsal(pillars,dP,yP,dwList,currentAge){
   //  ▶ 12운성(十二運星)
   // ════════════════════════════════════
   lines.push('══════ 🌀 12운성(十二運星) ══════\n');
-  lines.push('일간(나의 기운)이 각 기둥의 지지를 만날 때 에너지 상태를 12단계로 나눈 것이에요.\n');
+  lines.push('각 기둥의 천간이 자기가 앉은 지지에서 갖는 에너지 상태를 12단계로 나눈 것이에요. (각 주 천간 기준 — 앉은 자리)\n');
 
-  const allPillarF12s=pillars.map(p=>getF12(dsi,p.bi));
+  const allPillarF12s=pillars.map(p=>getF12(p.si,p.bi)); // 2026-09-24: 앉은 자리 기준 전환 (손님 결정 Q6)
   const uniqueF12s=[...new Set(allPillarF12s)];
   const f12FullDesc={
     '장생':'🌱 장생(長生) — 에너지가 새롭게 태어나 확장되는 단계예요. 일지 또는 대운에 장생이 있으면 호기심·새 환경 적응력·시작 에너지가 평균 이상으로 발달하는 경향이 있어요. 다만 끝까지 밀고 가는 지구력은 약한 편이라 마무리 단계에서 도움이 필요한 케이스가 많습니다.',
@@ -3017,7 +3017,7 @@ function analyzeF12Shinsal(pillars,dP,yP,dwList,currentAge){
   lines.push(geobDesc[dsi]||stemName+' 일간의 장생지는 '+BRANS[jangSaengBi]+'입니다.');
 
   lines.push('\n\n【 원국 기둥별 12운성 】\n');
-  const colLabels=['년지','월지','일지','시지'];
+  const colLabels=['년주','월주','일주','시주']; /* 2026-09-24: 앉은 자리 기준이라 기둥(간지) 단위 표기 */
   const f12Detail={
     '장생':'🌱 활력·새 시작','목욕':'💧 매력·감정기복','관대':'📚 준비·성장',
     '건록':'🏆 자립·전성기','제왕':'👑 최고조·강한 추진력','쇠':'🍂 안정·내실',
@@ -3025,8 +3025,8 @@ function analyzeF12Shinsal(pillars,dP,yP,dwList,currentAge){
     '절':'🌀 전환점·새 가능성','태':'🥚 잉태·방향 탐색','양':'🌿 보호·도움 받음'
   };
   for(let i=0;i<pillars.length;i++){
-    const p=pillars[i],f=getF12(dsi,p.bi);
-    lines.push('▪ '+colLabels[i]+'('+BRANS[p.bi]+'): '+f+' — '+(f12Detail[f]||f));
+    const p=pillars[i],f=getF12(p.si,p.bi); // 앉은 자리
+    lines.push('▪ '+colLabels[i]+'('+STEMS[p.si]+BRANS[p.bi]+'): '+f+' — '+(f12Detail[f]||f));
   }
   const dayF12=getF12(dsi,dP.bi);
   lines.push('\n일지('+BRANS[dP.bi]+') 운성 "'+dayF12+'" — '+(
