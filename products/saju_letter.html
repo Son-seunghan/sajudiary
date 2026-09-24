@@ -1404,17 +1404,61 @@ function getElemBalance(pillars){
 }
 
 function getDayStrength(saju){
-  const{yP,mP,dP,hP}=saju;const de=STEM_E[dP.si];let s=0;
-  const rest=[yP,mP,hP].filter(Boolean);
-  for(const p of rest){
-    const se=STEM_E[p.si],be=BRAN_E[p.bi];
-    if(se===de||se===GEN_BY[de]) s+=1;
-    if(be===de||be===GEN_BY[de]) s+=0.7;
-    if(se===GEN[de]||se===CTRL[de]||se===CTRL_BY[de]) s-=0.5;
+  // ═══ 2026-09-24 손님 확정: 득령·득지·득세 8조합 → 5단계 (기존 가감산식 폐기) ═══
+  const{yP,mP,dP,hP}=saju;const de=STEM_E[dP.si];
+  const helps=e=>e===de||e===GEN_BY[de];
+  const dr=helps(BRAN_E[mP.bi]);
+  const dj=helps(BRAN_E[dP.bi]);
+  const rest=[STEM_E[yP.si],STEM_E[mP.si],BRAN_E[yP.bi]];
+  if(hP){rest.push(STEM_E[hP.si],BRAN_E[hP.bi]);}
+  const ds=rest.filter(helps).length>=rest.length/2;
+  if(dr&&dj&&ds) return '극신강(極身强)';
+  if(dr&&(dj||ds)) return '신강(身强)';
+  if((dr&&!dj&&!ds)||(!dr&&dj&&ds)) return '중화(中和)';
+  if(!dr&&(dj!==ds)) return '신약(身弱)';
+  return '극신약(極身弱)';
+}
+
+// ═══ 2026-09-24 손님 확정: 십성 과다 판정 + 용신 산정 (saju.html과 동일) ═══
+let MONTH_TB=-1;
+function isGwada(cnts,groupIdxs){
+  const c=groupIdxs.reduce((a,i)=>a+(cnts[i]||0),0);
+  return c>=(groupIdxs.includes(MONTH_TB)?3:4);
+}
+function getYongsinInfo(dsi,pillars,dP,cnts,strength,inter){
+  const de=STEM_E[dsi];
+  const EN5=['목','화','토','금','수'];
+  const G={bik:[0,1],in_:[8,9],sik:[2,3],jae:[4,5],gwan:[6,7]};
+  const GN={bik:'비겁',in_:'인성',sik:'식상',jae:'재성',gwan:'관성'};
+  const GE={bik:de,in_:GEN_BY[de],sik:GEN[de],jae:CTRL[de],gwan:CTRL_BY[de]};
+  const cnt=k=>G[k].reduce((a,i)=>a+(cnts[i]||0),0);
+  let giKey=null;
+  for(const k of Object.keys(G)){ if(cnt(k)>0&&(giKey===null||cnt(k)>cnt(giKey))) giKey=k; }
+  const gi=giKey?{elem:GE[giKey],name:EN5[GE[giKey]],group:GN[giKey]}:null;
+  if(strength.includes('중화')) return {elem:null,name:null,group:null,mode:'중화(균형 유지)',gi};
+  const strong=strength.includes('신강');
+  let order;
+  if(strong){
+    const b=cnt('bik'),i_=cnt('in_');
+    order=b>i_?['jae','gwan','sik']:i_>b?['sik','jae','gwan']:['gwan','jae','sik'];
+  } else {
+    order=cnt('bik')>=cnt('in_')?['bik','in_']:['in_','bik'];
   }
-  const mbe=BRAN_E[mP.bi];
-  if(mbe===de||mbe===GEN_BY[de]) s+=1.5; else s-=0.5;
-  return s>=1.5?'신강(身强)':s>=0?'중화(中和)':'신약(身弱)';
+  const dmg=(inter&&((inter.chung||[]).join('')+(inter.hyung||[]).join('')+(inter.stemHap||[]).join('')))||'';
+  const evalK=k=>{
+    const el=GE[k];let total=0,alive=0;
+    for(const p of pillars){
+      if(p!==dP&&STEM_E[p.si]===el){total++;if(!dmg.includes(STEMS[p.si]))alive++;}
+      if(BRAN_E[p.bi]===el){total++;if(!dmg.includes(BRANS[p.bi]))alive++;}
+    }
+    let hidden=false;
+    if(total===0)for(const p of pillars)for(const h of HIDDEN[p.bi])if(STEM_E[h]===el)hidden=true;
+    return {k,el,total,alive,hidden};
+  };
+  const cands=order.map(evalK);
+  const pick=cands.find(c=>c.alive>0)||cands.find(c=>c.total>0)||cands.find(c=>c.hidden)||cands[0];
+  return {elem:pick.el,name:EN5[pick.el],group:GN[pick.k],mode:strong?'신강 억부':'신약 부조',
+          viaHidden:pick.total===0&&pick.hidden,absent:pick.total===0&&!pick.hidden,gi};
 }
 
 function getCurrentDwIdx(list,currentAge){
@@ -1617,9 +1661,9 @@ function buildLetterPersonality(dsi, dP, mP, hP, strength, nameWord){
   const careerText=to2nd(pg.career);
 
   // 신강/약/균형 요약
-  const strengthNote2nd=strength==='신강(身强)'
+  const strengthNote2nd=strength.includes('신강')
     ?`전체적으로 에너지가 넘치고 강한 구조예요. 그 힘을 올바른 방향으로 집중하고 주변과 조화를 이루는 것 — 그게 ${nameWord} 삶의 핵심 숙제예요.`
-    :strength==='신약(身弱)'
+    :strength.includes('신약')
     ?`에너지를 아끼고 선택과 집중이 중요한 구조예요. 든든한 조력자와 안정적인 환경 속에서 진가를 발휘하는 타입이에요.`
     :`어느 방향으로든 유연하게 대처할 수 있는 균형 잡힌 구조예요.`;
 
@@ -1786,11 +1830,11 @@ function buildLifeNarrative({dsi,pillars,tgCnts,interactions,curDw,dP,mP,yP,hP,s
       paras.push(`어린 시절부터 청소년기까지, 당신은 ${earlyMood} 속에서 자랐을 것입니다. 이 시기를 감싸는 기운은 ${pDesc}였어요.`);
 
       // 기질 형성
-      const earlyChar=in_>=1.5?'배움과 사색을 즐기고, 어른들에게 칭찬을 들으면 더 열심히 하는 아이였을 가능성이 높아요.':
-        sik>=1.5?'말하고 만들고 표현하는 것에서 기쁨을 찾았을 거예요. 정해진 틀 안에 갇히는 것보다 자유롭게 뛰노는 환경에서 더 빛을 발했을 아이입니다.':
-        gwan>=1.5?'어릴 때부터 눈치가 빠르고 어른의 기대에 부응하려는 경향이 있었을 거예요. 칭찬받고 싶은 마음과 책임감이 이른 나이부터 싹텄습니다.':
-        jae>=1.5?'현실적인 것에 일찍부터 눈이 열렸어요. 무엇이든 구체적으로 얻고 싶다는 욕구가 이른 나이부터 드러났을 거예요.':
-        bik>=1.5?'남의 도움보다 스스로 해결하려는 의지가 강한 아이였을 것입니다. 경쟁 구도에서 지기 싫어했고, 자신만의 방식을 고집하는 면이 있었어요.':
+      const earlyChar=in_>=2?'배움과 사색을 즐기고, 어른들에게 칭찬을 들으면 더 열심히 하는 아이였을 가능성이 높아요.':
+        sik>=2?'말하고 만들고 표현하는 것에서 기쁨을 찾았을 거예요. 정해진 틀 안에 갇히는 것보다 자유롭게 뛰노는 환경에서 더 빛을 발했을 아이입니다.':
+        gwan>=2?'어릴 때부터 눈치가 빠르고 어른의 기대에 부응하려는 경향이 있었을 거예요. 칭찬받고 싶은 마음과 책임감이 이른 나이부터 싹텄습니다.':
+        jae>=2?'현실적인 것에 일찍부터 눈이 열렸어요. 무엇이든 구체적으로 얻고 싶다는 욕구가 이른 나이부터 드러났을 거예요.':
+        bik>=2?'남의 도움보다 스스로 해결하려는 의지가 강한 아이였을 것입니다. 경쟁 구도에서 지기 싫어했고, 자신만의 방식을 고집하는 면이 있었어요.':
         '특별히 한쪽으로 치우치지 않고 다양한 것을 탐색하며 자랐을 것입니다.';
       paras.push(earlyChar);
 
@@ -1830,8 +1874,8 @@ function buildLifeNarrative({dsi,pillars,tgCnts,interactions,curDw,dP,mP,yP,hP,s
 
       // 관계/연애
       const relLine=jae>=1.0&&main!=='wisdom'?`연애나 이성 관계에서도 꽤 활발한 움직임이 있었을 시기예요. 재물 에너지가 이성 인연과도 이어지기 때문에, 일이 잘 풀릴 때 좋은 인연이 함께 따라오는 경향이 있습니다. 다만 현실적인 조건을 너무 앞세우면 깊은 감정 연결을 놓칠 수 있어요.`:
-        gwan>=1.5?`이성이나 가까운 관계에서 상대의 안정감과 책임감을 중요하게 보는 경향이 있습니다. 쉽게 마음을 열지 않지만, 한번 신뢰하면 깊게 연결되는 유형이에요.`:
-        bik+sik>=2.5?`이성보다 자신의 일이나 세계에 더 집중하는 경향이 강한 시기예요. 관계에서도 자신의 기준이 뚜렷해서 쉽게 맞는 인연을 찾기 어려울 수 있습니다.`:
+        gwan>=2?`이성이나 가까운 관계에서 상대의 안정감과 책임감을 중요하게 보는 경향이 있습니다. 쉽게 마음을 열지 않지만, 한번 신뢰하면 깊게 연결되는 유형이에요.`:
+        bik+sik>=3?`이성보다 자신의 일이나 세계에 더 집중하는 경향이 강한 시기예요. 관계에서도 자신의 기준이 뚜렷해서 쉽게 맞는 인연을 찾기 어려울 수 있습니다.`:
         `이 시기에 만난 사람들이 이후 삶에 큰 영향을 주었을 가능성이 있어요. 관계 안에서 배우고 성장하는 패턴이 이 시절부터 시작됩니다.`;
       paras.push(relLine);
 
@@ -1865,7 +1909,7 @@ function buildLifeNarrative({dsi,pillars,tgCnts,interactions,curDw,dP,mP,yP,hP,s
       paras.push(peakLine);
 
       // 가정/관계
-      paras.push(`가정과 가까운 관계 면에서도 이 시기에 중요한 전환이 이루어집니다. ${in_>=1?'자녀나 아랫사람을 돌보는 역할이 생기며, 그 안에서 깊은 보람을 찾게 돼요.':gwan>=1.5?'사회적 책임과 가정 사이의 균형이 이 시기의 가장 큰 과제가 됩니다. 어느 쪽도 완벽하게 잡을 수는 없지만, 그 긴장 속에서 성숙해져 가요.':hasChung?'한 번 이상의 관계 재편이 찾아올 수 있어요. 흔들리는 것처럼 느껴지지만, 그것이 이 사람에게는 더 맞는 방향으로 가는 과정이에요.':'신뢰할 수 있는 사람들과의 깊은 유대가 이 시기를 지탱하는 힘이 됩니다.'}`);
+      paras.push(`가정과 가까운 관계 면에서도 이 시기에 중요한 전환이 이루어집니다. ${in_>=1?'자녀나 아랫사람을 돌보는 역할이 생기며, 그 안에서 깊은 보람을 찾게 돼요.':gwan>=2?'사회적 책임과 가정 사이의 균형이 이 시기의 가장 큰 과제가 됩니다. 어느 쪽도 완벽하게 잡을 수는 없지만, 그 긴장 속에서 성숙해져 가요.':hasChung?'한 번 이상의 관계 재편이 찾아올 수 있어요. 흔들리는 것처럼 느껴지지만, 그것이 이 사람에게는 더 맞는 방향으로 가는 과정이에요.':'신뢰할 수 있는 사람들과의 깊은 유대가 이 시기를 지탱하는 힘이 됩니다.'}`);
 
       // 힘들었던 구간
       if(badYear&&badDesc?.desc){
@@ -2013,23 +2057,23 @@ function buildDetailedAnalysis({dsi, pillars, tgCnts, interactions, curDw, dP, m
   if(bik>0) energies.push({icon:'🧠',label:'나·자아 에너지',score:bik,
     meaning:'자기 자신을 강하게 드러내는 에너지',
     pos:'독립심·자존감·추진력이 강합니다.',
-    neg:bik>=2.5?'지나치면 고집이 세어지거나 남과 경쟁이 잦아질 수 있어요.':''});
+    neg:isGwada(tgCnts,[0,1])?'지나치면 고집이 세어지거나 남과 경쟁이 잦아질 수 있어요.':''});
   if(sik>0) energies.push({icon:'🎨',label:'표현·창의 에너지',score:sik,
     meaning:'내 생각과 감정을 밖으로 표현하고 만들어내는 에너지',
     pos:'창의력·예술 감각·말재주가 풍부합니다.',
-    neg:sik>=2.5?'때로는 너무 자유롭게 말하거나 규칙을 어기고 싶은 욕구가 강해질 수 있어요.':''});
+    neg:isGwada(tgCnts,[2,3])?'때로는 너무 자유롭게 말하거나 규칙을 어기고 싶은 욕구가 강해질 수 있어요.':''});
   if(jae>0) energies.push({icon:'💰',label:'재물·경제 에너지',score:jae,
     meaning:'돈·실물·이성과 관련된 에너지',
     pos:'현실 감각이 뛰어나고 재물을 다루는 솜씨가 있습니다.',
-    neg:jae>=2.5?'욕심이 커지거나 이성 관계가 복잡해질 수 있어요.':''});
+    neg:isGwada(tgCnts,[4,5])?'욕심이 커지거나 이성 관계가 복잡해질 수 있어요.':''});
   if(gwan>0) energies.push({icon:'🏛️',label:'사회·직업 에너지',score:gwan,
     meaning:'직장·명예·규범·사회적 역할과 관련된 에너지',
     pos:'책임감이 강하고 신뢰를 주는 인상이 있습니다.',
-    neg:gwan>=2.5?'과도한 책임감과 압박이 스트레스로 쌓일 수 있어요.':''});
+    neg:isGwada(tgCnts,[6,7])?'과도한 책임감과 압박이 스트레스로 쌓일 수 있어요.':''});
   if(in_>0) energies.push({icon:'📚',label:'학습·보호 에너지',score:in_,
     meaning:'배움·철학·어머니 기운과 관련된 에너지',
     pos:'학문적 사고력·직관력·자존감이 높습니다.',
-    neg:in_>=2.5?'실행보다 생각이 앞서거나 의존적 성향이 나타날 수 있어요.':''});
+    neg:isGwada(tgCnts,[8,9])?'실행보다 생각이 앞서거나 의존적 성향이 나타날 수 있어요.':''});
 
   html+=`<div style="margin-bottom:20px;">`;
   html+=`<div style="font-size:11px;font-weight:bold;color:var(--accent);letter-spacing:.07em;margin-bottom:12px;">━ 내 사주를 이루는 에너지 구성 ━</div>`;
@@ -2138,7 +2182,7 @@ function buildMotherLetter({name, dsi, pillars, tgCnts, interactions, curDw, nex
   const ebSorted=[...eb].sort((a,b)=>b.count-a.count);
   const strongElem=ebSorted[0].name;
   const weakElem=[...eb].sort((a,b)=>a.count-b.count)[0].name;
-  const yongName=ELEM_N[yongElem];
+  const yongName=yongElem!=null?ELEM_N[yongElem]:null; /* 2026-09-24: 중화면 null — 사용처는 '다방면'·일반 개운 문구로 폴백 */
 
   // 십성 주도 성향
   const domArr=[{t:'self',v:bik},{t:'expr',v:sik},{t:'wealth',v:jae},{t:'auth',v:gwan},{t:'wisdom',v:in_}];
@@ -2207,11 +2251,11 @@ function buildMotherLetter({name, dsi, pillars, tgCnts, interactions, curDw, nex
     }[weakElem];
 
     let energyLines=[];
-    if(bik>=1.5) energyLines.push(`자기 자신을 강하게 드러내는 에너지가 있어요. 독립심이 강하고 스스로 길을 개척하려는 욕구가 삶 전반에 흐르고 있어요.`);
-    if(sik>=1.5) energyLines.push(`자기 생각과 감정을 밖으로 표현하려는 에너지가 뚜렷해요. 창의력이 있고 말이나 만드는 것에서 보람을 찾는 스타일이에요.`);
-    if(jae>=1.5) energyLines.push(`현실을 직시하고 구체적인 것에서 가치를 찾는 에너지가 있어요. 재물이나 실용적인 것에 대한 감각이 예민해요.`);
-    if(gwan>=1.5) energyLines.push(`사회적인 역할과 책임을 중시하는 에너지가 흐르고 있어요. 인정받고 싶은 마음과 책임감이 이 아이를 이끌어가는 원동력이에요.`);
-    if(in_>=1.5) energyLines.push(`배우고 탐구하는 에너지, 그리고 내면을 가꾸는 기운이 담겨 있어요. 직관력이 섬세하고 학문이나 철학적인 것에 끌리는 면이 있어요.`);
+    if(bik>=2) energyLines.push(`자기 자신을 강하게 드러내는 에너지가 있어요. 독립심이 강하고 스스로 길을 개척하려는 욕구가 삶 전반에 흐르고 있어요.`);
+    if(sik>=2) energyLines.push(`자기 생각과 감정을 밖으로 표현하려는 에너지가 뚜렷해요. 창의력이 있고 말이나 만드는 것에서 보람을 찾는 스타일이에요.`);
+    if(jae>=2) energyLines.push(`현실을 직시하고 구체적인 것에서 가치를 찾는 에너지가 있어요. 재물이나 실용적인 것에 대한 감각이 예민해요.`);
+    if(gwan>=2) energyLines.push(`사회적인 역할과 책임을 중시하는 에너지가 흐르고 있어요. 인정받고 싶은 마음과 책임감이 이 아이를 이끌어가는 원동력이에요.`);
+    if(in_>=2) energyLines.push(`배우고 탐구하는 에너지, 그리고 내면을 가꾸는 기운이 담겨 있어요. 직관력이 섬세하고 학문이나 철학적인 것에 끌리는 면이 있어요.`);
 
     const mainDesc={
       self:'자기 자신이 중심이 되는 삶을 사는 아이에요. 남에게 끌려다니기보다 자신이 주도하는 방식이 맞아요.',
@@ -2262,15 +2306,15 @@ function buildMotherLetter({name, dsi, pillars, tgCnts, interactions, curDw, nex
       ? '다소 불안정하거나 여러 변화가 많은 환경 속에서'
       : '기복이 있는, 어떤 때는 따뜻하고 어떤 때는 흔들렸던';
 
-    const childChar=in_>=1.5
+    const childChar=in_>=2
       ? '배우고 탐구하는 것에서 즐거움을 찾는 아이였을 거예요. 어른들에게 칭찬을 받으면 더 열심히 하는 타입이었을 거예요.'
-      : sik>=1.5
+      : sik>=2
       ? '말하고 만들고 표현하는 것을 좋아하는 아이였을 거예요. 정해진 틀 안에 가두면 답답해했겠죠. 자유롭게 놀 수 있을 때 가장 빛났을 아이에요.'
-      : gwan>=1.5
+      : gwan>=2
       ? '어릴 때부터 눈치가 빠르고 어른들 기대에 부응하려는 마음이 있었을 거예요. 칭찬받고 싶고, 잘하고 싶다는 마음이 이른 나이부터 있었던 아이에요.'
-      : jae>=1.5
+      : jae>=2
       ? '현실적인 것에 일찍부터 눈이 뜨였던 아이에요. 구체적으로 무언가를 갖거나 성취하고 싶다는 욕구가 이른 나이부터 드러났을 거예요.'
-      : bik>=1.5
+      : bik>=2
       ? '남한테 지기 싫어하고, 스스로 해결하려는 의지가 강한 아이였을 거예요. 고집이 있고 자기만의 방식을 고집하는 면도 있었겠죠.'
       : '한쪽으로 치우치지 않고 다양한 것을 탐색하며 자랐을 거예요. 관심사가 넓고 여러 가지를 시도해보는 아이였을 거예요.';
 
@@ -2593,13 +2637,13 @@ function buildMotherLetter({name, dsi, pillars, tgCnts, interactions, curDw, nex
     html+=H('사람과 인연 이야기');
 
     // 사랑·이성 패턴
-    const relLine=jae>=1.5&&main!=='wisdom'
+    const relLine=jae>=2&&main!=='wisdom'
       ? '이 아이는 이성 관계에서도 꽤 활발한 편이에요. 재물 에너지와 이성 에너지가 연결되어 있어서, 일이 잘 풀릴 때 좋은 인연이 함께 따라오는 경향이 있어요. 다만 현실적인 조건을 너무 따지다 깊은 감정 연결을 놓치지 않도록 해요. 마음으로 통하는 인연이 결국 오래 가요.'
-      : gwan>=1.5
+      : gwan>=2
       ? '이 아이는 쉽게 마음을 열지 않아요. 한번 신뢰하면 깊게 연결되는 타입이에요. 상대의 안정감과 책임감을 중요하게 보거든요. 급하게 맺어지는 인연보다, 천천히 알아가면서 깊어지는 관계가 더 잘 맞아요. 그렇게 고른 사람이 곁에 오래 남아요.'
-      : bik+sik>=2.5
+      : bik+sik>=3
       ? '이 아이는 이성보다 자기 일이나 자기 세계에 먼저 집중하는 스타일이에요. 관계에서도 기준이 뚜렷해서 쉽게 맞는 인연을 찾기 어려울 수 있어요. 그런데 그게 나쁜 게 아니예요. 자기 중심이 잡히면 정말 맞는 사람이 올 거예요. 자기를 완성해가는 과정 자체가 좋은 인연을 부르는 길이에요.'
-      : in_>=1.5
+      : in_>=2
       ? '이 아이는 마음을 드러내는 게 쉽지 않아요. 상대가 먼저 다가와줘야 마음이 열리는 편이거든요. 속마음을 조금씩 꺼내보는 연습을 해보세요. 그 따뜻함을 아는 사람이 가장 귀한 인연이 될 거예요. 이 아이의 내면을 알아봐 주는 사람, 그 사람이 진짜예요.'
       : '사람 사이에서 자연스럽게 역할을 맡고 관계를 이끌어가는 편이에요. 진심을 다하는 관계에서 가장 빛나요. 좋은 사람들로 주변을 채우는 것이 이 아이한테 가장 중요한 투자예요.';
     html+=P(relLine);
@@ -2784,15 +2828,16 @@ function buildAnalysis(saju){
   const eb=getElemBalance(pillars);
   const strength=getDayStrength(saju);
   const interactions=analyzeOnguk(pillars);
+  // 2026-09-24 손님 확정: 십성 분포 = 일간 뺀 7글자 정수 카운트 (일지 포함, 지지는 본기, 가중 없음)
   const tgCnts={};
-  for(const p of [yP,mP,hP].filter(Boolean)){
-    const t=getTG(dsi,p.si);
-    tgCnts[t]=(tgCnts[t]||0)+1;
-    const tb=getTGBr(dsi,p.bi);
-    tgCnts[tb]=(tgCnts[tb]||0)+0.5;
+  for(const p of pillars){
+    if(p!==dP){const t=getTG(dsi,p.si); tgCnts[t]=(tgCnts[t]||0)+1;}
+    const tb=getTGBr(dsi,p.bi); tgCnts[tb]=(tgCnts[tb]||0)+1;
   }
 
-  const yongElem=getYongElem(strength,STEM_E[dsi]);
+  MONTH_TB=getTGBr(dsi,mP.bi); // 과다 판정용 월지 십성 (2026-09-24)
+  const yongInfo=getYongsinInfo(dsi,pillars,dP,tgCnts,strength,interactions);
+  const yongElem=yongInfo.elem; // null = 중화(균형 유지형)
   const mostTg=getMostTg(tgCnts);
   const dwIdx=getCurrentDwIdx(dw.list,currentAge);
   const curDw=dw.list[dwIdx];
@@ -3096,8 +3141,8 @@ ${futureBlock}
 // 용신 오행 결정
 function getOverallScore(inter,dwList,dwIdx,cnts,strength,dsi){
   let s=78; // 기본 베이스
-  if(strength==='중화(中和)') s+=12;
-  else if(strength==='신강(身强)') s+=8;
+  if(strength.includes('중화')) s+=12;
+  else if(strength.includes('신강')) s+=8;
   else s+=5;
   s+=inter.hap.length*3+inter.stemHap.length*2;
   if(inter.samhap) s+=6;
@@ -3139,8 +3184,8 @@ function getOverallScore(inter,dwList,dwIdx,cnts,strength,dsi){
   const _seed=s+(dwIdx>=0?dwIdx*3:0)+(inter.chung.length*7)+(inter.hap.length*5)+((inter.samhap?1:0)*11);
   const _hasChung=inter.chung.length>0;
   const _hasHap=inter.hap.length>0||!!inter.samhap;
-  const _isStrong=strength==='신강(身强)';
-  const _isWeak=strength==='신약(身弱)';
+  const _isStrong=strength.includes('신강');
+  const _isWeak=strength.includes('신약');
 
   let grade,comment;
   if(s>=90){
@@ -3250,7 +3295,7 @@ function getOverallScore(inter,dwList,dwIdx,cnts,strength,dsi){
 }
 
 function getYongElem(strength,dayElem){
-  if(strength==='신강(身强)') return CTRL_BY[dayElem]; // 관성
+  if(strength.includes('신강')) return CTRL_BY[dayElem]; // 관성
   return GEN_BY[dayElem]; // 인성
 }
 
@@ -3293,11 +3338,12 @@ function analyzeTgConfig(cnts,dsi){
   const gwan=(cnts[6]||0)+(cnts[7]||0);
   const in_=(cnts[8]||0)+(cnts[9]||0);
 
-  if(bik>=2.5) lines.push('🔥 "나" 에너지(비겁)가 많은 사주예요. 자아와 독립심이 강하고 남에게 의지하기 싫어합니다. 다만 재물운이나 이성 인연이 다소 복잡해질 수 있고, 경쟁 구도에 자주 놓일 수 있어요.');
-  if(sik>=2.5) lines.push('✨ 표현·창의 에너지(식상)가 많은 사주예요. 아이디어가 넘치고 말하고 만들고 표현하는 것을 즐깁니다. 다만 조직이나 직장에서 윗사람과 충돌이 생기기 쉬운 구조예요.');
-  if(jae>=2.5) lines.push('💰 재물 에너지(재성)가 많은 사주예요. 현실 감각이 뛰어나고 부지런하지만, 전체 에너지가 약한 사주라면 오히려 재물이 버거워지는 구조가 될 수 있어요. 욕심보다 실행력을 키우는 것이 중요합니다.');
-  if(gwan>=2.5) lines.push('🏛️ 사회성·직업 에너지(관성)가 많은 사주예요. 책임감이 강하고 규범을 중시하지만, 사주 전체 에너지가 약하다면 압박과 스트레스를 크게 받을 수 있어요. 여성의 경우 배우자 관계에서 갈등이 생길 수 있습니다.');
-  if(in_>=2.5) lines.push('📚 배움·보호 에너지(인성)가 많은 사주예요. 학문적 사고력과 자존심이 강하지만, 실행력이나 표현력이 제한될 수 있고 의존적인 성향이 나타나기 쉬워요.');
+  // 2026-09-24 손님 확정: 과다 = 월지 십성 포함 그룹 3개 이상 / 미포함 4개 이상
+  if(isGwada(cnts,[0,1])) lines.push('🔥 "나" 에너지(비겁)가 많은 사주예요. 자아와 독립심이 강하고 남에게 의지하기 싫어합니다. 다만 재물운이나 이성 인연이 다소 복잡해질 수 있고, 경쟁 구도에 자주 놓일 수 있어요.');
+  if(isGwada(cnts,[2,3])) lines.push('✨ 표현·창의 에너지(식상)가 많은 사주예요. 아이디어가 넘치고 말하고 만들고 표현하는 것을 즐깁니다. 다만 조직이나 직장에서 윗사람과 충돌이 생기기 쉬운 구조예요.');
+  if(isGwada(cnts,[4,5])) lines.push('💰 재물 에너지(재성)가 많은 사주예요. 현실 감각이 뛰어나고 부지런하지만, 전체 에너지가 약한 사주라면 오히려 재물이 버거워지는 구조가 될 수 있어요. 욕심보다 실행력을 키우는 것이 중요합니다.');
+  if(isGwada(cnts,[6,7])) lines.push('🏛️ 사회성·직업 에너지(관성)가 많은 사주예요. 책임감이 강하고 규범을 중시하지만, 사주 전체 에너지가 약하다면 압박과 스트레스를 크게 받을 수 있어요. 여성의 경우 배우자 관계에서 갈등이 생길 수 있습니다.');
+  if(isGwada(cnts,[8,9])) lines.push('📚 배움·보호 에너지(인성)가 많은 사주예요. 학문적 사고력과 자존심이 강하지만, 실행력이나 표현력이 제한될 수 있고 의존적인 성향이 나타나기 쉬워요.');
 
   return lines.length>0?lines.join('\n\n'):'사주 글자들의 에너지가 비교적 골고루 분포되어 있어요. 어느 한쪽으로 치우치지 않고 다양한 분야에서 고르게 능력을 발휘할 수 있는 균형 잡힌 구조입니다.';
 }
@@ -3305,9 +3351,9 @@ function analyzeTgConfig(cnts,dsi){
 function getStructureInsight(cnts,strength,dsi,interactions){
   let t='【 내 사주의 구조적 특징 】\n';
   const de=STEM_E[dsi];
-  if(strength==='신약(身弱)'){
+  if(strength.includes('신약')){
     t+='⚖️ 이 사주는 "에너지가 약한 편(신약)" 구조예요. 주변 환경이나 사람의 영향을 많이 받는 편이라, 든든한 지원자나 안정적인 환경이 있을 때 진가를 발휘합니다. 무리하게 혼자 다 하려 하기보다 선택과 집중, 에너지 관리가 핵심이에요.';
-  } else if(strength==='신강(身强)'){
+  } else if(strength.includes('신강')){
     t+='💪 이 사주는 "에너지가 강한 편(신강)" 구조예요. 자신의 주관과 의지가 뚜렷해서 스스로 길을 개척하는 힘이 있습니다. 에너지를 올바른 방향으로 집중시키면 크게 성공하지만, 지나친 자기 확신은 오히려 발목을 잡을 수 있어요.';
   } else {
     t+='🌿 이 사주는 "균형 잡힌(중화)" 구조예요. 특정 방향에 치우치지 않고 상황에 따라 유연하게 대처할 수 있는 장점이 있습니다. 다방면에서 골고루 능력을 발휘할 수 있어요.';
@@ -3318,6 +3364,11 @@ function getStructureInsight(cnts,strength,dsi,interactions){
 }
 
 function getFuturePath(dsi,strength,eb,cnts,yongElem){
+  // 2026-09-24: 중화(용신 없음) — 균형 유지형 안내
+  if(yongElem==null){
+    const s=[...eb].sort((a,b)=>b.count-a.count);
+    return `이 사주는 중화(中和)에 가깝습니다. 특정 용신 오행에 기대기보다, 이미 갖춘 균형을 유지하는 것 자체가 가장 좋은 전략이에요.\n\n강하게 발달한 ${s[0].name} 기운을 주 무기로 쓰되, 상대적으로 옅은 ${s[s.length-1].name} 기운의 영역을 의식적으로 보완하면 어느 분야에서든 안정적으로 성장할 수 있는 구조입니다.\n\n【 적합 분야 】\n${DGPN[dsi].career}`;
+  }
   const yong=ELEM_N[yongElem];
   const yongCareerMap={
     목:'교육·출판·환경·기획·상담',
@@ -4381,7 +4432,7 @@ function answerQuestions(questions,ctx){
       let t=`【 재물·금전운 분석 】\n\n`;
       if(hasFinance) t+=`원국에 재성이 있어 재물을 다루는 감각이 있고, 돈을 모으는 경로가 비교적 뚜렷합니다. `;
       else t+=`원국에 재성이 약한 편으로, 재물이 자연스럽게 쌓이기보다 자신의 실력과 능력으로 돈을 버는 구조입니다. `;
-      t+=`${strength==='신강(身强)'?'일간이 강하므로 재성을 충분히 감당할 수 있는 구조입니다. 큰 재물도 다룰 수 있는 그릇입니다.':strength==='신약(身弱)'?'일간이 약한 편이어서 큰 재물이 들어오면 오히려 감당이 어려울 수 있습니다. 단계적으로 재물의 규모를 늘려가는 것이 안전합니다.':'균형 잡힌 구조로 꾸준하게 재물을 축적할 수 있는 기반을 가지고 있습니다.'}\n`;
+      t+=`${strength.includes('신강')?'일간이 강하므로 재성을 충분히 감당할 수 있는 구조입니다. 큰 재물도 다룰 수 있는 그릇입니다.':strength.includes('신약')?'일간이 약한 편이어서 큰 재물이 들어오면 오히려 감당이 어려울 수 있습니다. 단계적으로 재물의 규모를 늘려가는 것이 안전합니다.':'균형 잡힌 구조로 꾸준하게 재물을 축적할 수 있는 기반을 가지고 있습니다.'}\n`;
       t+=`\n강한 오행(${strongElem})을 활용한 분야에서 수익을 창출하는 것이 유리합니다. 부족한 ${weakElem} 기운을 보완하는 투자나 활동도 재물 운을 높이는 데 도움이 됩니다.`;
       if(dwTg==='정재'||dwTg==='편재') t+=`\n\n현재 대운이 재성 운으로 재물 창출에 유리한 시기입니다. 이 기간 동안 적극적인 경제 활동이 좋은 성과로 이어질 수 있습니다.`;
       t+=swTimingStr([4,5],'재물운');
@@ -4416,7 +4467,7 @@ function answerQuestions(questions,ctx){
       const healthMap={목:'간·담·근육·눈',화:'심장·소장·혈압',토:'비장·위·소화기',금:'폐·대장·피부·호흡기',수:'신장·방광·생식기·뼈·귀'};
       t+=`오행 불균형 기준 건강 주의 부위:\n`;
       for(const e of weakEb) t+=`▪ ${e.name} 기운 부족 → ${healthMap[e.name]} 관련 기능 저하에 주의하세요.\n`;
-      t+=`\n${strength==='신약(身弱)'?'일간이 약한 편으로 체력 소진이 빠를 수 있습니다. 과로를 피하고 충분한 수면과 회복 시간을 확보하는 것이 건강 유지의 핵심입니다.':strength==='신강(身强)'?'일간이 강한 편으로 기본 체력은 좋지만, 과도한 자신감으로 건강을 소홀히 하는 경향이 있습니다. 정기적인 검진이 중요합니다.':'균형 잡힌 구조로 건강 유지에 유리하지만, 정기적인 관리는 꼭 필요합니다.'}`;
+      t+=`\n${strength.includes('신약')?'일간이 약한 편으로 체력 소진이 빠를 수 있습니다. 과로를 피하고 충분한 수면과 회복 시간을 확보하는 것이 건강 유지의 핵심입니다.':strength.includes('신강')?'일간이 강한 편으로 기본 체력은 좋지만, 과도한 자신감으로 건강을 소홀히 하는 경향이 있습니다. 정기적인 검진이 중요합니다.':'균형 잡힌 구조로 건강 유지에 유리하지만, 정기적인 관리는 꼭 필요합니다.'}`;
       const badF12=['병','사','묘','절'];
       let hasBadF12=false;
       for(const p of [yP,mP,dP,hP].filter(Boolean)){
@@ -4433,7 +4484,7 @@ function answerQuestions(questions,ctx){
       const hasIn=tgCnts[8]>0||tgCnts[9]>0; // 인성
       if(hasIn) t+=`원국에 인성(印星)이 있어 학습 능력이 좋고 지식 습득을 즐깁니다. 시험·자격증·학업에서 좋은 성과를 낼 가능성이 높습니다.\n`;
       else t+=`원국에 인성이 약한 편으로, 정형화된 공부보다는 실전 경험이나 실무 중심의 학습이 더 효과적입니다. 자격증보다 실무 능력을 키우는 방향이 유리합니다.\n`;
-      t+=`\n${strength==='신약(身弱)'?'일간이 약할 때 인성 대운·세운이 오면 학업 운이 급격히 상승합니다. 공부에 집중하기 좋은 시기를 놓치지 마세요.':'학습 환경을 조성하고 꾸준한 루틴을 만드는 것이 실력 향상의 핵심입니다.'}\n`;
+      t+=`\n${strength.includes('신약')?'일간이 약할 때 인성 대운·세운이 오면 학업 운이 급격히 상승합니다. 공부에 집중하기 좋은 시기를 놓치지 마세요.':'학습 환경을 조성하고 꾸준한 루틴을 만드는 것이 실력 향상의 핵심입니다.'}\n`;
       if(dwTg==='정인'||dwTg==='편인') t+=`\n현재 대운이 인성 운으로 학업·자격증·시험에 가장 유리한 시기입니다. 이 기간을 적극 활용하세요.`;
       t+=swTimingStr([8,9],'학업·시험운');
       return t;
@@ -4456,7 +4507,7 @@ function answerQuestions(questions,ctx){
       else if(hasFin) t+=`원국에 재성이 있어 재물을 다루는 감각이 있습니다. 다만 실행력(식상)이 보완된다면 사업에서 더 큰 성과를 낼 수 있습니다.\n`;
       else if(hasSc2) t+=`원국에 식상이 있어 창의적인 아이디어와 기술력이 있습니다. 재물을 다루는 전략과 현실적인 사업 감각을 보완하면 성공 가능성이 높아집니다.\n`;
       else t+=`원국 구조상 창업보다는 안정된 조직 안에서 전문성을 키우는 것이 더 자연스러운 방향일 수 있습니다. 창업을 원한다면 충분한 준비와 경험 축적 후 진행하세요.\n`;
-      t+=`\n${strength==='신강(身强)'?'일간이 강해 사업에서의 리더십과 추진력이 뛰어납니다. 너무 독단적으로 결정하지 않도록 주변의 의견도 경청하세요.':strength==='신약(身弱)'?'일간이 약한 편으로 사업 초기에 파트너나 조력자의 도움이 필수적입니다. 혼자 모든 것을 감당하려 하지 말고 협력 구조를 만드세요.':'균형 잡힌 구조로 안정적인 사업 운영이 가능합니다. 급격한 확장보다 착실한 성장 전략이 효과적입니다.'}`;
+      t+=`\n${strength.includes('신강')?'일간이 강해 사업에서의 리더십과 추진력이 뛰어납니다. 너무 독단적으로 결정하지 않도록 주변의 의견도 경청하세요.':strength.includes('신약')?'일간이 약한 편으로 사업 초기에 파트너나 조력자의 도움이 필수적입니다. 혼자 모든 것을 감당하려 하지 말고 협력 구조를 만드세요.':'균형 잡힌 구조로 안정적인 사업 운영이 가능합니다. 급격한 확장보다 착실한 성장 전략이 효과적입니다.'}`;
       t+=swTimingStr([2,3,4,5],'창업·사업운');
       return t;
     }
@@ -4839,7 +4890,7 @@ function getBestWorstChars(dP,strength,eb,tgCnts,sw){
 
   // 신강/신약에 따른 용신·희신·기신 오행 결정
   let yongE,heupE,giE;
-  if(strength==='신강(身强)'){
+  if(strength.includes('신강')){
     yongE=CTRL_BY[de];   // 관성: 나를 극하는 오행 → 용신
     heupE=CTRL[de];      // 재성: 내가 극하는 오행 → 희신
     giE=GEN_BY[de];      // 인성: 나를 생하는 오행 → 기신(더 강하게 만드니까)
@@ -4864,19 +4915,19 @@ function getBestWorstChars(dP,strength,eb,tgCnts,sw){
   const worstBranStr=worstBranIdx.map(i=>`${BRANS[i]}(${BRANS_H[i]}, ${ELEM_N[BRAN_E[i]]})`).join(', ');
 
   // 왜 좋은가 / 왜 나쁜가
-  const whyBest=strength==='신강(身强)'
+  const whyBest=strength.includes('신강')
     ?`${yongName}(관성)은 강한 ${STEMS[dsi]}의 에너지를 적절히 조절하고 사회적 방향을 잡아주는 역할을 합니다. ${heupName}(재성)은 일간의 힘을 현실의 결실로 전환시키는 오행으로, 재물과 성취의 영역에서 힘을 발휘해요.`
     :`${yongName}(인성)은 에너지가 부족한 ${STEMS[dsi]}에게 힘을 공급하고 보호막이 되어주는 오행이에요. ${heupName===ELEM_N[de]?'비겁':'희신'}은 비슷한 기운으로 자신감과 추진력을 보완해줍니다.`;
 
-  const whyWorst=strength==='신강(身强)'
+  const whyWorst=strength.includes('신강')
     ?`${giName}(인성)은 이미 강한 일간을 더 강하게 만들어 에너지 과잉 상태를 심화시켜요. 지나치게 자신감이 넘치거나 독선적이 되어 주변과의 마찰이 커질 수 있습니다.`
     :`${giName}(관성)은 약한 일간을 더욱 압박하는 오행이에요. 외부 스트레스·간섭·강압적 환경이 심화되어 지치고 번아웃되기 쉬운 구조가 만들어집니다.`;
 
-  const whenBadAdvice=strength==='신강(身强)'
+  const whenBadAdvice=strength.includes('신강')
     ?`▸ ${giName} 기운이 대운·세운에 들어오면\n  에너지가 과잉 공급되어 자만하거나 무리하기 쉬운 시기예요. 자신을 되돌아보고 경청하는 자세를 의식적으로 갖추세요. 새 사업·투자 결정은 신중하게 재검토하고, 주변의 피드백을 무시하지 마세요.`
     :`▸ ${giName} 기운이 대운·세운에 들어오면\n  외부 압박이 강해지고 자신감이 떨어지는 시기예요. 억지로 경쟁하거나 버티기보다 내실을 다지고 도움을 받을 수 있는 환경을 만드는 게 중요합니다. 건강 관리에도 각별히 신경 쓰고, 중요한 결정은 이 시기를 피해서 내리세요.`;
 
-  const whenGoodAdvice=strength==='신강(身强)'
+  const whenGoodAdvice=strength.includes('신강')
     ?`▸ ${yongName}·${heupName} 기운이 들어오는 시기\n  에너지가 잘 조절되고 방향이 잡히는 황금기예요. 취업·승진·사업 확장·중요한 계약 등 오랫동안 준비해온 도전을 실행에 옮기세요. 운의 흐름이 내 편인 만큼 과감하게 나아가도 좋습니다.`
     :`▸ ${yongName}·${heupName} 기운이 들어오는 시기\n  에너지가 충전되고 지원이 따르는 황금기예요. 공부·자격증·자기계발에 아낌없이 투자하고, 귀인과의 만남·중요한 계약·파트너십도 이 시기에 적극 추진하면 좋습니다.`;
 
@@ -4901,7 +4952,7 @@ function getBestWorstChars(dP,strength,eb,tgCnts,sw){
 💡 천간(天干)은 하늘 기운 — 갑·을·병·정 등 10개. 지지(地支)는 땅 기운 — 자·축·인·묘 등 12개. 년·월·일·시 각각의 기운을 나타내요.
 
 사주 강약: ${strength}
-용신 오행: ${yongName}(${strength==='신강(身强)'?'관성':'인성'}) | 희신 오행: ${heupName}(${strength==='신강(身强)'?'재성':'비겁'})
+용신 오행: ${yongName}(${strength.includes('신강')?'관성':'인성'}) | 희신 오행: ${heupName}(${strength.includes('신강')?'재성':'비겁'})
 
 ▸ 좋은 천간: ${bestStemStr||'없음'}
 ▸ 좋은 지지: ${bestBranStr||'없음'}
@@ -4915,7 +4966,7 @@ ${whenGoodAdvice}
 
 【 ⚠ 나에게 가장 힘든 글자 — 기신(忌神) 】
 
-기신 오행: ${giName}(${strength==='신강(身强)'?'인성':'관성'})
+기신 오행: ${giName}(${strength.includes('신강')?'인성':'관성'})
 
 ▸ 조심할 천간: ${worstStemStr||'없음'}
 ▸ 조심할 지지: ${worstBranStr||'없음'}
@@ -4950,6 +5001,13 @@ function getGaeun(eb,dsi,strength,yongElem){
     금:'마무리 훈련이 중요합니다. 하루에 한 가지씩 완료하는 습관, 정리·정돈, 단호한 결정 내리기를 연습하세요. 흰색·금속 소품, 서쪽 채광이 집중력을 높입니다.',
     수:'독서·명상·혼자만의 사색 시간을 의도적으로 만드세요. 검정·짙은 파란색 소품, 물이 있는 공간(어항·분수), 북쪽 방향이 깊이와 지혜를 채워줍니다.'
   };
+  // 2026-09-24: 중화(용신 없음) — 균형 유지형 개운법
+  if(yongElem==null){
+    return '이 사주는 중화(中和)에 가까워, 특정 오행을 밀어주는 개운법보다 균형을 지키는 생활 자체가 개운입니다.\n\n'
+      +`▪ 이미 강한 ${excess.name} 기운은 더 보태기보다 잘 쓰는 데 집중하세요.\n\n`
+      +`▪ 상대적으로 옅은 ${lacking.name} 기운은 가볍게 보완하면 좋아요 — ${advice[lacking.name]}\n\n`
+      +'▪ 한쪽 극단(과로·과한 휴식·몰빵 투자)이 이 사주의 균형을 깨는 주범이에요. 리듬을 일정하게 유지하는 것이 최고의 개운법입니다.';
+  }
   // 일간별 개인화된 핵심 조언
   const dayGaeunMap={
     0:'한번 세운 목표를 적어두고 매주 점검하는 습관이 당신의 에너지를 올바르게 정렬해줍니다.',
@@ -5307,13 +5365,13 @@ function buildSummaryHook(score,grade,strength,eb,cnts,pg,interactions,name,dwFl
     struct_line=`${nameWord}의 사주에는 삼합(三合)이 완성된, 보기 드문 강력한 구조가 있어요. 세 지지가 하나로 결속되어 특정 에너지가 집중적으로 발현돼요. 이 기운이 올바른 방향을 만나는 순간, 그 파급력과 집중력은 상당해요.`;
   } else if(interactions.banghap){
     struct_line=`${nameWord}의 사주에 방합(方合)이 형성되어 있어요. 한 방향으로 에너지가 모이는 구조예요. 한번 방향을 정하면 그 길을 꾸준히 걸어가는 힘 — 그게 이 사주의 강점이에요.`;
-  } else if(strength==='신약(身弱)'){
+  } else if(strength.includes('신약')){
     struct_line=pick([
       `${nameWord}, 남들보다 더 많이 느끼는 사람이에요. 같은 말을 들어도 더 깊이 울리고, 같은 공간에서도 분위기를 더 섬세하게 읽어요. 그게 예민한 게 아니라 — 당신의 가장 큰 감각이에요. 어떤 환경에 자신을 두느냐가 이 삶의 핵심 변수예요.`,
       `${nameWord}, 환경과 사람의 영향을 깊이 받는 타입이에요. 좋은 사람 옆에 있을 때와 나쁜 환경에 있을 때의 차이가 유독 크게 느껴지지 않나요? 그게 섬세한 감수성이 만들어내는 구조예요. 그 예민함이 타인을 깊이 이해하는 남다른 능력의 원천이기도 해요.`,
       `${nameWord}, 사람과 공간의 기운을 온몸으로 받아들이는 체질이에요. 지치지 않으려면 좋은 환경을 의식적으로 선택하는 눈이 필요해요. 그 감수성은 예술·치유·교육 등 깊이 있는 분야에서 누구도 따라오기 어려운 무기가 돼요.`,
     ],0);
-  } else if(strength==='신강(身强)'){
+  } else if(strength.includes('신강')){
     struct_line=pick([
       `${nameWord}, 한번 마음먹으면 끝까지 가는 사람이에요. 알고 있었을 거예요. 주변이 포기해도 당신은 계속 밀어붙이는 쪽이라는 걸. 그 추진력이 이 사주의 핵심 에너지예요. 다만 그 강한 에너지를 담을 올바른 그릇 — 방향을 신중히 고르는 것이 이 사주의 관건이에요.`,
       `${nameWord}, 자기 주관이 뚜렷한 사람이에요. 무언가를 끝까지 밀어붙이는 의지력, 자기만의 방식을 고수하는 뚝심 — 그게 이 사주의 핵심이에요. 다만 그 강한 주관이 소통보다 충돌로 이어지지 않도록, 에너지를 쏟을 방향을 신중히 고르는 안목도 함께 필요해요.`,
@@ -5344,17 +5402,17 @@ function buildSummaryHook(score,grade,strength,eb,cnts,pg,interactions,name,dwFl
       `이 삶에서 갑작스러운 변화나 내·외부의 갈등이 반복될 수 있어요. 이걸 '문제'로 볼 것이냐, '단련의 기회'로 볼 것이냐 — 그 인식의 차이에서 이 사주를 가진 사람의 성패가 갈려요.`,
       `충(沖)이 겹친 만큼 관계·환경·건강 면에서 예상치 못한 변화가 찾아오는 패턴이 있어요. 피하려 할수록 더 힘들고, 받아들이고 재정비할수록 오히려 더 강해지는 게 이 사주의 방식이에요.`,
     ],2);
-  } else if(strength==='신약(身弱)'&&dwFlow==='ascending'){
+  } else if(strength.includes('신약')&&dwFlow==='ascending'){
     weakness_line=pick([
       `어릴 때 방향을 찾는 데 남들보다 시간이 좀 더 걸렸을 거예요. 내가 뭘 하고 싶은 건지, 어디로 가야 하는 건지 — 그게 유독 막막했던 시기가 있지 않았나요? 그게 느린 게 아니에요. 이 사주의 대운은 뒤로 갈수록 더 좋아지거든요. 뒤늦게 피는 꽃이 오래 가는 법이에요.`,
       `일간 에너지가 약한 구조라 초반에는 방향 설정에 에너지가 많이 소모될 수 있어요. 하지만 ${nameWord}의 대운은 뒤로 갈수록 더 열려요. 지금의 더딤은 문제가 아니라 — 뒤늦게 크게 개화할 준비 과정이에요.`,
     ],0);
-  } else if(strength==='신약(身弱)'){
+  } else if(strength.includes('신약')){
     weakness_line=pick([
       `${nameWord}, 나쁜 환경에서 유독 많이 소진되는 타입이에요. 좋은 사람, 좋은 공간이 당신에게는 정말 중요해요. 그게 예민한 게 아니라 — 에너지 구조가 그렇게 만들어진 거예요. 자신을 아끼는 것이 이 사주에서 가장 중요한 전략이에요.`,
       `신약 구조는 환경의 영향을 강하게 받는 만큼, 에너지를 낭비하는 관계나 공간에서 빠르게 소진돼요. 자신에게 맞는 환경을 의식적으로 고르고, 배움과 내실을 꾸준히 쌓는 것 — 그게 이 사주를 균형 있게 이끄는 방법이에요.`,
     ],0);
-  } else if(strength==='신강(身强)'&&gwan<1){
+  } else if(strength.includes('신강')&&gwan<1){
     weakness_line=pick([
       `${nameWord}에게 솔직히 한 가지 말할게요. 그 강한 에너지를 담을 그릇이 있어야 해요. 목표 없이 밀어붙이면 주변과의 마찰로 소모되기 쉬워요. 명확한 목표와 스스로 세운 규율이 있을 때 — 이 사주는 가장 멀리 가요.`,
       `관성(官星)의 견제가 약한 신강 구조예요. 추진력은 강하지만 방향을 잘못 잡으면 주변과의 충돌이 커질 수 있어요. 큰 목표와 스스로 세운 규율 — 그 그릇을 갖추는 것이 이 사주의 핵심 과제예요.`,
@@ -5363,7 +5421,7 @@ function buildSummaryHook(score,grade,strength,eb,cnts,pg,interactions,name,dwFl
     weakness_line=`가장 믿었던 사람에게 예상치 못한 방식으로 상처를 받은 적 있나요? 그게 ${nameWord}만의 이야기가 아니에요. 형살(刑) 기운(${interactions.hyung.join(', ')})이 사주에 새겨진, 하나의 시험 같은 패턴이에요. 가까운 관계일수록 경계를 명확히 하고 법적 사항엔 신중함이 필요해요.`;
   } else if(bik>=3&&jae<1){
     weakness_line=`${nameWord}의 사주에서 한 가지 짚을 게 있어요. 경쟁과 자아 표현에 에너지가 많이 쏠리는 구조예요. 재물을 의식적으로 관리하는 눈이 없으면 좋은 기회도 손에서 빠져나갈 수 있어요. 재물과 현실 자산 관리에 조금 더 주의를 기울이는 게 중요해요.`;
-  } else if(jae>=2&&strength==='신약(身弱)'){
+  } else if(jae>=2&&strength.includes('신약')){
     weakness_line=`재물 욕구와 현실 감각은 뚜렷한데 체력이 뒷받침되지 않으면 과부하가 걸리기 쉬운 구조예요. ${nameWord}, 욕심을 조금씩 내려놓고 쉬어가는 지혜 — 인성의 힘을 함께 키우는 것이 장기적인 균형을 만들어줘요.`;
   }
 
@@ -6196,11 +6254,12 @@ function renderDistCharts(pillars,dsi){
   e1+='</div>';
 
   // 십성 차트
+  // 2026-09-24 손님 확정: 차트도 해석과 동일 — 일간 뺀 7글자 정수 카운트 (일지 포함)
   const tgCnts={};
-  for(const p of pillars){
-    const t=getTG(dsi,p.si); tgCnts[t]=(tgCnts[t]||0)+1;
-    const tb=getTGBr(dsi,p.bi); tgCnts[tb]=(tgCnts[tb]||0)+0.5;
-  }
+  pillars.forEach((p,i)=>{
+    if(i!==2){const t=getTG(dsi,p.si); tgCnts[t]=(tgCnts[t]||0)+1;} // i=2 일주 천간(일간)만 제외
+    const tb=getTGBr(dsi,p.bi); tgCnts[tb]=(tgCnts[tb]||0)+1;
+  });
   const tgColors=['#a78bfa','#818cf8','#34d399','#10b981','#fb923c','#f59e0b','#60a5fa','#38bdf8','#fbbf24','#f472b6'];
   const maxTg=Math.max(...Object.values(tgCnts),0.1);
   let e2='<div class="chart-box"><h4>⚖️ 십성(十星) 분포</h4>';

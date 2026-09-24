@@ -900,23 +900,20 @@
     const BRANCH_LIU_HE = {0:1,1:0, 2:11,11:2, 3:10,10:3, 4:9,9:4, 5:8,8:5, 6:7,7:6};
     const BRANCH_CHUNG  = {0:6,6:0, 1:7,7:1, 2:8,8:2, 3:9,9:3, 4:10,10:4, 5:11,11:5};
 
-    // 신강·신약 판정 (saju.html 포팅)
+    // 신강·신약 판정 (saju.html 포팅 — 2026-09-24 손님 확정: 득령·득지·득세 8조합 → 5단계)
     function getDayStrength_(yP, mP, dP, hP) {
       const de = STEM_E[dP.si];
-      let s = 0;
-      const rest = [yP, mP, hP].filter(Boolean);
-      for (const p of rest) {
-        const se = STEM_E[p.si], be = BRAN_E[p.bi];
-        if (se === de || se === GEN_BY[de]) s += 1;
-        if (be === de || be === GEN_BY[de]) s += 0.7;
-        if (se === GEN[de] || se === CTRL[de] || se === CTRL_BY[de]) s -= 0.5;
-      }
-      const mbe = BRAN_E[mP.bi];
-      if (mbe === de || mbe === GEN_BY[de]) s += 1.5;
-      else s -= 0.5;
-      if (s >= 1.5) return '신강';
-      if (s >= 0)   return '중화';
-      return '신약';
+      const helps = e => e === de || e === GEN_BY[de];
+      const dr = helps(BRAN_E[mP.bi]);           // 득령: 월지 본기 오행이 비겁·인성
+      const dj = helps(BRAN_E[dP.bi]);           // 득지: 일지
+      const rest = [STEM_E[yP.si], STEM_E[mP.si], BRAN_E[yP.bi]];
+      if (hP) { rest.push(STEM_E[hP.si], BRAN_E[hP.bi]); }
+      const ds = rest.filter(helps).length >= rest.length / 2; // 득세: 나머지 절반 이상
+      if (dr && dj && ds) return '극신강';
+      if (dr && (dj || ds)) return '신강';
+      if ((dr && !dj && !ds) || (!dr && dj && ds)) return '중화';
+      if (!dr && (dj !== ds)) return '신약';
+      return '극신약';
     }
 
     // 격국 추정 (단순 버전 — 월지 본기 천간이 일간에 대한 십신)
@@ -1023,9 +1020,9 @@
       const isYin  = !isYang;
 
       // 3) 신강·신약 판정
-      const strength = getDayStrength_(yP, mP, dP, hP); // '신강' / '중화' / '신약'
-      const isStrong = strength === '신강';
-      const isWeak   = strength === '신약';
+      const strength = getDayStrength_(yP, mP, dP, hP); // '극신강'~'극신약' 5단계
+      const isStrong = strength.includes('신강');
+      const isWeak   = strength.includes('신약');
 
       // 4) 격국 추정
       const gyeok = inferGyeok(dP, mP);

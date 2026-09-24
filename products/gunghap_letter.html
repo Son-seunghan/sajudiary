@@ -686,8 +686,27 @@ function getBanghap(bArr){const g=[[2,3,4,'목'],[5,6,7,'화'],[8,9,10,'금'],[1
 function getPa(a,b){const p=[[0,9],[1,4],[2,11],[3,6],[5,8],[7,10]];for(const[x,y]of p)if((a===x&&b===y)||(a===y&&b===x))return true;return false;}
 function getHae(a,b){const p=[[0,7],[1,6],[2,5],[3,4],[8,11],[9,10]];for(const[x,y]of p)if((a===x&&b===y)||(a===y&&b===x))return true;return false;}
 function getElemBalance(pillars){const c=[0,0,0,0,0];for(const p of pillars){c[STEM_E[p.si]]+=1;c[BRAN_E[p.bi]]+=1;for(const h of HIDDEN[p.bi])c[STEM_E[h]]+=0.3;}return c.map((v,i)=>({name:ELEM_N[i],cls:ELEM_C[i],count:Math.round(v*10)/10}));}
-function getDayStrength(saju){const{yP,mP,dP,hP}=saju;const de=STEM_E[dP.si];let s=0;const rest=[yP,mP,hP].filter(Boolean);for(const p of rest){const se=STEM_E[p.si],be=BRAN_E[p.bi];if(se===de||se===GEN_BY[de])s+=1;if(be===de||be===GEN_BY[de])s+=0.7;if(se===GEN[de]||se===CTRL[de]||se===CTRL_BY[de])s-=0.5;}const mbe=BRAN_E[mP.bi];if(mbe===de||mbe===GEN_BY[de])s+=1.5;else s-=0.5;return s>=1.5?'신강':s>=0?'중화':'신약';}
-function getYongElem(strength,dayElem){if(strength==='신강')return CTRL[dayElem];if(strength==='신약')return GEN_BY[dayElem];return dayElem;}
+function getDayStrength(saju){
+  // ═══ 2026-09-24 손님 확정: 득령·득지·득세 8조합 → 5단계 (기존 가감산식 폐기, saju.html과 동일 로직) ═══
+  const{yP,mP,dP,hP}=saju;const de=STEM_E[dP.si];
+  const helps=e=>e===de||e===GEN_BY[de];
+  const dr=helps(BRAN_E[mP.bi]);
+  const dj=helps(BRAN_E[dP.bi]);
+  const rest=[STEM_E[yP.si],STEM_E[mP.si],BRAN_E[yP.bi]];
+  if(hP){rest.push(STEM_E[hP.si],BRAN_E[hP.bi]);}
+  const ds=rest.filter(helps).length>=rest.length/2;
+  if(dr&&dj&&ds) return '극신강';
+  if(dr&&(dj||ds)) return '신강';
+  if((dr&&!dj&&!ds)||(!dr&&dj&&ds)) return '중화';
+  if(!dr&&(dj!==ds)) return '신약';
+  return '극신약';
+}
+// 2026-09-24 손님 확정: 신강→식상·재성·관성 / 신약→비겁·인성 중 원국 세력이 강한 오행. 중화→용신 없음(null)
+function getYongElem(strength,dayElem,eb){
+  if(strength.includes('중화')) return null;
+  const cands=strength.includes('신강')?[GEN[dayElem],CTRL[dayElem],CTRL_BY[dayElem]]:[dayElem,GEN_BY[dayElem]];
+  return cands.reduce((a,b)=>(eb[b].count>eb[a].count?b:a));
+}
 
 function buildSaju(input){
   const {year,month,day,hour,gender,name}=input;
@@ -696,7 +715,7 @@ function buildSaju(input){
   const dw=calcDaewoon(year,month,day,gender,yP.si,hour);
   const s={name,gender,year,month,day,hour,yP,mP,dP,hP,dw};
   s.pillars=[yP,mP,dP,hP].filter(Boolean);s.eb=getElemBalance(s.pillars);
-  s.strength=getDayStrength(s);s.dayElem=STEM_E[dP.si];s.yongElem=getYongElem(s.strength,s.dayElem);
+  s.strength=getDayStrength(s);s.dayElem=STEM_E[dP.si];s.yongElem=getYongElem(s.strength,s.dayElem,s.eb);
   s.currentAge=new Date().getFullYear()-year+1;
   return s;
 }
@@ -747,7 +766,10 @@ function analyzeElemComplement(A,B){
   const r={aFills:false,bFills:false};
   const bM={};B.eb.forEach(e=>bM[e.name]=e.count);
   const aM={};A.eb.forEach(e=>aM[e.name]=e.count);
-  r.aNeeds=ELEM_N[A.yongElem];r.bNeeds=ELEM_N[B.yongElem];
+  // 2026-09-24: 중화(용신 없음)면 원국에서 가장 옅은 오행을 '필요한 기운'으로 폴백
+  const weakest=P=>P.eb.reduce((a,b)=>(b.count<a.count?b:a)).name;
+  r.aNeeds=A.yongElem!=null?ELEM_N[A.yongElem]:weakest(A);
+  r.bNeeds=B.yongElem!=null?ELEM_N[B.yongElem]:weakest(B);
   r.bFills=(bM[r.aNeeds]||0)>=1.5;r.aFills=(aM[r.bNeeds]||0)>=1.5;
   return r;
 }
@@ -2160,7 +2182,7 @@ function renderIntimacy(A,B,pair,level){
     L.push(`<b>⒈ 몸의 리듬 — 조용한 결</b><br>두 분은 <b>폭발적인 성욕보다는 잔잔한 흐름</b>에 가까워요. 전희도 조용하고, 몸짓보다 대화로 먼저 감정을 나누는 편. 이런 결에서는 <b>말로 하는 유혹(달콤한 문장, 구체적인 요청)</b>이 오히려 강력해요. "지금 너의 어디가 예뻐" 같은 직접적 언어가 가장 센 자극이 되는 타입이에요.`);
   }
 
-  const aStrong=A.strength==='신강', bStrong=B.strength==='신강';
+  const aStrong=A.strength.includes('신강'), bStrong=B.strength.includes('신강');
   const aYangPct=i.aYY.yang/(i.aYY.yang+i.aYY.yin);
   const bYangPct=i.bYY.yang/(i.bYY.yang+i.bYY.yin);
   let leadMsg='';
