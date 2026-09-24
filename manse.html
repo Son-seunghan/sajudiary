@@ -811,7 +811,7 @@
     const STEM_E   = [0,0,1,1,2,2,3,3,4,4]; // 오행 인덱스: 0=목 1=화 2=토 3=금 4=수
     const STEM_Y   = [0,1,0,1,0,1,0,1,0,1]; // 0=양 1=음
     const BRAN_E   = [4,2,0,0,2,1,1,2,3,3,2,4];
-    // 지장간 (本氣·中氣·餘氣 천간 인덱스) — saju.html과 동일
+    // 지장간 (餘氣·中氣·本氣 순 — 마지막 원소가 본기) — saju.html과 동일. 2026-09-24 주석 교정 (기존 주석이 반대로 적혀 HID_W 역순 버그의 원인이 됨)
     const HIDDEN   = [[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[4,8,6],[6,7],[7,3,4],[4,0,8]];
     const MAIN_H   = [9,5,0,1,4,2,3,5,6,7,4,8]; // 지지 본기 천간 (십성 판정용) — saju.html과 동일
     const ELEM_C   = ['wood','fire','earth','metal','water'];
@@ -976,7 +976,10 @@
     function predictMBTI(yP, mP, dP, hP) {
       // 4주 위치별 가중치 (일·월 강조)
       const PILLAR_W = { day: 1.5, month: 1.5, hour: 0.8, year: 0.6 };
-      const HID_W = [0.7, 0.3, 0.1]; // 지장간 본기·중기·여기
+      const HID_W = [0.7, 0.3, 0.1]; // 지장간 가중 (본기 0.7 / 중기 0.3 / 여기 0.1)
+      // 2026-09-24 수정: HIDDEN 배열은 여기→중기→본기 순(마지막 원소가 본기)이므로
+      // 뒤에서부터 가중치를 매겨야 함. 기존엔 앞에서부터 적용해 여기가 본기의 7배 가중되던 버그.
+      const hidW = (arr, i) => HID_W[arr.length - 1 - i];
 
       // 1) 오행 분포 (위치별 가중 + 지장간 가중)
       const fEl = [0,0,0,0,0];
@@ -989,8 +992,8 @@
       pillarList.forEach(({ p, w }) => {
         fEl[STEM_E[p.si]] += w * 1.0;        // 천간
         fEl[BRAN_E[p.bi]] += w * 0.5;        // 지지 글자
-        HIDDEN[p.bi].forEach((h, i) => {     // 지장간 본기·중기·여기
-          fEl[STEM_E[h]] += w * HID_W[i];
+        HIDDEN[p.bi].forEach((h, i, arr) => {   // 지장간 (여기→중기→본기 순)
+          fEl[STEM_E[h]] += w * hidW(arr, i);
         });
       });
 
@@ -1003,10 +1006,10 @@
           if (t >= 0) tS[t] += w * 1.0;
         }
         // 지장간 (모든 위치)
-        HIDDEN[p.bi].forEach((h, i) => {
+        HIDDEN[p.bi].forEach((h, i, arr) => {
           if (p === dP && h === dP.si && MAIN_H[p.bi] === dP.si) return; // 일지 본기가 일간이면 비견 중복 방지
           const t = getTG(dP.si, h);
-          if (t >= 0) tS[t] += w * HID_W[i];
+          if (t >= 0) tS[t] += w * hidW(arr, i);
         });
       });
 
@@ -1146,9 +1149,9 @@
       // 격국 기반 4타입 후보 + 점수 기반 best 정렬
       const rawCandidates = GYEOK_CANDIDATES[gyeok] || ['ISTJ','ESTJ','INTJ','ENTJ'];
       // best 타입(현재 4축 점수)이 후보에 있으면 맨 앞으로, 없으면 후보 그대로
-      const candidates = rawCandidates.includes(type)
-        ? [type, ...rawCandidates.filter(t => t !== type)]
-        : [...rawCandidates];
+      // 2026-09-24 수정: 산출 타입이 격국 후보에 없어도 항상 맨 앞(강조)에 배치 —
+      // 기존엔 격국표 1번 타입이 강조되어 게이지(산출 타입)와 정반대로 보이던 모순 해소
+      const candidates = [type, ...rawCandidates.filter(t => t !== type)].slice(0, 4);
 
       return {
         type, candidates,
@@ -1448,7 +1451,9 @@
       document.getElementById('mbtiBasis').textContent = mbti.basis;
 
       // 결과 헤더
-      const hourLabel = hour < 0 ? '시간 미입력' : `${BRANS[hP.bi]}시 (${['00:00~01:30','01:30~03:30','03:30~05:30','05:30~07:30','07:30~09:30','09:30~11:30','11:30~13:30','13:30~15:30','15:30~17:30','17:30~19:30','19:30~21:30','21:30~23:30'][hP.bi]})`;
+      const hourLabel = hour < 0 ? '시간 미입력'
+        : hour >= 23.5 ? '자시 (밤 23:30~24:00)' /* 2026-09-24 수정: 야자시 선택 시 새벽 자시로 오표기되던 버그 */
+        : `${BRANS[hP.bi]}시 (${['00:00~01:30','01:30~03:30','03:30~05:30','05:30~07:30','07:30~09:30','09:30~11:30','11:30~13:30','13:30~15:30','15:30~17:30','17:30~19:30','19:30~21:30','21:30~23:30'][hP.bi]})`;
       document.getElementById('resultTitle').textContent = `${name}님의 사주팔자`;
       document.getElementById('resultDate').textContent =
         `${year}년 ${month}월 ${day}일 · ${gender === 'male' ? '남자' : '여자'} · ${hourLabel}`;

@@ -1909,8 +1909,9 @@ function getSwNatalEvents(swBi, swSi, pillars, dsi){
   const events=[];
   const posLabel=['년주(조상·가족)','월주(직업·형제)','일주(배우자·자신)','시주(자녀·말년)'];
   const CHUNG_MAP={0:6,1:7,2:8,3:9,4:10,5:11,6:0,7:1,8:2,9:3,10:4,11:5};
-  // 형살 쌍: [세운지지, 원국지지]
-  const HYUNG_PAIRS=[[2,9],[9,2],[9,6],[6,9],[1,10],[10,1],[10,7],[7,10],[0,3],[3,0]];
+  // 형살 쌍: [세운지지, 원국지지] — 2026-09-24 수정: 寅酉·酉午(오등록) 제거, 인사·인신·축미 추가.
+  // 巳申은 원국 정책(analyzeOnguk: 합으로 분류)에 맞춰 제외 유지.
+  const HYUNG_PAIRS=[[2,5],[5,2],[2,8],[8,2],[1,10],[10,1],[10,7],[7,10],[1,7],[7,1],[0,3],[3,0]];
   // 원진 쌍
   const WONJIN_PAIRS=[[0,7],[7,0],[1,6],[6,1],[2,9],[9,2],[3,8],[8,3],[4,11],[11,4],[5,10],[10,5]];
 
@@ -2778,7 +2779,7 @@ function buildAnalysis(saju){
   const pg=DGPN[dsi];
 
   // ── 종합 점수 미리 계산 (요약 섹션에 사용) ──
-  const{score,grade,comment,pct,dwFlow}=getOverallScore(interactions,dw.list,dwIdx,tgCnts,strength);
+  const{score,grade,comment,pct,dwFlow}=getOverallScore(interactions,dw.list,dwIdx,tgCnts,strength,dsi);
 
   // ── 존댓말 변환기 (~에요 스타일) — 모든 섹션 공통 ──
   const toPolite=t=>t
@@ -3069,7 +3070,7 @@ ${futureBlock}
 }
 
 // 용신 오행 결정
-function getOverallScore(inter,dwList,dwIdx,cnts,strength){
+function getOverallScore(inter,dwList,dwIdx,cnts,strength,dsi){
   let s=78; // 기본 베이스
   if(strength==='중화(中和)') s+=12;
   else if(strength==='신강(身强)') s+=8;
@@ -3079,7 +3080,7 @@ function getOverallScore(inter,dwList,dwIdx,cnts,strength){
   if(inter.banghap) s+=3;
   s-=inter.chung.length*2+inter.hyung.length*3; // 감점 완화
   if(dwIdx>=0&&dwList[dwIdx]){
-    const tg=getTG(dwList[0].si,dwList[dwIdx].si);
+    const tg=getTG(dsi,dwList[dwIdx].si); // 2026-09-24 버그 수정: 기준을 첫 대운 천간→일간으로
     if([5,7].includes(tg)) s+=8;
     else if([4,6].includes(tg)) s+=5;
     else if(tg===1) s-=2;
@@ -3091,9 +3092,9 @@ function getOverallScore(inter,dwList,dwIdx,cnts,strength){
   const lateDw=dwList.filter(d=>d.age>=30&&d.age<70);
   let dwFlow='balanced'; // 'ascending' | 'descending' | 'balanced'
   if(dwIdx>=0){
-    const earlyTgs=earlyDw.map(d=>getTG(dwList[0].si,d.si));
-    const lateTgs=lateDw.map(d=>getTG(dwList[0].si,d.si));
-    const goodTgs=[5,7,4,6]; // 정관,정인,편재,편관 (상대적 길신)
+    const earlyTgs=earlyDw.map(d=>getTG(dsi,d.si)); // 2026-09-24 버그 수정: 일간 기준
+    const lateTgs=lateDw.map(d=>getTG(dsi,d.si));
+    const goodTgs=[5,7,4,6]; // 정재,정관,편재,편관 (상대적 길신)
     const earlyGood=earlyTgs.filter(t=>goodTgs.includes(t)).length;
     const lateGood=lateTgs.filter(t=>goodTgs.includes(t)).length;
     if(lateGood>earlyGood+1) dwFlow='ascending';
@@ -5038,7 +5039,7 @@ function buildMiniGukTableRelations(pillars,dsi){
   // 열 배경 (개별 색상 + 일주 두꺼운 테두리)
   for(let i=0;i<n;i++){
     const x=colLeft(i),c=COL[i];
-    const sw=i===1?2.2:1;
+    const sw=i===(n===4?1:0)?2.2:1; /* 2026-09-24 수정: 시주 없는 명식(n=3)에서 일주 강조 위치 교정 */
     svg+=`<rect x="${x}" y="${arcH}" width="${colW}" height="${lblH+stemH+brH}" rx="5" fill="${c.bg}" stroke="${c.border}" stroke-width="${sw}"/>`;
   }
 
@@ -6281,14 +6282,23 @@ function doCalc(skipConfirm){
     AuthGuard.saveAnalysis('light', { name, year, month, day, hour: hourRaw, gender, tz });
   }
 
-  let adjHour=hourRaw;
-  if(hourRaw>=0&&tz!==9) adjHour=((hourRaw+(9-tz))%24+24)%24;
+  // 2026-09-24 수정: tz 보정 시 자정을 넘으면 날짜도 함께 이동 (기존엔 시각만 shift → 해외 출생 일주가 하루 어긋남)
+  let adjHour=hourRaw, adjY=year, adjM=month, adjD=day;
+  if(hourRaw>=0&&tz!==9){
+    const shifted=hourRaw+(9-tz);
+    adjHour=((shifted%24)+24)%24;
+    const dayShift=Math.floor(shifted/24);
+    if(dayShift!==0){
+      const nd=_jdnToDate2(getJDN(year,month,day)+dayShift);
+      adjY=nd.y; adjM=nd.m; adjD=nd.d;
+    }
+  }
 
-  const yP=getYearPillar(year,month,day,adjHour);
-  const mP=getMonthPillar(year,month,day,yP.si,adjHour);
-  const dP=getDayPillar(year,month,day);
+  const yP=getYearPillar(adjY,adjM,adjD,adjHour);
+  const mP=getMonthPillar(adjY,adjM,adjD,yP.si,adjHour);
+  const dP=getDayPillar(adjY,adjM,adjD);
   const hP=adjHour>=0?getHourPillar(adjHour,dP.si):null;
-  const dw=calcDaewoon(year,month,day,gender,yP.si,adjHour);
+  const dw=calcDaewoon(adjY,adjM,adjD,gender,yP.si,adjHour);
   const curYear=new Date().getFullYear();
   const sw=getSewoon([curYear-2,curYear-1,curYear,curYear+1,curYear+2,curYear+3,curYear+4,curYear+5,curYear+6,curYear+7]);
   const questions=collectQuestions();
@@ -6296,7 +6306,7 @@ function doCalc(skipConfirm){
 
   const currentAge=curYear-year+1;
   const gText=gender==='male'?'남성':'여성';
-  const HOUR_NAMES={23:'자시(子時)',1:'축시(丑時)',3:'인시(寅時)',5:'묘시(卯時)',7:'진시(辰時)',9:'사시(巳時)',11:'오시(午時)',13:'미시(未時)',15:'신시(申時)',17:'유시(酉時)',19:'술시(戌時)',21:'해시(亥時)'};
+  const HOUR_NAMES={23.75:'자시(밤 子時)',0.5:'자시(새벽 子時)',23:'자시(子時)',1:'축시(丑時)',3:'인시(寅時)',5:'묘시(卯時)',7:'진시(辰時)',9:'사시(巳時)',11:'오시(午時)',13:'미시(未時)',15:'신시(申時)',17:'유시(酉時)',19:'술시(戌時)',21:'해시(亥時)'};
   const hourStr=hourRaw>=0?' '+HOUR_NAMES[hourRaw]:'';
 
   document.getElementById('birthInfoLine').textContent=

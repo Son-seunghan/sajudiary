@@ -233,7 +233,7 @@
         set('yearA',   i.A.year);
         set('monthA',  i.A.month);
         set('dayA',    i.A.day);
-        set('hourA',   i.A.hour===23?0.5:i.A.hour);
+        set('hourA',   (i.A.hour===23||i.A.hour===0)?0.5:i.A.hour); /* 2026-09-24: 구버그 저장분(0) 새벽 자시 복원 */
       }
       if (i.B) {
         set('nameB',   i.B.name);
@@ -241,10 +241,10 @@
         set('yearB',   i.B.year);
         set('monthB',  i.B.month);
         set('dayB',    i.B.day);
-        set('hourB',   i.B.hour===23?0.5:i.B.hour);
+        set('hourB',   (i.B.hour===23||i.B.hour===0)?0.5:i.B.hour); /* 2026-09-24: 구버그 저장분(0) 새벽 자시 복원 */
       }
       if (i.relMode) {
-        window.currentMode = i.relMode;
+        currentMode = i.relMode; // 2026-09-24 수정: window 프로퍼티 대입은 let 바인딩에 무효 — 저장 궁합이 항상 couple 모드로 분석되던 버그
         document.querySelectorAll('.rel-btn').forEach(function(b) {
           if (b.dataset.rel === i.relMode) b.classList.add('active');
           else b.classList.remove('active');
@@ -723,9 +723,17 @@ function analyzeBranchCross(aBrs,bBrs,A,B){
     if(getHae(a,b))res.hae.push({a,b});
     if(checkWonjin(a,b))res.wonjin.push({a,b});
   }}
+  // 2026-09-24 수정: 삼합·방합은 두 사람의 지지가 "합쳐져야" 완성될 때만 시너지로 인정
+  // (기존: 8지지 합산 판정 → 한 사람 단독 삼합이 궁합 가점되던 오류)
   const allB=[...aBrs,...bBrs];
-  const sh=getSamhap(allB);if(sh)res.samhap.push({elem:sh});
-  const bh=getBanghap(allB);if(bh)res.banghap.push({elem:bh});
+  const SAM_G=[[2,6,10,'화'],[3,7,11,'목'],[0,4,8,'수'],[1,5,9,'금']];
+  const BANG_G=[[2,3,4,'목'],[5,6,7,'화'],[8,9,10,'금'],[11,0,1,'수']];
+  const crossOnly=function(g){
+    const has=function(arr){return g.slice(0,3).every(function(x){return arr.includes(x);});};
+    return has(allB)&&!has(aBrs)&&!has(bBrs);
+  };
+  for(const g of SAM_G){ if(crossOnly(g)){res.samhap.push({elem:g[3]});break;} }
+  for(const g of BANG_G){ if(crossOnly(g)){res.banghap.push({elem:g[3]});break;} }
   return res;
 }
 function analyzeStemCross(aSts,bSts){
@@ -955,13 +963,13 @@ function analyzeStrengths(A,B,pair,score,mode){
       friend:`<b>양방향 용신 보완</b> — "만나고 오면 충전된다" 싶은 친구의 결이에요. 정신적 회복력의 약 같은 우정이에요.`,
       work:`<b>양방향 용신 보완</b> — 협업에서 이건 큰 자산이에요. 둘이 같이 일하면 둘 다 덜 지치는 구조라, 장기·고강도 일에 특히 잘 맞아요.`
     }, mode)});
-  } else if(pair.elemComplement.aFills){
+  } else if(pair.elemComplement.bFills){ /* 2026-09-24 수정: aFills/bFills 의미 반전 교정 — bFills = B가 A를 채움 */
     S.push({rank:6, t:byMode({
       couple:`<b>${B.name}님이 ${A.name}님의 부족한 기운을 채워주는 결</b>이에요. ${A.name}님은 ${B.name}님이 곁에 있을 때 심신이 더 편안해져요.`,
       friend:`<b>${B.name}님이 ${A.name}님에게 안정감을 주는 친구</b>예요. ${A.name}님이 흔들릴 때 진가가 드러나요.`,
       work:`<b>${B.name}님이 ${A.name}님의 약점을 보완</b>해줘요. 팀 구성 시 두 분이 함께 있어야 ${A.name}님이 제 기량을 발휘하는 결이에요.`
     }, mode)});
-  } else if(pair.elemComplement.bFills){
+  } else if(pair.elemComplement.aFills){ /* aFills = A가 B를 채움 */
     S.push({rank:6, t:byMode({
       couple:`<b>${A.name}님이 ${B.name}님의 부족한 기운을 채워주는 결</b>이에요.`,
       friend:`<b>${A.name}님이 ${B.name}님에게 의지처가 되는 친구</b>예요.`,
@@ -2397,8 +2405,8 @@ function doCalc(skipConfirm){
       const _adultEl = document.getElementById('adultMode');
       const _adultLevelEl = document.querySelector('input[name=adultLevel]:checked');
       AuthGuard.saveAnalysis(_productId, {
-        A: { name: document.getElementById('nameA').value||'사람 A', gender: document.getElementById('genderA').value, year: parseInt(document.getElementById('yearA').value,10), month: parseInt(document.getElementById('monthA').value,10), day: parseInt(document.getElementById('dayA').value,10), hour: parseInt(document.getElementById('hourA').value,10) },
-        B: { name: document.getElementById('nameB').value||'사람 B', gender: document.getElementById('genderB').value, year: parseInt(document.getElementById('yearB').value,10), month: parseInt(document.getElementById('monthB').value,10), day: parseInt(document.getElementById('dayB').value,10), hour: parseInt(document.getElementById('hourB').value,10) },
+        A: { name: document.getElementById('nameA').value||'사람 A', gender: document.getElementById('genderA').value, year: parseInt(document.getElementById('yearA').value,10), month: parseInt(document.getElementById('monthA').value,10), day: parseInt(document.getElementById('dayA').value,10), hour: parseFloat(document.getElementById('hourA').value) }, /* 2026-09-24 수정: parseInt→parseFloat — 야자시 23.75가 23으로 잘려 복원 시 시주가 변질되던 버그 */
+        B: { name: document.getElementById('nameB').value||'사람 B', gender: document.getElementById('genderB').value, year: parseInt(document.getElementById('yearB').value,10), month: parseInt(document.getElementById('monthB').value,10), day: parseInt(document.getElementById('dayB').value,10), hour: parseFloat(document.getElementById('hourB').value) },
         relMode: currentMode,
         adultMode: !!(_adultEl && _adultEl.checked),
         adultLevel: _adultLevelEl ? _adultLevelEl.value : 'medium'
