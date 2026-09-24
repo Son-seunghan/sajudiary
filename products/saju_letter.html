@@ -1050,24 +1050,7 @@ body{padding-bottom:80px;}
         </select>
       </div>
     </div>
-    <!-- FAQ 질문 선택 -->
-    <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px;">
-      <div class="card-title" style="margin-bottom:12px;">💬 추가로 알고 싶은 것을 선택하거나 직접 입력하세요</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">자주 묻는 질문은 기본 체크되어 있습니다. 원하는 항목을 추가·제거하세요.</div>
-
-      <!-- 기본 FAQ 체크박스 -->
-      <div id="faqCheckList" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-        <label class="faq-chk"><input type="checkbox" value="애정·결혼운" checked> 💑 애정·결혼운 — 인연·배우자</label>
-        <label class="faq-chk"><input type="checkbox" value="재물·금전운" checked> 💰 재물운 — 돈·자산</label>
-        <label class="faq-chk"><input type="checkbox" value="직업·이직운" checked> 💼 직업·이직운 — 커리어·변화</label>
-        <label class="faq-chk"><input type="checkbox" value="건강운" checked> 🏥 건강운 — 몸·에너지</label>
-        <label class="faq-chk"><input type="checkbox" value="학업·시험운" checked> 📚 학업운 — 공부·시험</label>
-        <label class="faq-chk"><input type="checkbox" value="사업·창업운" checked> 🚀 사업·창업운</label>
-      </div>
-
-      <!-- 직접 입력 질문 영역 제거 (의도와 다른 오해 방지) -->
-      <div id="customQList" style="display:none;"></div>
-    </div>
+    <!-- 2026-09-24 손님 결정(검수 Q7): 질문 체크박스 UI 제거 — 입문용은 편지 구성만 제공 (답변 기능 미연결 상태였음) -->
 
     <button class="btn btn-gold" onclick="doCalc()" style="margin-top:18px;">만세력 계산하기 →</button>
   </div>
@@ -1267,6 +1250,41 @@ function calcDaewoon(year,month,day,gender,yearSi,hour){
 }
 
 function getSewoon(years){return years.map(y=>({year:y,si:((y-4)%10+10)%10,bi:((y-4)%12+12)%12}));}
+
+// ── 세운의 '올해' 판정 — 입춘 절입 시각 기준 (2026-09-24 손님 결정 Q3: 해의 경계는 입춘) ──
+function sewoonNowYear(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const nowJD=getJDN(y,now.getMonth()+1,now.getDate())+(now.getHours()-12)/24;
+  return nowJD<termClockJD(y,1)?y-1:y;
+}
+// ── 운(대운·세운)의 지지가 원국과 3글자를 완성하는 삼합·방합·삼형 감지 ──
+// 2026-09-24 손님 결정: 운에서 들어온 글자로 3자가 이루어지는 작용을 우선적으로 본다
+// (예: 원국 巳·申 + 운 寅 → 인사신 삼형 작용. 원국이 이미 3자를 갖췄으면 '강화')
+let UN_NATAL_BIS=[]; // doCalc에서 원국 지지 목록 세팅
+function getUnTriads(unBi,natalBis){
+  const res=[];
+  const GROUPS=[
+    [2,6,10,'화','삼합'],[3,7,11,'목','삼합'],[0,4,8,'수','삼합'],[1,5,9,'금','삼합'],
+    [2,3,4,'목','방합'],[5,6,7,'화','방합'],[8,9,10,'금','방합'],[11,0,1,'수','방합'],
+    [2,5,8,null,'삼형'],[1,10,7,null,'삼형']
+  ];
+  for(const g of GROUPS){
+    const tri=[g[0],g[1],g[2]];
+    if(!tri.includes(unBi)) continue;
+    const others=tri.filter(b=>b!==unBi);
+    if(others.every(b=>natalBis.includes(b))){
+      res.push({kind:g[4],elem:g[3],name:BRANS[g[0]]+BRANS[g[1]]+BRANS[g[2]],already:natalBis.includes(unBi)});
+    }
+  }
+  return res;
+}
+function unTriadTag(unBi,natalBis){
+  return getUnTriads(unBi,natalBis).map(t=>t.kind==='삼형'
+    ? ` 🔺 운의 ${BRANS[unBi]}(${BRANS_H[unBi]})가 원국과 ${t.name} 삼형을 완성${t.already?' (원국 삼형 강화)':''} — 관계·계약·건강의 긴장이 조여드는 시기라, 큰 결정과 확장은 신중히 하세요.`
+    : ` 🔥 운의 ${BRANS[unBi]}(${BRANS_H[unBi]})가 원국과 ${t.name} ${t.kind}(${t.elem}국)을 완성${t.already?' (원국 국 강화)':''} — ${t.elem} 기운이 크게 일어나 그 오행의 주제가 전면에 나서는 시기예요.`
+  ).join('');
+}
 
 function getTG(daySi,tgtSi){
   const de=STEM_E[daySi],te=STEM_E[tgtSi];
@@ -1907,6 +1925,12 @@ function buildLifeNarrative({dsi,pillars,tgCnts,interactions,curDw,dP,mP,yP,hP,s
 // ── 세운-원국 충·형 상세 이벤트 분석 ──────────────────────────────
 function getSwNatalEvents(swBi, swSi, pillars, dsi){
   const events=[];
+  // ── 3자 완성(삼합·방합·삼형) 우선 감지 — 2026-09-24 손님 결정 ──
+  for(const t of getUnTriads(swBi,pillars.map(p=>p.bi))){
+    events.push({severity:3,desc: t.kind==='삼형'
+      ? `세운 ${BRANS[swBi]}(${BRANS_H[swBi]})가 원국과 만나 ${t.name} 삼형을 완성합니다${t.already?' (원국의 삼형이 더 강해지는 해)':''}. 관계·계약·법적 문제·건강의 긴장이 조여드는 해라, 큰 결정과 보증·확장은 신중히 하세요.`
+      : `세운 ${BRANS[swBi]}(${BRANS_H[swBi]})가 원국과 만나 ${t.name} ${t.kind}(${t.elem}국)을 완성합니다${t.already?' (원국의 국이 더 강해지는 해)':''}. ${t.elem} 기운이 크게 일어나 그 오행이 상징하는 주제가 그 해의 중심에 서는 흐름이에요.`});
+  }
   const posLabel=['년주(조상·가족)','월주(직업·형제)','일주(배우자·자신)','시주(자녀·말년)'];
   const CHUNG_MAP={0:6,1:7,2:8,3:9,4:10,5:11,6:0,7:1,8:2,9:3,10:4,11:5};
   // 형살 쌍: [세운지지, 원국지지] — 2026-09-24 수정: 寅酉·酉午(오등록) 제거, 인사·인신·축미 추가.
@@ -2892,7 +2916,7 @@ function buildAnalysis(saju){
 
   // ── 섹션 03: 세운(歲運) — 편지체 줄글 ──────────────────────────
   {
-    const cyearSw=new Date().getFullYear();
+    const cyearSw=sewoonNowYear(); /* 2026-09-24 Q3: 세운의 '올해'는 입춘 기준 */
     const swYears=[];
     for(let y=cyearSw-3;y<=cyearSw+3;y++) swYears.push(y);
     const swRaw=getSewoon(swYears);
@@ -3466,6 +3490,8 @@ function analyzeSingleDw(d,daySi,dayBi,birthYear,currentAge){
 
   // ⑤ 충·합 알림
   if(chungDay) t+=`\n\n⚡ 이 대운 기간 중 큰 변화 신호: 대운의 글자(${branch})가 내 일주(${BRANS[dayBi]})와 서로 충돌하는 관계입니다. 이직·이사·결혼·이별처럼 삶의 구조가 뒤흔들리는 큰 변화가 일어날 수 있어요. 충동적인 결정보다 신중한 판단이 중요합니다.`;
+  const dwTriadTag=unTriadTag(d.bi,UN_NATAL_BIS); // 3자 완성 우선 표기 (2026-09-24)
+  if(dwTriadTag) t+='\n\n'+dwTriadTag.trim();
 
   // ⑥ 핵심 조언
   if(d4) t+=`\n\n★ 이 대운의 핵심: ${d4.core}`;
@@ -3574,6 +3600,7 @@ function analyzeSw(sw,dP,mP,yP,currentAge,dwList){
       hope='꾸준히 쌓은 노력이 성과로 나타나는 해가 될 수 있어요.';
       gaeun='나의 강점을 발휘할 수 있는 분야에 에너지를 집중하세요.';
     }
+    const triadTag=unTriadTag(s.bi,UN_NATAL_BIS); if(triadTag) main+=triadTag; // 3자 완성 우선 표기 (2026-09-24)
     if(chungD) main+=` ⚡ 일지와 충(冲) — 건강·배우자·직업에서 예상 밖의 변화나 이동이 올 수 있어요.`;
     if(chungM) main+=` 월지와 충 — 직업·부모·윗사람 관계에서 변동이 생기기 쉬운 해예요.`;
     if(hapD) main+=` ✨ 일지와 ${hapD}합 — 결혼·계약·파트너십에서 좋은 인연이 연결될 가능성이 높아요.`;
@@ -4856,7 +4883,7 @@ function getBestWorstChars(dP,strength,eb,tgCnts,sw){
   // 세운에서 용신·기신 오행이 들어오는 해 추출
   let swGoodYears=[],swBadYears=[];
   if(sw&&sw.length){
-    const curY=new Date().getFullYear();
+    const curY=sewoonNowYear(); /* 입춘 기준 (Q3) */
     for(const s of sw){
       const se=STEM_E[s.si];
       const be=BRAN_E[s.bi];
@@ -6313,13 +6340,14 @@ function doCalc(skipConfirm){
     year+'년 '+month+'월 '+day+'일'+hourStr+'  |  '+gText+'  |  일주: '+STEMS[dP.si]+BRANS[dP.bi]+'일주'+(name?' | '+name:'');
 
   const pillars=[yP,mP,dP,hP].filter(Boolean);
+  UN_NATAL_BIS=pillars.map(p=>p.bi); // 운-원국 3자 완성 감지용 (2026-09-24)
   document.getElementById('sajuChart').innerHTML=renderSajuChart(pillars,dP.si,hourRaw>=0);
   document.getElementById('distCharts').innerHTML=renderDistCharts(pillars,dP.si);
   document.getElementById('dwInfo').innerHTML=
     '대운 시작: <b style="color:var(--accent)">'+dw.startAge+'세</b> | 방향: '+(dw.fwd?'순행':'역행')+' | 현재 추정 나이: '+currentAge+'세';
   document.getElementById('dwGrid').innerHTML=renderDwGrid(dw,dP.si,currentAge);
   document.getElementById('swInfo').textContent=(curYear-2)+'년~'+(curYear+7)+'년 세운';
-  document.getElementById('swGrid').innerHTML=renderSwGrid(sw,dP.si,curYear);
+  document.getElementById('swGrid').innerHTML=renderSwGrid(sw,dP.si,sewoonNowYear()); /* 입춘 기준 (Q3) */
   const sections=buildAnalysis(saju);
   document.getElementById('analysisWrap').innerHTML=renderSections(sections,name);
   document.getElementById('analysisCard').style.display='block';
