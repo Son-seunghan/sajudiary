@@ -2838,6 +2838,7 @@ function buildAnalysis(saju){
   MONTH_TB=getTGBr(dsi,mP.bi); // 과다 판정용 월지 십성 (2026-09-24)
   const yongInfo=getYongsinInfo(dsi,pillars,dP,tgCnts,strength,interactions);
   const yongElem=yongInfo.elem; // null = 중화(균형 유지형)
+  UN_YONG_ELEM=yongInfo.elem; UN_GI_ELEM=yongInfo.gi?yongInfo.gi.elem:null; UN_YONG_INFO=yongInfo; // C회차: 운 톤(T1)·프로파일용
   const mostTg=getMostTg(tgCnts);
   const dwIdx=getCurrentDwIdx(dw.list,currentAge);
   const curDw=dw.list[dwIdx];
@@ -2933,12 +2934,15 @@ function buildAnalysis(saju){
     });
   }
 
-  // ── 섹션 01: 타고난 성격 (편지체 2인칭 서사) ────────────────────
+  // ── 섹션 01: 타고난 성격 (편지체 2인칭 서사) + 십성 프로파일 편지 번역 (C회차 2026-09-26) ──
   const letterPersonalityBody=buildLetterPersonality(dsi,dP,mP,hP,strength,nameWord);
+  const letterTgProfile=buildTgProfileLetter(dsi,tgCnts,nameWord);
   sections.push({
     num:'01',
     title:`타고난 성격 — ${nameStr}${pg.core}`,
-    body:letterPersonalityBody
+    body:`${letterPersonalityBody}
+
+${letterTgProfile}`
   });
 
 
@@ -3400,11 +3404,159 @@ function getFuturePath(dsi,strength,eb,cnts,yongElem){
   return t;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// C회차 2026-09-26 (Deep과 동일 판정 엔진 + 편지체 사전):
+//  운-원국 작용 헬퍼(궁위·충별 의미·천간합, 첩신 미적용) + 십성 프로파일(쉬운말 번역)
+// ═══════════════════════════════════════════════════════════════
+let UN_NATAL_SIS=[];   // doCalc: 원국 천간 목록 (천간합 판정용)
+let UN_YONG_ELEM=null; // 용신 오행 (null=중화)
+let UN_GI_ELEM=null;   // 기신 오행
+let UN_YONG_INFO=null; // getYongsinInfo 결과 전체
+const SEAT12_ADJ={'장생':1,'관대':1,'건록':1,'제왕':1,'목욕':0,'양':0,'태':0,'쇠':0,'병':-1,'사':-1,'묘':-1,'절':-1}; // S3: 왕+1/평0/약-1
+const GUNG_NM=['년지','월지','일지','시지'];
+const GUNG_MEAN=['사회·집안 어른의 자리','직장·부모의 자리','나와 배우자의 자리','자녀·아랫사람·말년의 자리'];
+const CHUNG_MEAN={'0-6':'이리저리 분주해지고 선택의 갈림길에 서는 자오충','1-7':'대인관계·부동산 이슈와 소화기 건강을 건드리는 축미충','2-8':'조급함이 사고로 이어지기 쉬운 인신충','3-9':'손재와 뼈·관절 건강을 조심할 묘유충','4-10':'배우자 자리의 고독과 법적·부동산 문제가 흔들리는 진술충','5-11':'정신적 스트레스와 정체성 고민이 깊어지는 사해충'};
+const CHUNG_CATS={'0-6':['relation'],'1-7':['money','health'],'2-8':['health'],'3-9':['money','health'],'4-10':['relation','money','health'],'5-11':['health']};
+const GUNG_CATS=[['career'],['career'],['relation','health'],['relation']];
+function pairHyung(a,b){ // 사신(합 분류)·충 우선쌍 제외한 2자 형
+  if((a===2&&b===5)||(a===5&&b===2))return '인사형';
+  if((a===1&&b===10)||(a===10&&b===1))return '축술형';
+  if((a===10&&b===7)||(a===7&&b===10))return '술미형';
+  if((a===0&&b===3)||(a===3&&b===0))return '자묘형';
+  if(a===b&&[4,6,9,11].includes(a))return BRANS_H[a]+BRANS_H[a]+' 자형';
+  return null;
+}
+const KP_EUN=k=>((k.charCodeAt(0)-0xAC00)%28)?'은':'는';
+const KP_YI=k=>((k.charCodeAt(0)-0xAC00)%28)?'이':'가';
+const KP_WA=k=>((k.charCodeAt(0)-0xAC00)%28)?'과':'와';
+function unGungActions(unBi,unSi){
+  const adj={career:0,money:0,relation:0,health:0};const lines=[];
+  const why={career:[],money:[],relation:[],health:[]}; // 칸별 등급 근거 (C회차: 4칸 텍스트 개인화용)
+  const mark=(c,d,w)=>{adj[c]+=d;why[c].push(w);};
+  UN_NATAL_BIS.forEach((nb,i)=>{
+    if(nb==null)return;
+    if(isChung(unBi,nb)){
+      const key=Math.min(unBi,nb)+'-'+Math.max(unBi,nb);
+      lines.push(`⚡ ${GUNG_NM[i]} ${BRANS_H[nb]}${KP_WA(BRANS[nb])} 충 — ${CHUNG_MEAN[key]||'변화를 부르는 충'}이 ${GUNG_MEAN[i]}에서 일어나요.`);
+      const set=new Set((CHUNG_CATS[key]||[]).concat(GUNG_CATS[i]||[]));
+      set.forEach(c=>{mark(c,-1,`${GUNG_NM[i]} ${BRANS_H[nb]} 충`);});
+    } else {
+      const hy=pairHyung(unBi,nb);
+      if(hy){
+        lines.push(`△ ${GUNG_NM[i]} ${BRANS_H[nb]}${KP_WA(BRANS[nb])} ${hy} — ${GUNG_MEAN[i]}에 조정·마찰·수술수 같은 형(刑)의 긴장이 걸려요.`);
+        mark('health',-1,hy);if(i===1)mark('career',-1,hy);if(i===2)mark('relation',-1,hy);
+      } else {
+        const yh=getYukhap(unBi,nb);
+        if(yh){
+          lines.push(`✨ ${GUNG_NM[i]} ${BRANS_H[nb]}${KP_WA(BRANS[nb])} 육합 — ${GUNG_MEAN[i]}가 이 운과 단단히 묶여요${i===2?' (인연·계약이 연결되는 흐름)':i===1?' (큰 이동보다 내실이 유리한 흐름)':''}.`);
+          if(i===2)mark('relation',1,'일지 육합');
+        }
+      }
+    }
+  });
+  // S5: 천간합만. 일간과의 합은 '유정한 합'
+  UN_NATAL_SIS.forEach((ns,i)=>{
+    if(ns==null)return;
+    if(getStemHap(unSi,ns)){
+      if(i===2) lines.push(`✨ 운의 천간 ${STEMS_H[unSi]}${KP_YI(STEMS[unSi])} 일간 ${STEMS_H[ns]}${KP_WA(STEMS[ns])} 유정한 합 — 끌리는 인연·제안이 다가오는 흐름이에요.`);
+      else lines.push(`운의 천간 ${STEMS_H[unSi]}${KP_YI(STEMS[unSi])} ${['년간','월간','','시간'][i]} ${STEMS_H[ns]}${KP_WA(STEMS[ns])} 합 — 그 글자의 역할이 이 시기엔 묶이는 경향이 있어요.`);
+    }
+  });
+  return{lines,adj,why};
+}
+// ── 십성 프로파일 편지체 사전 (용어 없이 완전 번역 — Light 원칙 ①) ──
+const TG_DICT_L=[
+ {who:'스스로 서는 힘',job:'혼자 힘으로 꾸리는 일(독립·자영·전문 자격)',
+  str:'누가 정해주지 않아도 스스로 결정하고 밀고 가는 사람이에요. 대등한 친구·동료와 함께일 때 가장 커져요.',
+  shd:'한번 정한 방식을 잘 굽히지 않아요. 도움을 청하는 게 어색해서, 혼자 다 짊어지다 지치는 날이 있어요.',
+  gwa:'이 힘이 지나치면 고집이 되고, 매사가 경쟁이 돼요. 돈과 사람이 그 사이로 새기 쉬워요. 그래도 괜찮아요 — 함께 갈 사람을 정해두는 것만으로 이 힘은 다시 무기가 되니까요.'},
+ {who:'승부의 힘',job:'승부가 갈리는 일(영업·스포츠·트레이딩)',
+  str:'남들이 주저하는 순간에 오히려 배짱이 살아나는 사람이에요. 위기에 강해요.',
+  shd:'이기고 싶은 마음이 커서 남과 비교하게 되고, 돈이 크게 들어왔다 크게 나가는 흐름이 반복될 수 있어요.',
+  gwa:'욕심이 커지는 순간이 가장 위험한 순간이에요. 보증·동업·한탕은 멀리하세요. 그래도 괜찮아요 — 승부처를 골라서 쓰면 이만한 무기가 없어요.'},
+ {who:'즐겁게 만드는 재주',job:'만들고 가르치고 대접하는 일(요식·교육·콘텐츠)',
+  str:'표현하고 만들고 먹고사는 재주가 자연스러운 사람이에요. 좋아하는 일을 오래 지속하는 힘이 있어요.',
+  shd:'편한 것에 안주해 때를 놓치거나, 좋아하는 것만 파고드는 편식이 생길 수 있어요.',
+  gwa:'이 재주가 넘치면 말이 앞서요. 무심코 뱉은 말이 실수와 구설로 돌아오기 쉬워요. 그래도 괜찮아요 — 말을 글과 작품으로 바꾸면 그대로 재산이 되니까요.'},
+ {who:'틀을 깨는 말과 재치',job:'말과 아이디어로 승부하는 일(방송·마케팅·강의)',
+  str:'순발력과 재치가 있고, 낡은 방식의 허점을 짚어내는 눈이 있어요.',
+  shd:'말이 앞서 오해를 사거나, 윗사람·규칙과 부딪히는 일이 반복될 수 있어요.',
+  gwa:'섣부른 말과 행동이 실수와 구설로 돌아오기 쉬운 구조예요. 옳은 말일수록 반 박자 늦게, 수위를 낮춰서요. 그래도 괜찮아요 — 이 입이 정제되면 사람을 움직이는 가장 큰 재능이 돼요.'},
+ {who:'크게 벌리는 감각',job:'판을 키우는 일(사업·유통·투자)',
+  str:'돈의 흐름을 크게 보는 눈과 넓은 발이 있어요. 기회를 보면 빠르게 움직이는 사람이에요.',
+  shd:'버는 만큼 쓰는 스케일도 커요. 돈이 머무는 힘은 약한 편이에요.',
+  gwa:'욕심이 화근이 되기 쉬워요. 큰돈이 보일수록 검증부터, 몰아넣기보다 나눠서요. 그래도 괜찮아요 — 욕심의 크기만 다스리면 이 감각은 타고난 사업 밑천이에요.'},
+ {who:'차곡차곡 쌓는 손',job:'지키고 관리하는 일(재무·회계·관리)',
+  str:'꼼꼼하게 관리하고 성실하게 쌓는 사람이에요. 시간이 갈수록 신용이 재산이 돼요.',
+  shd:'확실한 것만 잡으려다 큰 기회를 흘려보내고, 아끼는 모습이 인색해 보일 때가 있어요.',
+  gwa:'지키려는 마음이 지나치면 집착이 돼요. 사람도 기회도 좁아져요. 그래도 괜찮아요 — 열 번에 한 번만 크게 걸어보는 연습이면 충분해요.'},
+ {who:'짊어지는 어깨',job:'긴장 속에서 지키는 일(군경·법조·의료·현장)',
+  str:'위기에서 결단하고, 책임을 통째로 짊어지는 강단이 있는 사람이에요.',
+  shd:'늘 무언가에 쫓기는 긴장이 몸에 배기 쉬워요. 몸을 갈아 넣는 버릇이 그늘이에요.',
+  gwa:'스트레스가 쌓이면 씀씀이가 거칠어지고, 결국 몸이 먼저 아파요. 운동과 잠이 이 사주의 약이에요. 그래도 괜찮아요 — 어깨의 짐을 고르는 눈만 생기면, 이 힘은 큰 자리를 감당하는 그릇이 되니까요.'},
+ {who:'반듯한 책임감',job:'제도 안에서 인정받는 일(공직·대기업·행정)',
+  str:'원칙과 신뢰의 사람이에요. 조직 안에서 자리가 단단해지고, 맡은 자리에 어울리는 사람이 되어가요.',
+  shd:'체면과 틀을 지키느라 하고 싶은 말과 일을 미루는 날이 많아요.',
+  gwa:'지켜야 할 것이 너무 많아지면 반듯함이 숨을 조여와요. 스트레스가 소비로, 소비가 건강으로 번지기 쉬워요. 그래도 괜찮아요 — 책임의 개수를 줄이는 것부터가 실력이에요.'},
+ {who:'깊이 파고드는 머리',job:'남들이 안 가는 길의 전문성(연구·IT·심리)',
+  str:'직관이 좋고, 남들이 안 보는 곳을 파고드는 사람이에요. 틈새에서 독보적이 되는 유형이에요.',
+  shd:'시작은 많은데 마무리가 약하고, 사람과 세상에 대한 의심이 깊어지는 시기가 있어요.',
+  gwa:'생각이 생각을 낳아 실행이 멈추기 쉬워요. 걱정은 반으로, 일단 몸부터 움직여요. 그래도 괜찮아요 — 움직이기 시작한 이 머리는 누구도 못 따라오니까요.'},
+ {who:'배움과 보살핌의 복',job:'배우고 가르치는 일(교육·출판·자격 기반)',
+  str:'배움과 문서, 어른의 도움이 따르는 사람이에요. 공부한 것이 자격과 기반이 되어 돌아와요.',
+  shd:'받는 것에 익숙해 스스로 움직이는 힘이 늦게 발동돼요. 준비만 길어지기 쉬워요.',
+  gwa:'고민만 하다 때를 놓치기 쉬워요. 완벽한 준비란 없어요 — 일단 시작하고, 나가서 부딪히며 배우는 쪽이 답이에요. 그래도 괜찮아요, 시작만 하면 끝은 누구보다 단단하니까요.'}
+];
+const TG_ABSENT_L={
+ '비겁':'혼자 버티는 뒷심은 타고나지 않았어요. 그 대신 곁에 좋은 사람을 두는 눈이 그 역할을 해요.',
+ '식상':'마음을 밖으로 꺼내 보이는 일이 어색할 수 있어요. 표현은 타고나는 게 아니라 연습하면 늘어요.',
+ '재성':'돈을 좇는 감각보다, 실력을 쌓으면 돈이 따라오는 쪽이에요. 기록하고 적어두는 습관이 지갑을 지켜줘요.',
+ '관성':'누가 시켜서 움직이는 사람이 아니에요. 스스로 정한 약속과 마감이 평생의 숙제이자 무기가 돼요.',
+ '인성':'기댈 언덕을 스스로 만들어야 해요. 좋은 어른과 문서(계약서·증빙)를 의식적으로 곁에 두세요.'};
+const ELEM_JOB={'목':'교육·출판·환경·기획·상담','화':'방송·광고·IT·연예·디자인','토':'부동산·금융·의료·행정·요식업','금':'법무·기계·제조·IT·스포츠','수':'무역·여행·연구·학문·철학'};
+function buildTgProfileLetter(dsi,cnts,nameWord){
+  const yi=UN_YONG_INFO;
+  const cnt=i=>cnts[i]||0;
+  const GRP=[{nm:'비겁',idxs:[0,1]},{nm:'식상',idxs:[2,3]},{nm:'재성',idxs:[4,5]},{nm:'관성',idxs:[6,7]},{nm:'인성',idxs:[8,9]}];
+  const gcnt=g=>g.idxs.reduce((a,i)=>a+cnt(i),0);
+  let domi=0;for(let i=1;i<10;i++)if(cnt(i)>cnt(domi))domi=i;
+  const domiGrp=GRP[Math.floor(domi/2)].nm;
+  const D=TG_DICT_L[domi];
+  const yongGrp=yi?yi.group:null, giGrp=(yi&&yi.gi)?yi.gi.group:null;
+  let strTxt=`${nameWord} 안에서 가장 큰 것은 \'${D.who}\'이에요. ${D.str}`;
+  let second=-1;for(let i=0;i<10;i++){if(i!==domi&&cnt(i)>=2&&(second<0||cnt(i)>cnt(second)))second=i;}
+  if(second>=0) strTxt+=` 여기에 \'${TG_DICT_L[second].who}\'가 곁을 받쳐줘요.`;
+  if(yongGrp&&domiGrp===yongGrp) strTxt+=` 이 힘은 쓰면 쓸수록 삶이 풀리는, 당신을 살리는 방향이기도 해요.`;
+  let shdTxt=`가장 큰 힘의 뒷면이 곧 그늘이에요. ${D.shd}`;
+  if(giGrp&&domiGrp===giGrp) shdTxt+=` 이 힘은 크지만 지금의 균형을 기울이는 쪽이기도 해서, 아래 당부를 꼭 기억해주세요.`;
+  const cautions=[];let domiGwada=false;
+  GRP.forEach(g=>{
+    const c=gcnt(g);
+    if(isGwada(cnts,g.idxs)){
+      const dIdx=cnt(g.idxs[0])>=cnt(g.idxs[1])?g.idxs[0]:g.idxs[1];
+      cautions.push(TG_DICT_L[dIdx].gwa);
+      if(g.nm===domiGrp)domiGwada=true;
+    } else if(c===0){
+      cautions.push(TG_ABSENT_L[g.nm]);
+    }
+  });
+  if(cautions.length===0&&!domiGwada) cautions.push(D.shd?`${D.who}의 뒷면을 기억해주세요 — ${D.shd}`:'');
+  let jobTxt='';
+  if(yi&&yi.elem!=null){
+    jobTxt=`잘 풀리는 길은 ${D.job} 쪽이에요. 그중에서도 ${ELEM_JOB[yi.name]||''} 분야로 가면, 애쓰지 않아도 오래가는 힘이 붙어요.`;
+    if(yi.gi&&yi.gi.elem!=null&&yi.gi.elem!==yi.elem){
+      jobTxt+=` 혹시 이미 ${ELEM_JOB[yi.gi.name]||''} 쪽에서 살아왔다면 — 그것도 당신의 업이에요. 다만 그 길은 유난히 소모가 커서, ${ELEM_JOB[yi.name]||''} 성격의 시간을 틈틈이 붙여줘야 오래갈 수 있어요.`;
+    }
+  } else {
+    jobTxt=`균형이 잘 잡힌 사주라 길을 하나로 좁힐 필요가 없어요. ${D.job} 쪽 재주를 어느 분야에서든 고르게 쓸 수 있는 사람이에요.`;
+  }
+  return `【 마음의 그늘 】\n${shdTxt}\n\n【 당신의 힘 】\n${strTxt}\n\n【 미리 일러두고 싶은 것 】\n${cautions.join('\n')}\n\n【 길이 열리는 방향 】\n${jobTxt}`;
+}
+
 function analyzeSingleDw(d,daySi,dayBi,birthYear,currentAge){
   const stem=STEMS[d.si];const branch=BRANS[d.bi];
   const tg=TG_N[getTG(daySi,d.si)];
-  const f12=getF12(daySi,d.bi);
-  const chungDay=isChung(dayBi,d.bi);
+  const f12=getF12(d.si,d.bi); // S1 (2026-09-26): 운 12운성 = 앉은자리
   const startYear=birthYear+d.age;
   const endYear=birthYear+d.endAge;
   const isCurrent=(currentAge>=d.age&&currentAge<=d.endAge);
@@ -3540,9 +3692,18 @@ function analyzeSingleDw(d,daySi,dayBi,birthYear,currentAge){
   if(f12Advice[f12]) t+=`\n\n▸ 에너지 단계(${f12}): ${f12Advice[f12]}`;
 
   // ⑤ 충·합 알림
-  if(chungDay) t+=`\n\n⚡ 이 대운 기간 중 큰 변화 신호: 대운의 글자(${branch})가 내 일주(${BRANS[dayBi]})와 서로 충돌하는 관계입니다. 이직·이사·결혼·이별처럼 삶의 구조가 뒤흔들리는 큰 변화가 일어날 수 있어요. 충동적인 결정보다 신중한 판단이 중요합니다.`;
+  // ⑤ 운-원국 작용 (C회차 2026-09-26: 3자 완성 우선 → 궁위·충별 의미·형·육합·천간합, 첩신 미적용) + 용신·기신 톤(T1)
   const dwTriadTag=unTriadTag(d.bi,UN_NATAL_BIS); // 3자 완성 우선 표기 (2026-09-24)
   if(dwTriadTag) t+='\n\n'+dwTriadTag.trim();
+  const act=unGungActions(d.bi,d.si);
+  if(act.lines.length>0) t+='\n\n'+act.lines.join('\n');
+  let yongAdj=0;
+  if(UN_YONG_ELEM!=null){
+    const hitY=STEM_E[d.si]===UN_YONG_ELEM||BRAN_E[d.bi]===UN_YONG_ELEM;
+    const hitG=UN_GI_ELEM!=null&&(STEM_E[d.si]===UN_GI_ELEM||BRAN_E[d.bi]===UN_GI_ELEM);
+    if(hitY&&!hitG){yongAdj=1;t+='\n\n💧 이 대운엔 당신을 살리는 기운이 실려 옵니다 — 같은 노력도 더 크게 돌아오는 10년이에요.';}
+    else if(hitG&&!hitY){yongAdj=-1;t+='\n\n🔥 이 대운엔 이미 많은 기운이 더 밀려옵니다 — 채우기보다 덜어내는 10년으로 삼는 것이 맞아요.';}
+  }
 
   // ⑥ 핵심 조언
   if(d4) t+=`\n\n★ 이 대운의 핵심: ${d4.core}`;
@@ -3552,8 +3713,13 @@ function analyzeSingleDw(d,daySi,dayBi,birthYear,currentAge){
   const tgScoreBase={'비견':45,'겁재':35,'식신':90,'상관':55,'편재':65,'정재':80,'편관':30,'정관':80,'편인':40,'정인':70};
   const f12ScoreAdj={'장생':8,'목욕':0,'관대':5,'건록':12,'제왕':15,'쇠':-8,'병':-12,'사':-12,'묘':-10,'절':-10,'태':-5,'양':0};
   const rnk=tgRankMap[tg]||{cR:1,mR:1,rR:1,hR:1};
-  const fScore=Math.max(10,Math.min(95,(tgScoreBase[tg]||50)+(f12ScoreAdj[f12]||0)));
-  return {text:t,cRank:rnk.cR,mRank:rnk.mR,rRank:rnk.rR,hRank:rnk.hR,score:fScore};
+  // C회차: 등급 = 십신 베이스 ± 앉은자리 에너지 ± 용신/기신 ± 궁위 작용 (0~2 클램프)
+  const seatAdj=SEAT12_ADJ[f12]||0;
+  const rk=v=>Math.max(0,Math.min(2,v));
+  const cR=rk(rnk.cR+seatAdj+yongAdj+act.adj.career),mR=rk(rnk.mR+seatAdj+yongAdj+act.adj.money),
+        rR=rk(rnk.rR+seatAdj+yongAdj+act.adj.relation),hR=rk(rnk.hR+seatAdj+yongAdj+act.adj.health);
+  const fScore=Math.max(10,Math.min(95,(tgScoreBase[tg]||50)+(f12ScoreAdj[f12]||0)+yongAdj*10));
+  return {text:t,cRank:cR,mRank:mR,rRank:rR,hRank:hR,score:fScore};
 }
 
 function analyzeSw(sw,dP,mP,yP,currentAge,dwList){
@@ -3561,12 +3727,19 @@ function analyzeSw(sw,dP,mP,yP,currentAge,dwList){
   const curDw=dwList[dwIdx];
   return sw.map(s=>{
     const tg=TG_N[getTG(dsi,s.si)];
-    const chungD=isChung(s.bi,dP.bi);
-    const chungM=isChung(s.bi,mP.bi);
-    const chungY=isChung(s.bi,yP.bi);
     const chungDw=curDw?isChung(s.bi,curDw.bi):false;
-    const hapD=getYukhap(s.bi,dP.bi);
-    const f12=getF12(dsi,s.bi);
+    // ═══ C회차 2026-09-26: 3층 파이프라인 — ①천간+지지 십신 ②앉은자리 12운성 ③궁위 합충형 + 용신·기신 톤(T1) ═══
+    const tgBIdx=getTGBr(dsi,s.bi);
+    const seat=getF12(s.si,s.bi); // S1: 운 12운성 = 앉은자리
+    const energy=SEAT12_ADJ[seat]||0;
+    const act=unGungActions(s.bi,s.si);
+    let yongAdj=0,yongLine='';
+    if(UN_YONG_ELEM!=null){
+      const hitY=STEM_E[s.si]===UN_YONG_ELEM||BRAN_E[s.bi]===UN_YONG_ELEM;
+      const hitG=UN_GI_ELEM!=null&&(STEM_E[s.si]===UN_GI_ELEM||BRAN_E[s.bi]===UN_GI_ELEM);
+      if(hitY&&!hitG){yongAdj=1;yongLine='💧 이 해엔 당신을 살리는 기운이 실려 와요 — 같은 사건도 유리하게 풀리는 힘이 있는 해예요.';}
+      else if(hitG&&!hitY){yongAdj=-1;yongLine='🔥 이 해엔 이미 많은 기운이 더 들어와요 — 채우기보다 덜어내는 전략이 맞는 해예요.';}
+    }
 
     // 십신별 카테고리 데이터 {career, money, relation, health, careerRank, moneyRank, relationRank, healthRank}
     // rank: 2=좋음 1=보통 0=주의
@@ -3651,12 +3824,26 @@ function analyzeSw(sw,dP,mP,yP,currentAge,dwList){
       hope='꾸준히 쌓은 노력이 성과로 나타나는 해가 될 수 있어요.';
       gaeun='나의 강점을 발휘할 수 있는 분야에 에너지를 집중하세요.';
     }
+    // ── C회차 문장 조립: 지지 십신 바탕 → 앉은자리 에너지 → 용신·기신 → 3자 완성 → 궁위 합충형 ──
+    const SW_BASE_B=['주체성이 굳어지는','경쟁·비교의 자극이 깔리는','여유와 표현이 살아나는','틀을 흔들고 싶어지는','기회와 활동량이 커지는','실속과 관리의 감각이 서는','긴장과 책임의 무게가 깔리는','질서와 안정이 잡혀가는','생각과 연구가 깊어지는','배움과 보호가 받쳐주는'];
+    if(tgBIdx>=0) main+=` 바탕으로는 ${SW_BASE_B[tgBIdx]} 기운이 일 년을 받쳐요.`;
+    if(energy>0) main+=` 이 해의 기운은 유난히 힘 있게 발현돼요.`;
+    else if(energy<0) main+=` 이 해의 기운은 요란하지 않게 스며들어요.`;
+    if(yongLine) main+=' '+yongLine;
     const triadTag=unTriadTag(s.bi,UN_NATAL_BIS); if(triadTag) main+=triadTag; // 3자 완성 우선 표기 (2026-09-24)
-    if(chungD) main+=` ⚡ 일지와 충(冲) — 건강·배우자·직업에서 예상 밖의 변화나 이동이 올 수 있어요.`;
-    if(chungM) main+=` 월지와 충 — 직업·부모·윗사람 관계에서 변동이 생기기 쉬운 해예요.`;
-    if(hapD) main+=` ✨ 일지와 ${hapD}합 — 결혼·계약·파트너십에서 좋은 인연이 연결될 가능성이 높아요.`;
-    if(chungDw&&curDw) main+=` 대운 지지와도 이중 충 — 이 해는 특히 변화가 크게 나타날 수 있어요.`;
-    return{year:s.year,si:s.si,bi:s.bi,mainText:main,cautionText:caution,hopeText:hope,gaeun,cat};
+    act.lines.forEach(l=>{main+=' '+l;});
+    if(chungDw&&curDw) main+=` 대운 지지와도 충이 겹치는 해 — 변화의 진폭이 특히 커질 수 있어요.`;
+    // 등급 = 십신 베이스 ± 앉은자리 에너지 ± 용신/기신 ± 궁위 작용 (0~2 클램프)
+    const rk=v=>Math.max(0,Math.min(2,v));
+    // 칸별 근거 꼬리 — 이 사람 원국에 걸린 작용을 칸 텍스트에 명시 (같은 해라도 사람마다 다르게)
+    const tail=c=>{const w=(act.why[c]||[]).slice();if(yongAdj>0)w.push('살리는 기운의 해');else if(yongAdj<0)w.push('덜어낼 기운의 해');return w.length?` 올해는 ${w.join('·')}의 영향이 이 영역에 겹쳐요.`:'';};
+    const cat2={career:cat.career+tail('career'),money:cat.money+tail('money'),relation:cat.relation+tail('relation'),health:cat.health+tail('health'),
+      careerRank:rk(cat.careerRank+energy+yongAdj+act.adj.career),
+      moneyRank:rk(cat.moneyRank+energy+yongAdj+act.adj.money),
+      relationRank:rk(cat.relationRank+energy+yongAdj+act.adj.relation),
+      healthRank:rk(cat.healthRank+energy+yongAdj+act.adj.health)};
+    if(yongAdj<0) caution+=' 이런 해에는 확장보다 정리·마무리가 안전해요.';
+    return{year:s.year,si:s.si,bi:s.bi,mainText:main,cautionText:caution,hopeText:hope,gaeun,cat:cat2};
   });
 }
 
@@ -6400,6 +6587,7 @@ function doCalc(skipConfirm){
 
   const pillars=[yP,mP,dP,hP].filter(Boolean);
   UN_NATAL_BIS=pillars.map(p=>p.bi); // 운-원국 3자 완성 감지용 (2026-09-24)
+  UN_NATAL_SIS=pillars.map(p=>p.si); // 운-원국 천간합 감지용 (2026-09-26 C회차)
   document.getElementById('sajuChart').innerHTML=renderSajuChart(pillars,dP.si,hourRaw>=0);
   document.getElementById('distCharts').innerHTML=renderDistCharts(pillars,dP.si);
   document.getElementById('dwInfo').innerHTML=
