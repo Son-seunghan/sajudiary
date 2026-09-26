@@ -3429,10 +3429,47 @@ function pairHyung(a,b){ // 사신(합 분류)·충 우선쌍 제외한 2자 형
 const KP_EUN=k=>((k.charCodeAt(0)-0xAC00)%28)?'은':'는';
 const KP_YI=k=>((k.charCodeAt(0)-0xAC00)%28)?'이':'가';
 const KP_WA=k=>((k.charCodeAt(0)-0xAC00)%28)?'과':'와';
+// ── C-2 (2026-09-26 손님 지시 A): 세운 해석의 용신·기신 그룹 분기 — 편지체(용어 없음) ──
+const TG_GRP_OF=['비겁','비겁','식상','식상','재성','재성','관성','관성','인성','인성'];
+const SW_YONG_TONE={
+ '비겁':'그리고 이 기운은 당신을 살리는 방향이에요. 올해 커지는 자신감과 홀로 서고 싶은 마음은 억누를 게 아니라 계획으로 옮겨야 할 신호예요.',
+ '식상':'그리고 이 기운은 당신을 살리는 방향이에요. 올해 만들고 말하고 움직인 것들이 그대로 밑천으로 남아요.',
+ '재성':'그리고 이 기운은 당신을 살리는 방향이에요. 올해 오는 기회는 놓치면 아까운 진짜예요. 적극적으로 잡아도 좋아요.',
+ '관성':'그리고 이 기운은 당신을 살리는 방향이에요. 올해 주어지는 책임과 자리는 부담이 아니라 도약대예요.',
+ '인성':'그리고 이 기운은 당신을 살리는 방향이에요. 올해의 배움과 귀인은 그대로 받아들이면 돼요. 배운 만큼 단단해져요.'};
+const SW_GI_TONE={
+ '비겁':'다만 당신은 이 기운을 이미 넉넉히 갖고 태어난 사람이라, 올해의 고집과 독주 욕구는 한 템포 눌러야 해요. 혼자 결정하고 싶을수록 상의가 답이에요.',
+ '식상':'다만 당신은 이 기운을 이미 넉넉히 갖고 태어난 사람이라, 올해는 벌이기보다 거두는 쪽이 맞아요. 말은 아끼고, 하던 일을 매듭지어요.',
+ '재성':'다만 당신은 이 기운을 이미 넉넉히 갖고 태어난 사람이라, 올해의 기회는 커 보일수록 걸러야 해요. 욕심보다 검증이 먼저예요.',
+ '관성':'다만 당신은 이 기운을 이미 넉넉히 갖고 태어난 사람이라, 올해 들어오는 책임은 골라서 받아야 해요. 다 짊어지면 몸이 먼저 알아채요.',
+ '인성':'다만 당신은 이 기운을 이미 넉넉히 갖고 태어난 사람이라, 올해는 더 채우기보다 정리하는 해예요. 새 공부를 벌이기보다 하던 것을 결과물로 매듭지어요.'};
+// A 확장: 용신·기신 그룹 해에는 4칸 기본문 자체를 이 사주 기준 처방으로 교체 (Deep과 공용 문장 — 용어 없음)
+const SW_YONG_CAT={
+ '비겁':{career:'내 이름을 걸 일에 유리한 해예요. 독립·이직·1인 프로젝트를 시작하기 좋은 타이밍이에요.',money:'남에게 기대지 않고 스스로 버는 구조를 세우면 커지는 해예요.',relation:'대등하게 밀어주는 동료·파트너가 들어오는 해예요. 함께할 사람을 고르세요.',health:'체력이 받쳐주는 해예요. 운동 습관을 만들면 몇 년을 갑니다.'},
+ '식상':{career:'만들고 발표하고 가르치는 일에서 성과가 나는 해예요. 결과물을 세상에 내놓으세요.',money:'재능이 수입으로 바뀌는 해예요. 부업·콘텐츠·작품이 돈이 됩니다.',relation:'표현할수록 사람이 모여요. 모임과 발표 자리를 피하지 마세요.',health:'활동량이 늘어도 회복이 빠른 해예요. 다만 목·호흡기는 아껴주세요.'},
+ '재성':{career:'성과가 숫자로 증명되는 해예요. 실적 중심의 일에서 인정받아요.',money:'재물 흐름이 트이는 해예요. 저축·투자 계획을 세우고 실행하기 좋아요.',relation:'인연이 활발해지는 해예요. 소개와 만남에 열려 있으세요.',health:'컨디션은 좋지만 바빠서 끼니를 거르기 쉬워요. 식사 리듬만 지키세요.'},
+ '관성':{career:'승진·발탁·자격의 해예요. 공식적인 자리와 시험에 강한 운이에요.',money:'직위와 함께 수입이 안정되는 해예요. 큰 모험보다 자리를 굳히세요.',relation:'윗사람의 인정과 끌어줌이 있는 해예요. 공적인 관계를 넓히세요.',health:'규칙적인 생활이 잘 지켜지는 해예요. 그 리듬을 자산으로 만드세요.'},
+ '인성':{career:'배움이 실력으로, 실력이 자리로 이어지는 해예요. 자격·학위·문서운이 좋아요.',money:'당장의 큰돈보다 미래 가치가 쌓이는 해예요. 자기계발 투자가 남는 장사예요.',relation:'귀인과 멘토가 나타나는 해예요. 어른들의 조언에 귀를 여세요.',health:'몸과 마음이 안정되는 해예요. 수면의 질이 특히 좋아져요.'}};
+const SW_GI_CAT={
+ '비겁':{career:'주도권 욕심이 커지는 해예요. 독단으로 결정하면 뒤탈이 나요. 협의 후 움직이세요.',money:'내 몫을 지키는 게 우선인 해예요. 동업·보증·빌려주기는 피하세요.',relation:'경쟁심이 관계를 갉아먹기 쉬운 해예요. 이기는 것보다 지키는 것을 고르세요.',health:'에너지 과열로 번아웃이 오기 쉬워요. 쉼표를 일정에 먼저 넣으세요.'},
+ '식상':{career:'벌인 일이 많아 수습이 과제인 해예요. 새 판보다 마무리가 실적이에요.',money:'씀씀이가 커지는 해예요. 기분에 따른 지출을 조심하세요.',relation:'말이 앞서 오해가 생기기 쉬운 해예요. 중요한 말일수록 하루 재우고 하세요.',health:'과로와 과식이 같이 오는 해예요. 몸이 보내는 신호를 무시하지 마세요.'},
+ '재성':{career:'일 욕심에 몸이 축나기 쉬운 해예요. 성과보다 지속 가능한 페이스가 먼저예요.',money:'커 보이는 기회일수록 함정이 있는 해예요. 검증과 분산이 원칙이에요.',relation:'바빠서 소중한 사람을 놓치기 쉬워요. 일정에 사람을 먼저 넣으세요.',health:'피로 누적이 간·소화기로 오는 해예요. 술자리와 야식을 줄이세요.'},
+ '관성':{career:'책임이 몰려드는 해예요. 다 받으면 무너져요 — 거절도 실력이에요.',money:'스트레스성 지출이 커지는 해예요. 홧김 소비 전에 하루만 기다리세요.',relation:'압박이 짜증으로 새어 나와 가까운 사람이 다치기 쉬운 해예요.',health:'긴장이 수면과 소화를 무너뜨리는 해예요. 몸 관리가 최우선 과제예요.'},
+ '인성':{career:'검토만 길어지고 결정이 미뤄지는 해예요. 마감일을 먼저 박으세요.',money:'배움과 정보에 돈을 쓰기 쉬운 해인데, 이미 아는 것부터 써먹는 게 남는 장사예요.',relation:'생각이 많아 혼자로 기울어요. 사람과의 약속을 의식적으로 잡으세요.',health:'생각 과다로 수면이 얕아지는 해예요. 자기 전 화면을 끊는 것부터 시작하세요.'}};
+// ── C-2 (손님 지시 B): 운-원국 2자 반합 인정 — 왕지(子午卯酉) 포함 반합만 성립 ──
+function pairBanhap(a,b){
+  if(a===b)return null;
+  const G=[[2,6,10,1],[8,0,4,4],[5,9,1,3],[11,3,7,0]];
+  for(const[g0,g1,g2,el] of G){
+    if([g0,g1,g2].includes(a)&&[g0,g1,g2].includes(b)&&(a===g1||b===g1))return el;
+  }
+  return null;
+}
 function unGungActions(unBi,unSi){
   const adj={career:0,money:0,relation:0,health:0};const lines=[];
   const why={career:[],money:[],relation:[],health:[]}; // 칸별 등급 근거 (C회차: 4칸 텍스트 개인화용)
   const mark=(c,d,w)=>{adj[c]+=d;why[c].push(w);};
+  const hasTriad=!!unTriadTag(unBi,UN_NATAL_BIS); // 3자 완성이면 반합은 생략 (부분집합 중복 방지)
   UN_NATAL_BIS.forEach((nb,i)=>{
     if(nb==null)return;
     if(isChung(unBi,nb)){
@@ -3450,6 +3487,16 @@ function unGungActions(unBi,unSi){
         if(yh){
           lines.push(`✨ ${GUNG_NM[i]} ${BRANS_H[nb]}${KP_WA(BRANS[nb])} 육합 — ${GUNG_MEAN[i]}가 이 운과 단단히 묶여요${i===2?' (인연·계약이 연결되는 흐름)':i===1?' (큰 이동보다 내실이 유리한 흐름)':''}.`);
           if(i===2)mark('relation',1,'일지 육합');
+        } else if(!hasTriad){
+          // C-2 (손님 확정 B): 왕지 포함 2자 반합 — 3자 완성이 잡힌 해는 중복 방지 위해 생략
+          const bh=pairBanhap(unBi,nb);
+          if(bh!=null){
+            let tone='기운이 강하게 뭉치는',d=0;
+            if(UN_YONG_ELEM===bh){tone='당신에게 필요한 기운이 만들어지는';d=1;}
+            else if(UN_GI_ELEM===bh){tone='이미 넉넉한 기운을 더 키우는';d=-1;}
+            lines.push(`✨ ${GUNG_NM[i]} ${BRANS_H[nb]}${KP_WA(BRANS[nb])} ${ELEM_N[bh]}국 반합 — ${tone} 결속이 ${GUNG_MEAN[i]}에 걸려요.`);
+            if(d!==0)(GUNG_CATS[i]||[]).forEach(c=>mark(c,d,`${ELEM_N[bh]}국 반합`));
+          }
         }
       }
     }
@@ -3785,7 +3832,13 @@ function analyzeSw(sw,dP,mP,yP,currentAge,dwList){
                relation:'갈등과 경쟁이 공존. 진정한 편을 가려내는 한 해.',relationRank:0,
                health:'무리와 과잉이 건강을 해칠 수 있어요. 절제가 중요.',healthRank:1}
     };
-    const cat=catMap[tg]||{career:'변화와 성장이 공존합니다.',careerRank:1,money:'수입·지출의 균형을 잡는 해.',moneyRank:1,relation:'주변 관계를 점검하고 다지는 시기.',relationRank:1,health:'일상적인 건강 관리를 꾸준히 유지하세요.',healthRank:1};
+    let cat=catMap[tg]||{career:'변화와 성장이 공존합니다.',careerRank:1,money:'수입·지출의 균형을 잡는 해.',moneyRank:1,relation:'주변 관계를 점검하고 다지는 시기.',relationRank:1,health:'일상적인 건강 관리를 꾸준히 유지하세요.',healthRank:1};
+    // C-2 (A): 용신·기신 그룹 해에는 4칸 기본문을 이 사주 기준 처방으로 교체 (등급 산식은 그대로)
+    if(UN_YONG_INFO&&UN_YONG_INFO.group){
+      const _g=TG_GRP_OF[getTG(dsi,s.si)];
+      if(UN_YONG_INFO.group===_g&&SW_YONG_CAT[_g]) cat=Object.assign({},cat,SW_YONG_CAT[_g]);
+      else if(UN_YONG_INFO.gi&&UN_YONG_INFO.gi.group===_g&&SW_GI_CAT[_g]) cat=Object.assign({},cat,SW_GI_CAT[_g]);
+    }
 
     let main='',caution='',hope='',gaeun='';
     if(tg==='정관'||tg==='편관'){
@@ -3824,7 +3877,13 @@ function analyzeSw(sw,dP,mP,yP,currentAge,dwList){
       hope='꾸준히 쌓은 노력이 성과로 나타나는 해가 될 수 있어요.';
       gaeun='나의 강점을 발휘할 수 있는 분야에 에너지를 집중하세요.';
     }
-    // ── C회차 문장 조립: 지지 십신 바탕 → 앉은자리 에너지 → 용신·기신 → 3자 완성 → 궁위 합충형 ──
+    // ── C회차 문장 조립: 용신·기신 그룹 해석 → 지지 십신 바탕 → 앉은자리 에너지 → 용신·기신 → 3자 완성 → 궁위 합충형 ──
+    // C-2 (A): 같은 십신 해도 이 사주의 용신·기신 그룹이면 주제 해석 자체가 갈라짐
+    if(UN_YONG_INFO&&UN_YONG_INFO.group){
+      const tgGrp=TG_GRP_OF[getTG(dsi,s.si)];
+      if(UN_YONG_INFO.group===tgGrp) main+=' '+SW_YONG_TONE[tgGrp];
+      else if(UN_YONG_INFO.gi&&UN_YONG_INFO.gi.group===tgGrp) main+=' '+SW_GI_TONE[tgGrp];
+    }
     const SW_BASE_B=['주체성이 굳어지는','경쟁·비교의 자극이 깔리는','여유와 표현이 살아나는','틀을 흔들고 싶어지는','기회와 활동량이 커지는','실속과 관리의 감각이 서는','긴장과 책임의 무게가 깔리는','질서와 안정이 잡혀가는','생각과 연구가 깊어지는','배움과 보호가 받쳐주는'];
     if(tgBIdx>=0) main+=` 바탕으로는 ${SW_BASE_B[tgBIdx]} 기운이 일 년을 받쳐요.`;
     if(energy>0) main+=` 이 해의 기운은 유난히 힘 있게 발현돼요.`;
