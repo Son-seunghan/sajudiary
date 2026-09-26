@@ -3523,7 +3523,7 @@ function buildTgProfileLetter(dsi,cnts,nameWord){
   const domiGrp=GRP[Math.floor(domi/2)].nm;
   const D=TG_DICT_L[domi];
   const yongGrp=yi?yi.group:null, giGrp=(yi&&yi.gi)?yi.gi.group:null;
-  let strTxt=`${nameWord} 안에서 가장 큰 것은 \'${D.who}\'이에요. ${D.str}`;
+  let strTxt=`${nameWord} 안에서 가장 큰 것은 \'${D.who}\'${((D.who.charCodeAt(D.who.length-1)-0xAC00)%28)?'이에요':'예요'}. ${D.str}`;
   let second=-1;for(let i=0;i<10;i++){if(i!==domi&&cnt(i)>=2&&(second<0||cnt(i)>cnt(second)))second=i;}
   if(second>=0) strTxt+=` 여기에 \'${TG_DICT_L[second].who}\'가 곁을 받쳐줘요.`;
   if(yongGrp&&domiGrp===yongGrp) strTxt+=` 이 힘은 쓰면 쓸수록 삶이 풀리는, 당신을 살리는 방향이기도 해요.`;
